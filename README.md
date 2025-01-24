@@ -1,5 +1,7 @@
 # Helm Charts - Cloudscript
 
+[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/cloudscript)](https://artifacthub.io/packages/search?repo=cloudscript)
+
 Bem-vindo ao repositório oficial de Helm Charts da **Cloudscript**! Este repositório centraliza todos os charts desenvolvidos pela empresa, fornecendo uma maneira fácil e padronizada de implantar nossas ferramentas em clusters Kubernetes.
 
 ## Estrutura do Repositório
