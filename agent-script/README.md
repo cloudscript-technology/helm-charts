@@ -30,7 +30,7 @@ O comportamento do AgentScript pode ser personalizado via o arquivo `values.yaml
 | Parâmetro               | Descrição                                             | Valor Padrão                              |
 |-------------------------|-------------------------------------------------------|-------------------------------------------|
 | `replicaCount`         | Número de réplicas do deployment.                    | `1`                                       |
-| `image.repository`     | Imagem Docker do AgentScript.                        | `registry.cloudscript.com.br/agentscript/agent-script` |
+| `image.repository`     | Imagem Docker do AgentScript.                        | `jonathanschmittcs/cloudscript` |
 | `image.pullPolicy`     | Política de pull da imagem.                          | `IfNotPresent`                            |
 | `image.tag`            | Tag da imagem Docker.                                | `Chart appVersion`                        |
 | `imagePullSecrets`     | Segredos para autenticação em registries privados.   | `[]`                                      |
