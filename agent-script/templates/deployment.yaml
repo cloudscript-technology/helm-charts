@@ -54,7 +54,11 @@ spec:
             - name: ENV
               value: 'production'
             - name: AGENT_SERVER_URL
-              value: 'https://agent-server.opsscript.io'
+              value: {{ .Values.config.agentServerUrl }}
+            - name: AGENT_ID
+              value: {{ .Values.config.agentId }}
+            - name: AGENT_TOKEN
+              value: {{ .Values.config.agentToken }}
             {{- with .Values.env }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
