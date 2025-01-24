@@ -3,7 +3,7 @@
 replicaCount: 1
 
 image:
-  repository: registry.cloudscript.com.br/agentscript/agent-script
+  repository: jonathanschmittcs/cloudscript
   pullPolicy: IfNotPresent
   # Default is the chart appVersion
   tag: ""
