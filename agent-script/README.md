@@ -1,5 +1,7 @@
 # AgentScript Helm Chart
 
+[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/cloudscript)](https://artifacthub.io/packages/search?repo=cloudscript)
+
 O **AgentScript** é uma ferramenta desenvolvida pela Cloudscript que atua como um agente dentro do cluster Kubernetes do cliente. Ele coleta informações relevantes para gerar alertas personalizados e criar chamados automaticamente na plataforma **OpsScript**.
 
 Este Helm Chart facilita a implantação do AgentScript, incluindo recursos essenciais como Deployment, Horizontal Pod Autoscaler (HPA) e ServiceAccount com permissões específicas para monitoramento do cluster.
