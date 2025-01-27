@@ -1,24 +1,39 @@
 apiVersion: v2
 name: agent-script
-description: A Helm chart for Kubernetes
-
-# A chart can be either an 'application' or a 'library' chart.
-#
-# Application charts are a collection of templates that can be packaged into versioned archives
-# to be deployed.
-#
-# Library charts provide useful utilities or functions for the chart developer. They're included as
-# a dependency of application charts to inject those utilities and functions into the rendering
-# pipeline. Library charts do not define any templates and therefore cannot be deployed.
+description: The AgentScript is a tool developed by Cloudscript that acts as an agent within the client's Kubernetes cluster. It collects relevant information to generate personalized alerts and automatically create tickets in the OpsScript platform.
 type: application
-
-# This is the chart version. This version number should be incremented each time you make changes
-# to the chart and its templates, including the app version.
-# Versions are expected to follow Semantic Versioning (https://semver.org/)
-version: 0.4.0
-
-# This is the version number of the application being deployed. This version number should be
-# incremented each time you make changes to the application. Versions are not expected to
-# follow Semantic Versioning. They should reflect the version the application is using.
-# It is recommended to use it with quotes.
+version: 0.5.0
 appVersion: "v0.0.19"
+kubeVersion: ">= 1.27.0-0"
+home: https://cloudscript.com.br
+icon: https://charts.cloudscript.com.br/helm-charts/agent-script/cloudscript-logo.png
+keywords:
+  - kubernetes
+  - helm
+  - agent
+  - cloudscript
+  - monitoring
+  - logging
+maintainers:
+  - name: Jonathan Schmitt
+    email: jonathan.schmitt@cloudscript.com.br
+  - name: Helias Rodrigues
+    email: helias.rodrigues@cloudscript.com.br
+dependencies: []
+annotations:
+  artifacthub.io/changes: |
+    - kind: added
+      description: First release
+  artifacthub.io/containsSecurityUpdates: "true"
+  artifacthub.io/images: |
+    - name: agent-script
+      image: registry.cloudscript.com.br/packages/agent-script:v0.0.19
+  artifacthub.io/displayName: "Agent Script"
+  artifacthub.io/license: "Apache-2.0"
+  artifacthub.io/provider: "Cloudscript"
+  artifacthub.io/links: |
+    - name: Cloudscript
+      url: https://cloudscript.com.br
+    - name: Source
+      url: https://github.com/cloudscript-technology/helm-charts
+  artifacthub.io/valuesSchema: "https://charts.cloudscript.com.br/agent-script/0.5.0/values-schema.json"

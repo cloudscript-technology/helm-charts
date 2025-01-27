@@ -1,0 +1,182 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+        "replicaCount": {
+            "type": "integer",
+            "default": 1,
+            "description": "Number of replicas for the deployment."
+        },
+        "image": {
+            "type": "object",
+            "properties": {
+                "repository": {
+                    "type": "string",
+                    "default": "registry.cloudscript.com.br/packages/agent-script",
+                    "description": "Image repository."
+                },
+                "pullPolicy": {
+                    "type": "string",
+                    "default": "IfNotPresent",
+                    "description": "Image pull policy."
+                },
+                "tag": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Image tag. Default is the chart appVersion."
+                }
+            }
+        },
+        "imagePullSecrets": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            },
+            "default": [],
+            "description": "Image pull secrets."
+        },
+        "nameOverride": {
+            "type": "string",
+            "default": "",
+            "description": "Override the name of the chart."
+        },
+        "fullnameOverride": {
+            "type": "string",
+            "default": "",
+            "description": "Override the full name of the chart."
+        },
+        "envFromSecret": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Enable environment variables from secret."
+                },
+                "secretName": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Name of the secret."
+                }
+            }
+        },
+        "config": {
+            "type": "object",
+            "properties": {
+                "agentServerUrl": {
+                    "type": "string",
+                    "default": "",
+                    "description": "URL of the agent server."
+                },
+                "agentId": {
+                    "type": "string",
+                    "default": "",
+                    "description": "ID of the agent."
+                },
+                "agentToken": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Token for the agent."
+                }
+            }
+        },
+        "serviceAccount": {
+            "type": "object",
+            "properties": {
+                "create": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Create a service account."
+                },
+                "automount": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Automount service account token."
+                },
+                "annotations": {
+                    "type": "object",
+                    "default": {},
+                    "description": "Annotations for the service account."
+                },
+                "name": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Name of the service account."
+                },
+                "namespace": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Namespace for the service account."
+                }
+            }
+        },
+        "podAnnotations": {
+            "type": "object",
+            "default": {},
+            "description": "Annotations for the pod."
+        },
+        "podLabels": {
+            "type": "object",
+            "default": {},
+            "description": "Labels for the pod."
+        },
+        "podSecurityContext": {
+            "type": "object",
+            "default": {},
+            "description": "Security context for the pod."
+        },
+        "securityContext": {
+            "type": "object",
+            "default": {},
+            "description": "Security context for the container."
+        },
+        "resources": {
+            "type": "object",
+            "default": {},
+            "description": "Resource requests and limits for the container."
+        },
+        "autoscaling": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Enable autoscaling."
+                },
+                "minReplicas": {
+                    "type": "integer",
+                    "default": 1,
+                    "description": "Minimum number of replicas."
+                },
+                "maxReplicas": {
+                    "type": "integer",
+                    "default": 100,
+                    "description": "Maximum number of replicas."
+                },
+                "targetCPUUtilizationPercentage": {
+                    "type": "integer",
+                    "default": 80,
+                    "description": "Target CPU utilization percentage."
+                }
+            }
+        },
+        "nodeSelector": {
+            "type": "object",
+            "default": {},
+            "description": "Node selector for the pod."
+        },
+        "tolerations": {
+            "type": "array",
+            "items": {
+                "type": "object"
+            },
+            "default": [],
+            "description": "Tolerations for the pod."
+        },
+        "affinity": {
+            "type": "object",
+            "default": {},
+            "description": "Affinity rules for the pod."
+        }
+    }
+}
