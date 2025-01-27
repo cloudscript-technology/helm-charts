@@ -1,40 +1,62 @@
 # Default values for agent-script
 
+# Number of replicas for the deployment
 replicaCount: 1
 
 image:
+  # Image repository
   repository: registry.cloudscript.com.br/packages/agent-script
+  # Image pull policy
   pullPolicy: IfNotPresent
-  # Default is the chart appVersion
+  # Image tag. Default is the chart appVersion
   tag: ""
 
+# Image pull secrets
 imagePullSecrets: []
+
+# Override the name of the chart
 nameOverride: ""
+
+# Override the full name of the chart
 fullnameOverride: ""
 
 envFromSecret:
+  # Enable environment variables from secret
   enabled: false
+  # Name of the secret
   secretName: ""
 
 config:
+  # URL of the agent server
   agentServerUrl: ""
+  # ID of the agent
   agentId: ""
+  # Token for the agent
   agentToken: ""
 
 serviceAccount:
+  # Create a service account
   create: true
+  # Automount service account token
   automount: true
+  # Annotations for the service account
   annotations: {}
+  # Name of the service account
   name: ""
-  # Required if create=true
+  # Namespace for the service account. Required if create=true
   namespace: "" 
 
+# Annotations for the pod
 podAnnotations: {}
+
+# Labels for the pod
 podLabels: {}
 
+# Security context for the pod
 podSecurityContext: {}
   # fsGroup: 2000
 
+# Security context for the container
 securityContext: {}
   # capabilities:
   #   drop:
@@ -43,6 +65,7 @@ securityContext: {}
   # runAsNonRoot: true
   # runAsUser: 1000
 
+# Resource requests and limits for the container
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
   # choice for the user. This also increases chances charts run on environments with little
@@ -56,14 +79,21 @@ resources: {}
   #   memory: 128Mi
 
 autoscaling:
+  # Enable autoscaling
   enabled: false
+  # Minimum number of replicas
   minReplicas: 1
+  # Maximum number of replicas
   maxReplicas: 100
+  # Target CPU utilization percentage
   targetCPUUtilizationPercentage: 80
   # targetMemoryUtilizationPercentage: 80
 
+# Node selector for the pod
 nodeSelector: {}
 
+# Tolerations for the pod
 tolerations: []
 
+# Affinity rules for the pod
 affinity: {}
