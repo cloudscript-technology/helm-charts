@@ -26,6 +26,8 @@ serviceAccount:
   automount: true
   annotations: {}
   name: ""
+  # Required if create=true
+  namespace: "" 
 
 podAnnotations: {}
 podLabels: {}
