@@ -2,97 +2,96 @@
 
 [![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/cloudscript)](https://artifacthub.io/packages/search?repo=cloudscript)
 
-O **AgentScript** é uma ferramenta desenvolvida pela Cloudscript que atua como um agente dentro do cluster Kubernetes do cliente. Ele coleta informações relevantes para gerar alertas personalizados e criar chamados automaticamente na plataforma **OpsScript**.
+**AgentScript** is a tool developed by Cloudscript that acts as an agent within the customer's Kubernetes cluster. It collects relevant information to generate custom alerts and automatically create tickets on the **OpsScript** platform.
 
-Este Helm Chart facilita a implantação do AgentScript, incluindo recursos essenciais como Deployment, Horizontal Pod Autoscaler (HPA) e ServiceAccount com permissões específicas para monitoramento do cluster.
+This Helm Chart simplifies the deployment of AgentScript, including essential resources such as Deployment, Horizontal Pod Autoscaler (HPA), and ServiceAccount with specific permissions for cluster monitoring.
 
-## Instalação
+## Installation
 
-### Pré-requisitos
+### Prerequisites
 - Kubernetes 1.27+
 - Helm 3.0+
 
-### Comando de Instalação
+### Installation Command
 ```bash
 helm repo add cloudscript https://charts.cloudscript.com.br
 helm repo update
 helm install agent-script cloudscript/agent-script
 ```
 
-Substitua `agents-cript` pelo nome desejado para sua instalação.
+Replace `agent-script` with your desired name for the installation.
 
-## Configuração
+## Configuration
 
-O comportamento do AgentScript pode ser personalizado via o arquivo `values.yaml`. Abaixo está a lista de valores configuráveis e suas descrições:
+The behavior of AgentScript can be customized via the `values.yaml` file. Below is the list of configurable values and their descriptions:
 
-### Configuração Básica
+### Basic Configuration
 
-| Parâmetro               | Descrição                                             | Valor Padrão                              |
-|-------------------------|-------------------------------------------------------|-------------------------------------------|
-| `replicaCount`         | Número de réplicas do deployment.                    | `1`                                       |
-| `image.repository`     | Imagem Docker do AgentScript.                        | `registry.cloudscript.com.br/packages/agent-script` |
-| `image.pullPolicy`     | Política de pull da imagem.                          | `IfNotPresent`                            |
-| `image.tag`            | Tag da imagem Docker.                                | `Chart appVersion`                        |
-| `imagePullSecrets`     | Segredos para autenticação em registries privados.   | `[]`                                      |
-| `envFromSecret.enabled`| Habilitar uso de secret para configurar variáveis.    | `false`                                   |
-| `envFromSecret.secretName`| Nome do Secret com variáveis de ambiente.         | `""`                                      |
-| `config.agentServerUrl`| URL do servidor do AgentScript.                      | `""`                                      |
-| `config.agentId`       | Identificador único do agente.                       | `""`                                      |
-| `config.agentToken`    | Token de autenticação do agente.                     | `""`                                      |
+| Parameter               | Description                                          | Default Value                              |
+|-------------------------|------------------------------------------------------|--------------------------------------------|
+| `replicaCount`         | Number of deployment replicas.                       | `1`                                        |
+| `image.repository`     | AgentScript Docker image.                            | `registry.cloudscript.com.br/packages/agent-script` |
+| `image.pullPolicy`     | Image pull policy.                                   | `IfNotPresent`                             |
+| `image.tag`            | Docker image tag.                                    | `Chart appVersion`                         |
+| `imagePullSecrets`     | Secrets for authentication in private registries.    | `[]`                                       |
+| `envFromSecret.enabled`| Enable secret-based configuration for environment variables. | `false`                                |
+| `envFromSecret.secretName`| Name of the Secret with environment variables.    | `""`                                       |
+| `config.agentServerUrl`| AgentScript server URL.                              | `""`                                       |
+| `config.agentId`       | Unique identifier for the agent.                     | `""`                                       |
+| `config.agentToken`    | Authentication token for the agent.                  | `""`                                       |
 
 ### ServiceAccount
 
-| Parâmetro               | Descrição                                             | Valor Padrão                              |
-|-------------------------|-------------------------------------------------------|-------------------------------------------|
-| `serviceAccount.create`| Criar ServiceAccount automaticamente.                | `true`                                    |
-| `serviceAccount.automount`| Automount de tokens de ServiceAccount.             | `true`                                    |
-| `serviceAccount.annotations`| Anotações para a ServiceAccount.                  | `{}`                                      |
-| `serviceAccount.name`  | Nome personalizado da ServiceAccount.                | `""`                                      |
+| Parameter               | Description                                          | Default Value                              |
+|-------------------------|------------------------------------------------------|--------------------------------------------|
+| `serviceAccount.create`| Automatically create ServiceAccount.                 | `true`                                     |
+| `serviceAccount.automount`| Automount ServiceAccount tokens.                   | `true`                                     |
+| `serviceAccount.annotations`| Annotations for the ServiceAccount.              | `{}`                                       |
+| `serviceAccount.name`  | Custom name for the ServiceAccount.                  | `""`                                       |
 
 ### Autoscaling (HPA)
 
-| Parâmetro                          | Descrição                                  | Valor Padrão |
-|------------------------------------|--------------------------------------------|--------------|
-| `autoscaling.enabled`             | Habilitar o autoscaling horizontal.        | `false`      |
-| `autoscaling.minReplicas`         | Número mínimo de réplicas.                 | `1`          |
-| `autoscaling.maxReplicas`         | Número máximo de réplicas.                 | `100`        |
-| `autoscaling.targetCPUUtilizationPercentage` | Utilização alvo de CPU para escalonamento. | `80`         |
+| Parameter                          | Description                                 | Default Value |
+|------------------------------------|---------------------------------------------|---------------|
+| `autoscaling.enabled`             | Enable horizontal autoscaling.             | `false`       |
+| `autoscaling.minReplicas`         | Minimum number of replicas.                | `1`           |
+| `autoscaling.maxReplicas`         | Maximum number of replicas.                | `100`         |
+| `autoscaling.targetCPUUtilizationPercentage` | Target CPU utilization for scaling.       | `80`          |
 
-### Segurança e Recursos
+### Security and Resources
 
-| Parâmetro               | Descrição                                             | Valor Padrão |
-|-------------------------|-------------------------------------------------------|--------------|
-| `podSecurityContext`   | Contexto de segurança para os Pods.                  | `{}`         |
-| `securityContext`      | Contexto de segurança para os containers.            | `{}`         |
-| `resources`            | Configurações de recursos dos containers.            | `{}`         |
+| Parameter               | Description                                          | Default Value |
+|-------------------------|------------------------------------------------------|---------------|
+| `podSecurityContext`   | Pod security context.                                | `{}`          |
+| `securityContext`      | Container security context.                          | `{}`          |
+| `resources`            | Resource settings for the containers.                | `{}`          |
 
-### Node Affinity e Tolerations
+### Node Affinity and Tolerations
 
-| Parâmetro               | Descrição                                             | Valor Padrão |
-|-------------------------|-------------------------------------------------------|--------------|
-| `nodeSelector`         | Seleção de nós para os Pods.                         | `{}`         |
-| `tolerations`          | Tolerations para os Pods.                            | `[]`         |
-| `affinity`             | Regras de afinidade para os Pods.                    | `{}`         |
+| Parameter               | Description                                          | Default Value |
+|-------------------------|------------------------------------------------------|---------------|
+| `nodeSelector`         | Node selection for Pods.                             | `{}`          |
+| `tolerations`          | Tolerations for Pods.                                | `[]`          |
+| `affinity`             | Affinity rules for Pods.                             | `{}`          |
 
-## Atualização
+## Update
 
-Para atualizar o Chart após modificações nos valores, execute:
+To update the Chart after modifying values, run:
 ```bash
 helm upgrade agent-script cloudscript/agent-script --values values.yaml
 ```
 
-## Remoção
+## Removal
 
-Para remover o deployment do AgentScript:
+To uninstall the AgentScript deployment:
 ```bash
 helm uninstall agent-script
 ```
-Isso irá excluir todos os recursos criados pelo Chart.
+This will delete all resources created by the Chart.
 
-## Notas Adicionais
+## Additional Notes
 
-- Certifique-se de configurar as permissões adequadas para a ServiceAccount, especialmente se `serviceAccount.create` estiver desabilitado.
-- Para ambientes de produção, recomendamos configurar os recursos (`resources`) adequadamente para garantir estabilidade e performance.
+- Ensure appropriate permissions are configured for the ServiceAccount, especially if `serviceAccount.create` is disabled.
+- For production environments, we recommend properly configuring `resources` to ensure stability and performance.
 
-Para mais informações, visite [Cloudscript Documentation](https://docs.cloudscript.com.br).
-
+For more information, visit [Cloudscript Documentation](https://cloudscript.com.br).

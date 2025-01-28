@@ -2,19 +2,19 @@
 
 [![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/cloudscript)](https://artifacthub.io/packages/search?repo=cloudscript)
 
-Bem-vindo ao repositório oficial de Helm Charts da **Cloudscript**! Este repositório centraliza todos os charts desenvolvidos pela empresa, fornecendo uma maneira fácil e padronizada de implantar nossas ferramentas em clusters Kubernetes.
+Welcome to the official **Cloudscript** Helm Charts repository! This repository centralizes all Helm Charts developed by the company, providing an easy and standardized way to deploy our tools on Kubernetes clusters.
 
-## Estrutura do Repositório
+## Repository Structure
 
-Cada diretório neste repositório representa um Helm Chart independente. A estrutura geral segue o seguinte padrão:
+Each directory in this repository represents an independent Helm Chart. The general structure follows this pattern:
 
 ```
-├── agentscript/       # Chart para o AgentScript
+├── agentscript/       # Chart for AgentScript
 │   ├── Chart.yaml
 │   ├── values.yaml
 │   ├── templates/
 │   └── README.md
-├── another-tool/      # Chart para outra ferramenta
+├── another-tool/      # Chart for another tool
 │   ├── Chart.yaml
 │   ├── values.yaml
 │   ├── templates/
@@ -22,70 +22,70 @@ Cada diretório neste repositório representa um Helm Chart independente. A estr
 └── ...
 ```
 
-## Requisitos
+## Requirements
 
 - Kubernetes 1.20+
 - Helm 3.0+
 
-## Uso Geral
+## General Usage
 
-### Adicionando o Repositório
+### Adding the Repository
 
-Adicione o repositório de Helm Charts da Cloudscript ao seu ambiente local:
+Add the Cloudscript Helm Charts repository to your local environment:
 ```bash
 helm repo add cloudscript https://charts.cloudscript.com.br
 helm repo update
 ```
 
-### Instalando um Chart
+### Installing a Chart
 
-Escolha o diretório correspondente à ferramenta desejada e instale o Chart:
+Choose the directory corresponding to the desired tool and install the Chart:
 ```bash
 helm install <release-name> cloudscript/<chart-name>
 ```
-Substitua `<release-name>` pelo nome de sua escolha para a instalação e `<chart-name>` pelo nome do Chart que deseja instalar.
+Replace `<release-name>` with your chosen name for the installation and `<chart-name>` with the name of the Chart you want to install.
 
-### Atualizando um Chart
+### Updating a Chart
 
-Para aplicar atualizações a uma instalação existente:
+To apply updates to an existing installation:
 ```bash
 helm upgrade <release-name> cloudscript/<chart-name> --values values.yaml
 ```
 
-### Removendo um Chart
+### Removing a Chart
 
-Para desinstalar um Chart:
+To uninstall a Chart:
 ```bash
 helm uninstall <release-name>
 ```
 
-## Contribuindo
+## Contributing
 
-Contribuições são bem-vindas! Siga as diretrizes abaixo para contribuir com este repositório:
+Contributions are welcome! Follow the guidelines below to contribute to this repository:
 
-1. Faça um fork deste repositório.
-2. Crie uma branch para sua contribuição:
+1. Fork this repository.
+2. Create a branch for your contribution:
    ```bash
-   git checkout -b minha-contribuicao
+   git checkout -b my-contribution
    ```
-3. Faça suas alterações e commit:
+3. Make your changes and commit:
    ```bash
-   git commit -m "Descrição clara das alterações"
+   git commit -m "Clear description of changes"
    ```
-4. Envie sua branch:
+4. Push your branch:
    ```bash
-   git push origin minha-contribuicao
+   git push origin my-contribution
    ```
-5. Abra um Pull Request explicando sua contribuição.
+5. Open a Pull Request explaining your contribution.
 
-## Suporte
+## Support
 
-Se você encontrar problemas ou tiver dúvidas, sinta-se à vontade para abrir uma **issue** neste repositório ou entrar em contato com nosso suporte através do site oficial da Cloudscript: [https://www.cloudscript.com.br](https://www.cloudscript.com.br).
+If you encounter issues or have questions, feel free to open an **issue** in this repository or contact our support team via the official Cloudscript website: [https://www.cloudscript.com.br](https://www.cloudscript.com.br).
 
-## Licença
+## License
 
-Todos os Helm Charts neste repositório estão sob a licença **MIT**. Consulte o arquivo `LICENSE` para mais detalhes.
+All Helm Charts in this repository are licensed under the **MIT** license. Refer to the `LICENSE` file for more details.
 
 ---
 
-Obrigado por usar os Helm Charts da Cloudscript! 🚀
+Thank you for using Cloudscript Helm Charts! 🚀
