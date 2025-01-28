@@ -94,4 +94,4 @@ This will delete all resources created by the Chart.
 - Ensure appropriate permissions are configured for the ServiceAccount, especially if `serviceAccount.create` is disabled.
 - For production environments, we recommend properly configuring `resources` to ensure stability and performance.
 
-For more information, visit [Cloudscript Documentation](https://cloudscript.com.br).
+For more information, visit [Cloudscript](https://cloudscript.com.br).
