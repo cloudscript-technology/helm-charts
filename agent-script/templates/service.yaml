@@ -1,0 +1,21 @@
+{{- if .Values.webhooksServer.enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "agent-script.fullname" . }}
+  labels:
+    {{- include "agent-script.labels" . | nindent 4 }}
+  {{- with .Values.webhooksServer.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.webhooksServer.service.type }}
+  ports:
+    - port: {{ .Values.webhooksServer.service.port }}
+      targetPort: {{ .Values.webhooksServer.service.port }}
+      protocol: TCP
+      name: {{ include "agent-script.fullname" . }}-port
+  selector:
+    {{- include "agent-script.selectorLabels" . | nindent 4 }}
+{{- end }}

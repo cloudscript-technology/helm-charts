@@ -1,182 +1,385 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
-    "type": "object",
-    "properties": {
-        "replicaCount": {
-            "type": "integer",
-            "default": 1,
-            "description": "Number of replicas for the deployment."
-        },
-        "image": {
+    "$ref": "#/$defs/helm-values",
+    "$defs": {
+        "helm-values": {
             "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "replicaCount": {
+                    "$ref": "#/$defs/helm-values.replicaCount"
+                },
+                "image": {
+                    "$ref": "#/$defs/helm-values.image"
+                },
+                "imagePullSecrets": {
+                    "$ref": "#/$defs/helm-values.imagePullSecrets"
+                },
+                "nameOverride": {
+                    "$ref": "#/$defs/helm-values.nameOverride"
+                },
+                "fullnameOverride": {
+                    "$ref": "#/$defs/helm-values.fullnameOverride"
+                },
+                "envFromSecret": {
+                    "$ref": "#/$defs/helm-values.envFromSecret"
+                },
+                "config": {
+                    "$ref": "#/$defs/helm-values.config"
+                },
+                "webhooksServer": {
+                    "$ref": "#/$defs/helm-values.webhooksServer"
+                },
+                "serviceAccount": {
+                    "$ref": "#/$defs/helm-values.serviceAccount"
+                },
+                "podAnnotations": {
+                    "$ref": "#/$defs/helm-values.podAnnotations"
+                },
+                "podLabels": {
+                    "$ref": "#/$defs/helm-values.podLabels"
+                },
+                "podSecurityContext": {
+                    "$ref": "#/$defs/helm-values.podSecurityContext"
+                },
+                "securityContext": {
+                    "$ref": "#/$defs/helm-values.securityContext"
+                },
+                "resources": {
+                    "$ref": "#/$defs/helm-values.resources"
+                },
+                "autoscaling": {
+                    "$ref": "#/$defs/helm-values.autoscaling"
+                },
+                "nodeSelector": {
+                    "$ref": "#/$defs/helm-values.nodeSelector"
+                },
+                "tolerations": {
+                    "$ref": "#/$defs/helm-values.tolerations"
+                },
+                "affinity": {
+                    "$ref": "#/$defs/helm-values.affinity"
+                }
+            }
+        },
+        "helm-values.replicaCount": {
+            "type": "integer",
+            "description": "Número de réplicas para o deployment",
+            "default": 1
+        },
+        "helm-values.image": {
+            "type": "object",
+            "additionalProperties": false,
             "properties": {
                 "repository": {
-                    "type": "string",
-                    "default": "registry.cloudscript.com.br/packages/agent-script",
-                    "description": "Image repository."
+                    "$ref": "#/$defs/helm-values.image.repository"
                 },
                 "pullPolicy": {
-                    "type": "string",
-                    "default": "IfNotPresent",
-                    "description": "Image pull policy."
+                    "$ref": "#/$defs/helm-values.image.pullPolicy"
                 },
                 "tag": {
-                    "type": "string",
-                    "default": "",
-                    "description": "Image tag. Default is the chart appVersion."
+                    "$ref": "#/$defs/helm-values.image.tag"
                 }
             }
         },
-        "imagePullSecrets": {
+        "helm-values.image.repository": {
+            "type": "string",
+            "description": "Repositório da imagem",
+            "default": "registry.cloudscript.com.br/packages/agent-script"
+        },
+        "helm-values.image.pullPolicy": {
+            "type": "string",
+            "description": "Política de pull da imagem",
+            "default": "IfNotPresent"
+        },
+        "helm-values.image.tag": {
+            "type": "string",
+            "description": "Tag da imagem. O padrão é a appVersion do chart",
+            "default": ""
+        },
+        "helm-values.imagePullSecrets": {
             "type": "array",
+            "description": "Segredos para pull de imagens",
+            "default": [],
             "items": {
                 "type": "string"
-            },
-            "default": [],
-            "description": "Image pull secrets."
+            }
         },
-        "nameOverride": {
+        "helm-values.nameOverride": {
             "type": "string",
-            "default": "",
-            "description": "Override the name of the chart."
+            "description": "Sobrescreve o nome do chart",
+            "default": ""
         },
-        "fullnameOverride": {
+        "helm-values.fullnameOverride": {
             "type": "string",
-            "default": "",
-            "description": "Override the full name of the chart."
+            "description": "Sobrescreve o nome completo do chart",
+            "default": ""
         },
-        "envFromSecret": {
+        "helm-values.envFromSecret": {
             "type": "object",
+            "additionalProperties": false,
             "properties": {
                 "enabled": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Enable environment variables from secret."
+                    "$ref": "#/$defs/helm-values.envFromSecret.enabled"
                 },
                 "secretName": {
-                    "type": "string",
-                    "default": "",
-                    "description": "Name of the secret."
+                    "$ref": "#/$defs/helm-values.envFromSecret.secretName"
                 }
             }
         },
-        "config": {
+        "helm-values.envFromSecret.enabled": {
+            "type": "boolean",
+            "description": "Habilita variáveis de ambiente a partir de um secret",
+            "default": false
+        },
+        "helm-values.envFromSecret.secretName": {
+            "type": "string",
+            "description": "Nome do secret",
+            "default": ""
+        },
+        "helm-values.config": {
             "type": "object",
+            "additionalProperties": false,
             "properties": {
                 "agentServerUrl": {
-                    "type": "string",
-                    "default": "",
-                    "description": "URL of the agent server."
+                    "$ref": "#/$defs/helm-values.config.agentServerUrl"
                 },
                 "agentId": {
-                    "type": "string",
-                    "default": "",
-                    "description": "ID of the agent."
+                    "$ref": "#/$defs/helm-values.config.agentId"
                 },
                 "agentToken": {
-                    "type": "string",
-                    "default": "",
-                    "description": "Token for the agent."
+                    "$ref": "#/$defs/helm-values.config.agentToken"
                 }
             }
         },
-        "serviceAccount": {
-            "type": "object",
-            "properties": {
-                "create": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Create a service account."
-                },
-                "automount": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Automount service account token."
-                },
-                "annotations": {
-                    "type": "object",
-                    "default": {},
-                    "description": "Annotations for the service account."
-                },
-                "name": {
-                    "type": "string",
-                    "default": "",
-                    "description": "Name of the service account."
-                },
-                "namespace": {
-                    "type": "string",
-                    "default": "",
-                    "description": "Namespace for the service account."
-                }
-            }
+        "helm-values.config.agentServerUrl": {
+            "type": "string",
+            "description": "URL do servidor do agente",
+            "default": ""
         },
-        "podAnnotations": {
-            "type": "object",
-            "default": {},
-            "description": "Annotations for the pod."
+        "helm-values.config.agentId": {
+            "type": "string",
+            "description": "ID do agente",
+            "default": ""
         },
-        "podLabels": {
-            "type": "object",
-            "default": {},
-            "description": "Labels for the pod."
+        "helm-values.config.agentToken": {
+            "type": "string",
+            "description": "Token para o agente",
+            "default": ""
         },
-        "podSecurityContext": {
+        "helm-values.webhooksServer": {
             "type": "object",
-            "default": {},
-            "description": "Security context for the pod."
-        },
-        "securityContext": {
-            "type": "object",
-            "default": {},
-            "description": "Security context for the container."
-        },
-        "resources": {
-            "type": "object",
-            "default": {},
-            "description": "Resource requests and limits for the container."
-        },
-        "autoscaling": {
-            "type": "object",
+            "additionalProperties": false,
             "properties": {
                 "enabled": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Enable autoscaling."
+                    "$ref": "#/$defs/helm-values.webhooksServer.enabled"
                 },
-                "minReplicas": {
-                    "type": "integer",
-                    "default": 1,
-                    "description": "Minimum number of replicas."
+                "service": {
+                    "$ref": "#/$defs/helm-values.webhooksServer.service"
                 },
-                "maxReplicas": {
-                    "type": "integer",
-                    "default": 100,
-                    "description": "Maximum number of replicas."
-                },
-                "targetCPUUtilizationPercentage": {
-                    "type": "integer",
-                    "default": 80,
-                    "description": "Target CPU utilization percentage."
+                "ingress": {
+                    "$ref": "#/$defs/helm-values.webhooksServer.ingress"
                 }
             }
         },
-        "nodeSelector": {
-            "type": "object",
-            "default": {},
-            "description": "Node selector for the pod."
+        "helm-values.webhooksServer.enabled": {
+            "type": "boolean",
+            "description": "Habilita o servidor de webhooks",
+            "default": false
         },
-        "tolerations": {
+        "helm-values.webhooksServer.service": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "type": {
+                    "$ref": "#/$defs/helm-values.webhooksServer.service.type"
+                },
+                "port": {
+                    "$ref": "#/$defs/helm-values.webhooksServer.service.port"
+                },
+                "annotations": {
+                    "$ref": "#/$defs/helm-values.webhooksServer.service.annotations"
+                }
+            }
+        },
+        "helm-values.webhooksServer.service.type": {
+            "type": "string",
+            "description": "Tipo de serviço",
+            "default": "ClusterIP"
+        },
+        "helm-values.webhooksServer.service.port": {
+            "type": "integer",
+            "description": "Porta para o serviço",
+            "default": 8080
+        },
+        "helm-values.webhooksServer.service.annotations": {
+            "type": "object",
+            "description": "Anotações para o serviço",
+            "default": {}
+        },
+        "helm-values.webhooksServer.ingress": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "enabled": {
+                    "$ref": "#/$defs/helm-values.webhooksServer.ingress.enabled"
+                },
+                "annotations": {
+                    "$ref": "#/$defs/helm-values.webhooksServer.ingress.annotations"
+                },
+                "hostname": {
+                    "$ref": "#/$defs/helm-values.webhooksServer.ingress.hostname"
+                },
+                "tls": {
+                    "$ref": "#/$defs/helm-values.webhooksServer.ingress.tls"
+                }
+            }
+        },
+        "helm-values.webhooksServer.ingress.enabled": {
+            "type": "boolean",
+            "description": "Habilita o ingress",
+            "default": false
+        },
+        "helm-values.webhooksServer.ingress.annotations": {
+            "type": "object",
+            "description": "Anotações para o ingress",
+            "default": {}
+        },
+        "helm-values.webhooksServer.ingress.hostname": {
+            "type": "string",
+            "description": "Hostname para o ingress",
+            "default": ""
+        },
+        "helm-values.webhooksServer.ingress.tls": {
             "type": "array",
-            "items": {
-                "type": "object"
-            },
+            "description": "Configuração TLS para o ingress",
             "default": [],
-            "description": "Tolerations for the pod."
+            "items": {}
         },
-        "affinity": {
+        "helm-values.serviceAccount": {
             "type": "object",
-            "default": {},
-            "description": "Affinity rules for the pod."
+            "additionalProperties": false,
+            "properties": {
+                "create": {
+                    "$ref": "#/$defs/helm-values.serviceAccount.create"
+                },
+                "automount": {
+                    "$ref": "#/$defs/helm-values.serviceAccount.automount"
+                },
+                "annotations": {
+                    "$ref": "#/$defs/helm-values.serviceAccount.annotations"
+                },
+                "name": {
+                    "$ref": "#/$defs/helm-values.serviceAccount.name"
+                },
+                "namespace": {
+                    "$ref": "#/$defs/helm-values.serviceAccount.namespace"
+                }
+            }
+        },
+        "helm-values.serviceAccount.create": {
+            "type": "boolean",
+            "description": "Cria uma service account",
+            "default": true
+        },
+        "helm-values.serviceAccount.automount": {
+            "type": "boolean",
+            "description": "Automontar o token da service account",
+            "default": true
+        },
+        "helm-values.serviceAccount.annotations": {
+            "type": "object",
+            "description": "Anotações para a service account",
+            "default": {}
+        },
+        "helm-values.serviceAccount.name": {
+            "type": "string",
+            "description": "Nome da service account",
+            "default": ""
+        },
+        "helm-values.serviceAccount.namespace": {
+            "type": "string",
+            "description": "Namespace para a service account. Obrigatório se create=true",
+            "default": ""
+        },
+        "helm-values.podAnnotations": {
+            "type": "object",
+            "description": "Anotações para o pod",
+            "default": {}
+        },
+        "helm-values.podLabels": {
+            "type": "object",
+            "description": "Labels para o pod",
+            "default": {}
+        },
+        "helm-values.podSecurityContext": {
+            "type": "object",
+            "description": "Contexto de segurança para o pod",
+            "default": {}
+        },
+        "helm-values.securityContext": {
+            "type": "object",
+            "description": "Contexto de segurança para o container",
+            "default": {}
+        },
+        "helm-values.resources": {
+            "type": "object",
+            "description": "Requisições e limites de recursos para o container",
+            "default": {}
+        },
+        "helm-values.autoscaling": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "enabled": {
+                    "$ref": "#/$defs/helm-values.autoscaling.enabled"
+                },
+                "minReplicas": {
+                    "$ref": "#/$defs/helm-values.autoscaling.minReplicas"
+                },
+                "maxReplicas": {
+                    "$ref": "#/$defs/helm-values.autoscaling.maxReplicas"
+                },
+                "targetCPUUtilizationPercentage": {
+                    "$ref": "#/$defs/helm-values.autoscaling.targetCPUUtilizationPercentage"
+                }
+            }
+        },
+        "helm-values.autoscaling.enabled": {
+            "type": "boolean",
+            "description": "Habilita o autoscaling",
+            "default": false
+        },
+        "helm-values.autoscaling.minReplicas": {
+            "type": "integer",
+            "description": "Número mínimo de réplicas",
+            "default": 1
+        },
+        "helm-values.autoscaling.maxReplicas": {
+            "type": "integer",
+            "description": "Número máximo de réplicas",
+            "default": 100
+        },
+        "helm-values.autoscaling.targetCPUUtilizationPercentage": {
+            "type": "integer",
+            "description": "Percentual alvo de utilização de CPU",
+            "default": 80
+        },
+        "helm-values.nodeSelector": {
+            "type": "object",
+            "description": "Seletor de nós para o pod",
+            "default": {}
+        },
+        "helm-values.tolerations": {
+            "type": "array",
+            "description": "Tolerâncias para o pod",
+            "default": [],
+            "items": {}
+        },
+        "helm-values.affinity": {
+            "type": "object",
+            "description": "Regras de afinidade para o pod",
+            "default": {}
         }
     }
 }

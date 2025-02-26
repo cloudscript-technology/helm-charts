@@ -1,0 +1,30 @@
+{{- if .Values.webhooksServer.ingress.enabled -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "agent-script.fullname" . }}
+  labels:
+    {{- include "agent-script.labels" . | nindent 4 }}
+  {{- with .Values.webhooksServer.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  rules:
+    - host: {{ .Values.webhooksServer.ingress.hostname }}
+      http:
+        paths:
+        - path: {{ .Values.webhooksServer.ingress.path }}
+          pathType: Prefix
+          backend:
+            service:
+              name: {{ include "agent-script.fullname" . }}
+              port:
+                number: {{ .Values.service.port }}
+  {{- with .Values.webhooksServer.ingress.tls }}
+  tls:
+    - hosts:
+        - {{ .Values.webhooksServer.ingress.hostname }}
+      secretName: {{ .Values.webhooksServer.ingress.tls.secretName }}
+  {{- end }}
+{{- end }}

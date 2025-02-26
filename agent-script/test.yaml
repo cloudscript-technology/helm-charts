@@ -1,0 +1,124 @@
+---
+# Source: agent-script/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: release-name-agent-script
+  labels:
+    helm.sh/chart: agent-script-0.6.0
+    app.kubernetes.io/name: agent-script
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "v0.0.27"
+    app.kubernetes.io/managed-by: Helm
+automountServiceAccountToken: true
+---
+# Source: agent-script/templates/serviceaccount.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: release-name-agent-script
+  labels:
+    helm.sh/chart: agent-script-0.6.0
+    app.kubernetes.io/name: agent-script
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "v0.0.27"
+    app.kubernetes.io/managed-by: Helm
+rules:
+  - apiGroups: [""]
+    resources:
+      - nodes
+      - namespaces
+      - events
+      - pods
+      - services
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["extensions"]
+    resources:
+      - replicasets
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources:
+      - statefulsets
+      - deployments
+      - replicasets
+      - daemonsets
+    verbs: ["get", "list", "watch"]
+---
+# Source: agent-script/templates/serviceaccount.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: release-name-agent-script
+subjects:
+  - kind: ServiceAccount
+    name: release-name-agent-script
+    namespace: 
+roleRef:
+  kind: ClusterRole
+  name: release-name-agent-script
+  apiGroup: rbac.authorization.k8s.io
+---
+# Source: agent-script/templates/serviceaccount.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: release-name-agent-script
+subjects:
+  - kind: ServiceAccount
+    name: release-name-agent-script
+    namespace: 
+roleRef:
+  kind: Role
+  name: release-name-agent-script
+  apiGroup: rbac.authorization.k8s.io
+---
+# Source: agent-script/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-agent-script
+  labels:
+    helm.sh/chart: agent-script-0.6.0
+    app.kubernetes.io/name: agent-script
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "v0.0.27"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: agent-script
+      app.kubernetes.io/instance: release-name
+  template:
+    metadata:
+      labels:
+        helm.sh/chart: agent-script-0.6.0
+        app.kubernetes.io/name: agent-script
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/version: "v0.0.27"
+        app.kubernetes.io/managed-by: Helm
+    spec:
+      serviceAccountName: release-name-agent-script
+      securityContext:
+        {}
+      containers:
+        - name: agent-script
+          securityContext:
+            {}
+          image: "registry.cloudscript.com.br/packages/agent-script:v0.0.27"
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            null
+          readinessProbe:
+            null
+          resources:
+            {}
+          env:
+            - name: ENV
+              value: 'production'
+            - name: AGENT_SERVER_URL
+              value: 
+            - name: AGENT_ID
+              value: 
+            - name: AGENT_TOKEN
+              value:

@@ -34,6 +34,28 @@ config:
   # Token for the agent
   agentToken: ""
 
+webhooksServer:
+  # Enable the webhook server
+  enabled: false
+  # Service for the webhook server
+  service:
+    # Type of service
+    type: ClusterIP
+    # Port for the service
+    port: 8080
+    # Annotations for the service
+    annotations: {}
+  # Ingress for the webhook server
+  ingress:
+    # Enable ingress
+    enabled: false
+    # Annotations for the ingress
+    annotations: {}
+    # Hostname for the ingress
+    hostname: ""
+    # Path for the ingress
+    tls: []
+
 serviceAccount:
   # Create a service account
   create: true
