@@ -56,9 +56,9 @@ spec:
             - name: AGENT_TOKEN
               value: {{ .Values.config.agentToken }}
             - name: WEBHOOKS_SERVER_ENABLED
-              value: {{ .Values.webhooksServer.enabled }}
+              value: {{ .Values.webhooksServer.enabled | quote }}
             - name: WEBHOOKS_SERVER_PORT
-              value: {{ .Values.webhooksServer.service.port }}
+              value: {{ .Values.webhooksServer.service.port | quote }}
             {{- with .Values.env }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
