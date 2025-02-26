@@ -59,6 +59,9 @@
                 },
                 "affinity": {
                     "$ref": "#/$defs/helm-values.affinity"
+                },
+                "global": {
+                    "$ref": "#/$defs/helm-values.global"
                 }
             }
         },
@@ -379,6 +382,11 @@
         "helm-values.affinity": {
             "type": "object",
             "description": "Regras de afinidade para o pod",
+            "default": {}
+        },
+        "helm-values.global": {
+            "type": "object",
+            "description": "Valores globais para o chart",
             "default": {}
         }
     }
