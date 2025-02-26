@@ -20,7 +20,7 @@ spec:
             service:
               name: {{ include "agent-script.fullname" . }}
               port:
-                number: {{ .Values.service.port }}
+                number: {{ .Values.webhooksServer.service.port }}
   {{- with .Values.webhooksServer.ingress.tls }}
   tls:
     - hosts:

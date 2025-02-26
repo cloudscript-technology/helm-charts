@@ -36,4 +36,4 @@ annotations:
       url: https://cloudscript.com.br
     - name: Source
       url: https://github.com/cloudscript-technology/helm-charts
-  artifacthub.io/valuesSchema: "https://charts.cloudscript.com.br/agent-script/0.5.1/values-schema.json"
+  artifacthub.io/valuesSchema: "https://charts.cloudscript.com.br/agent-script/0.6.0/values-schema.json"
