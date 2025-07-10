@@ -469,6 +469,11 @@ kubectl logs -f -l app.kubernetes.io/name=dumpscript
 }
 ```
 
+Generate new digest:
+```bash
+shasum -a 256 dumpscript-<version>.tgz
+```
+
 ## Contributing
 
 To contribute to this project:

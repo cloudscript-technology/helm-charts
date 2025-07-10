@@ -64,6 +64,9 @@
                     "type": {
                         "$ref": "#/$defs/helm-values.databases.type"
                     },
+                    "version": {
+                        "$ref": "#/$defs/helm-values.databases.version"
+                    },
                     "connectionInfo": {
                         "$ref": "#/$defs/helm-values.databases.connectionInfo"
                     },
@@ -226,6 +229,11 @@
                 "postgresql",
                 "mysql"
             ]
+        },
+        "helm-values.databases.version": {
+            "type": "string",
+            "description": "Versão do cliente do banco de dados",
+            "default": ""
         },
         "helm-values.databases.connectionInfo": {
             "type": "object",
