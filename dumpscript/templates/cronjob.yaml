@@ -1,0 +1,132 @@
+{{- range $index, $database := .Values.databases }}
+{{- if $database.schedule }}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "dumpscript.fullname" $ }}-db-{{ $index }}
+  labels:
+    {{- include "dumpscript.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: cronjob
+    dumpscript.io/database-index: "{{ $index }}"
+    dumpscript.io/database-type: "{{ $database.type }}"
+spec:
+  schedule: {{ $database.schedule | quote }}
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          {{- with $.Values.podAnnotations }}
+          annotations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          labels:
+            {{- include "dumpscript.labels" $ | nindent 12 }}
+            app.kubernetes.io/component: cronjob
+            dumpscript.io/database-index: "{{ $index }}"
+            dumpscript.io/database-type: "{{ $database.type }}"
+            {{- with $.Values.podLabels }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+        spec:
+          {{- with $.Values.imagePullSecrets }}
+          imagePullSecrets:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          serviceAccountName: {{ include "dumpscript.serviceAccountName" $ }}
+          securityContext:
+            {{- toYaml $.Values.podSecurityContext | nindent 12 }}
+          restartPolicy: OnFailure
+          containers:
+          - name: {{ $.Chart.Name }}
+            securityContext:
+              {{- toYaml $.Values.securityContext | nindent 14 }}
+            image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag | default $.Chart.AppVersion }}"
+            imagePullPolicy: {{ $.Values.image.pullPolicy }}
+            env:
+            - name: DB_TYPE
+              value: {{ $database.type | quote }}
+            {{- if $database.connectionInfo.secretName }}
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $database.connectionInfo.secretName }}
+                  key: host
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $database.connectionInfo.secretName }}
+                  key: username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $database.connectionInfo.secretName }}
+                  key: password
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $database.connectionInfo.secretName }}
+                  key: database
+            - name: DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $database.connectionInfo.secretName }}
+                  key: port
+            {{- else }}
+            - name: DB_HOST
+              value: {{ $database.connectionInfo.host | quote }}
+            - name: DB_USER
+              value: {{ $database.connectionInfo.username | quote }}
+            - name: DB_PASSWORD
+              value: {{ $database.connectionInfo.password | quote }}
+            - name: DB_NAME
+              value: {{ $database.connectionInfo.database | quote }}
+            - name: DB_PORT
+              value: {{ $database.connectionInfo.port | quote }}
+            {{- end }}
+            {{- if $database.aws.secretName }}
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $database.aws.secretName }}
+                  key: accessKeyId
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $database.aws.secretName }}
+                  key: secretAccessKey
+            - name: AWS_ROLE_ARN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $database.aws.secretName }}
+                  key: roleArn
+            {{- else }}
+            - name: AWS_ROLE_ARN
+              value: {{ $database.aws.roleArn | quote }}
+            {{- end }}
+            - name: AWS_REGION
+              value: {{ $database.aws.region | quote }}
+            - name: S3_BUCKET
+              value: {{ $database.aws.bucket | quote }}
+            - name: S3_PREFIX
+              value: {{ $database.aws.bucketPrefix | quote }}
+            {{- if $database.extraArgs }}
+            - name: DUMP_OPTIONS
+              value: {{ $database.extraArgs | quote }}
+            {{- end }}
+            resources:
+              {{- toYaml $.Values.resources | nindent 14 }}
+          {{- with $.Values.nodeSelector }}
+          nodeSelector:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $.Values.affinity }}
+          affinity:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $.Values.tolerations }}
+          tolerations:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+{{- end }}
+{{- end }} 

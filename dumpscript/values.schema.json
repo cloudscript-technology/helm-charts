@@ -1,0 +1,297 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$ref": "#/$defs/helm-values",
+    "$defs": {
+        "helm-values": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "databases": {
+                    "$ref": "#/$defs/helm-values.databases"
+                },
+                "image": {
+                    "$ref": "#/$defs/helm-values.image"
+                },
+                "imagePullSecrets": {
+                    "$ref": "#/$defs/helm-values.imagePullSecrets"
+                },
+                "nameOverride": {
+                    "$ref": "#/$defs/helm-values.nameOverride"
+                },
+                "fullnameOverride": {
+                    "$ref": "#/$defs/helm-values.fullnameOverride"
+                },
+                "serviceAccount": {
+                    "$ref": "#/$defs/helm-values.serviceAccount"
+                },
+                "podAnnotations": {
+                    "$ref": "#/$defs/helm-values.podAnnotations"
+                },
+                "podLabels": {
+                    "$ref": "#/$defs/helm-values.podLabels"
+                },
+                "podSecurityContext": {
+                    "$ref": "#/$defs/helm-values.podSecurityContext"
+                },
+                "securityContext": {
+                    "$ref": "#/$defs/helm-values.securityContext"
+                },
+                "resources": {
+                    "$ref": "#/$defs/helm-values.resources"
+                },
+                "nodeSelector": {
+                    "$ref": "#/$defs/helm-values.nodeSelector"
+                },
+                "tolerations": {
+                    "$ref": "#/$defs/helm-values.tolerations"
+                },
+                "affinity": {
+                    "$ref": "#/$defs/helm-values.affinity"
+                },
+                "global": {
+                    "$ref": "#/$defs/helm-values.global"
+                }
+            }
+        },
+        "helm-values.databases": {
+            "type": "array",
+            "description": "Bancos de dados para backup",
+            "default": [],
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "type": {
+                        "$ref": "#/$defs/helm-values.databases.type"
+                    },
+                    "connectionInfo": {
+                        "$ref": "#/$defs/helm-values.databases.connectionInfo"
+                    },
+                    "aws": {
+                        "$ref": "#/$defs/helm-values.databases.aws"
+                    },
+                    "schedule": {
+                        "$ref": "#/$defs/helm-values.databases.schedule"
+                    },
+                    "extraArgs": {
+                        "$ref": "#/$defs/helm-values.databases.extraArgs"
+                    }
+                }
+            }
+        },
+        "helm-values.image": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "repository": {
+                    "$ref": "#/$defs/helm-values.image.repository"
+                },
+                "pullPolicy": {
+                    "$ref": "#/$defs/helm-values.image.pullPolicy"
+                },
+                "tag": {
+                    "$ref": "#/$defs/helm-values.image.tag"
+                }
+            }
+        },
+        "helm-values.image.repository": {
+            "type": "string",
+            "description": "Repositório da imagem",
+            "default": "ghcr.io/cloudscript-technology/dumpscript"
+        },
+        "helm-values.image.pullPolicy": {
+            "type": "string",
+            "description": "Política de pull da imagem",
+            "default": "IfNotPresent"
+        },
+        "helm-values.image.tag": {
+            "type": "string",
+            "description": "Tag da imagem. O padrão é a appVersion do chart",
+            "default": ""
+        },
+        "helm-values.imagePullSecrets": {
+            "type": "array",
+            "description": "Segredos para pull de imagens",
+            "default": [],
+            "items": {
+                "type": "string"
+            }
+        },
+        "helm-values.nameOverride": {
+            "type": "string",
+            "description": "Sobrescreve o nome do chart",
+            "default": ""
+        },
+        "helm-values.fullnameOverride": {
+            "type": "string",
+            "description": "Sobrescreve o nome completo do chart",
+            "default": ""
+        },
+        "helm-values.serviceAccount": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "create": {
+                    "$ref": "#/$defs/helm-values.serviceAccount.create"
+                },
+                "automount": {
+                    "$ref": "#/$defs/helm-values.serviceAccount.automount"
+                },
+                "annotations": {
+                    "$ref": "#/$defs/helm-values.serviceAccount.annotations"
+                },
+                "name": {
+                    "$ref": "#/$defs/helm-values.serviceAccount.name"
+                },
+                "namespace": {
+                    "$ref": "#/$defs/helm-values.serviceAccount.namespace"
+                }
+            }
+        },
+        "helm-values.serviceAccount.create": {
+            "type": "boolean",
+            "description": "Cria uma service account",
+            "default": true
+        },
+        "helm-values.serviceAccount.automount": {
+            "type": "boolean",
+            "description": "Automontar o token da service account",
+            "default": true
+        },
+        "helm-values.serviceAccount.annotations": {
+            "type": "object",
+            "description": "Anotações para a service account",
+            "default": {}
+        },
+        "helm-values.serviceAccount.name": {
+            "type": "string",
+            "description": "Nome da service account",
+            "default": ""
+        },
+        "helm-values.serviceAccount.namespace": {
+            "type": "string",
+            "description": "Namespace para a service account. Obrigatório se create=true",
+            "default": ""
+        },
+        "helm-values.podAnnotations": {
+            "type": "object",
+            "description": "Anotações para o pod",
+            "default": {}
+        },
+        "helm-values.podLabels": {
+            "type": "object",
+            "description": "Labels para o pod",
+            "default": {}
+        },
+        "helm-values.podSecurityContext": {
+            "type": "object",
+            "description": "Contexto de segurança para o pod",
+            "default": {}
+        },
+        "helm-values.securityContext": {
+            "type": "object",
+            "description": "Contexto de segurança para o container",
+            "default": {}
+        },
+        "helm-values.resources": {
+            "type": "object",
+            "description": "Requisições e limites de recursos para o container",
+            "default": {}
+        },
+        "helm-values.nodeSelector": {
+            "type": "object",
+            "description": "Seletor de nós para o pod",
+            "default": {}
+        },
+        "helm-values.tolerations": {
+            "type": "array",
+            "description": "Tolerâncias para o pod",
+            "default": [],
+            "items": {}
+        },
+        "helm-values.affinity": {
+            "type": "object",
+            "description": "Regras de afinidade para o pod",
+            "default": {}
+        },
+        "helm-values.global": {
+            "type": "object",
+            "description": "Valores globais para o chart",
+            "default": {}
+        },
+        "helm-values.databases.type": {
+            "type": "string",
+            "description": "Tipo do banco de dados",
+            "enum": [
+                "postgresql",
+                "mysql"
+            ]
+        },
+        "helm-values.databases.connectionInfo": {
+            "type": "object",
+            "description": "Informações de conexão do banco de dados",
+            "additionalProperties": false,
+            "properties": {
+                "host": {
+                    "type": "string",
+                    "description": "Host do banco de dados"
+                },
+                "username": {
+                    "type": "string",
+                    "description": "Usuário do banco de dados"
+                },
+                "password": {
+                    "type": "string",
+                    "description": "Senha do banco de dados"
+                },
+                "database": {
+                    "type": "string",
+                    "description": "Nome do banco de dados"
+                },
+                "port": {
+                    "type": "integer",
+                    "description": "Porta do banco de dados"
+                },
+                "secretName": {
+                    "type": "string",
+                    "description": "Nome do secret contendo as informações de conexão"
+                }
+            }
+        },
+        "helm-values.databases.aws": {
+            "type": "object",
+            "description": "Configurações AWS para o backup",
+            "additionalProperties": false,
+            "properties": {
+                "region": {
+                    "type": "string",
+                    "description": "Região AWS para o bucket S3"
+                },
+                "bucket": {
+                    "type": "string",
+                    "description": "Bucket AWS para armazenar o dump do banco"
+                },
+                "bucketPrefix": {
+                    "type": "string",
+                    "description": "Prefixo para o dump do banco no bucket S3"
+                },
+                "roleArn": {
+                    "type": "string",
+                    "description": "ARN da role AWS para o banco de dados"
+                },
+                "secretName": {
+                    "type": "string",
+                    "description": "Nome do secret contendo as credenciais AWS"
+                }
+            }
+        },
+        "helm-values.databases.schedule": {
+            "type": "string",
+            "description": "Agendamento para o dump do banco de dados (formato cron)"
+        },
+        "helm-values.databases.extraArgs": {
+            "type": "string",
+            "description": "Argumentos extras para o dump do banco de dados"
+        }
+    }
+}

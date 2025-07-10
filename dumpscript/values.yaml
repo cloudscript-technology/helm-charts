@@ -1,0 +1,131 @@
+# Default values for dumpscript
+
+image:
+  # Image repository
+  repository: ghcr.io/cloudscript-technology/dumpscript
+  # Image pull policy
+  pullPolicy: IfNotPresent
+  # Image tag. Default is the chart appVersion
+  tag: ""
+
+# Image pull secrets
+imagePullSecrets: []
+
+# Override the name of the chart
+nameOverride: ""
+
+# Override the full name of the chart
+fullnameOverride: ""
+
+databases:
+  - type: postgresql
+    connectionInfo:
+      # Database host (if secretName is not provided)
+      host: ""
+      # Database username (if secretName is not provided)
+      username: ""
+      # Database password (if secretName is not provided)
+      password: ""
+      # Database name (if secretName is not provided)
+      database: ""
+      # Database port (if secretName is not provided)
+      port: 5432
+      # Name of the secret containing the connection information for the database
+      secretName: ""
+    aws:
+      # AWS region for the S3 bucket
+      region: ""
+      # AWS bucket to store the database dump
+      bucket: ""
+      # Prefix for the database dump in the S3 bucket
+      bucketPrefix: ""
+      # AWS role ARN for the database (if secretName is not provided)
+      roleArn: ""
+      # Name of the secret containing the AWS credentials
+      secretName: ""
+    # Schedule for the database dump (cron format)
+    schedule: "0 2 * * *"
+    # Extra arguments for the database dump (e.g. --encoding=utf8)
+    extraArgs: ""
+  - type: mysql
+    connectionInfo:
+      # Database host (if secretName is not provided)
+      host: ""
+      # Database username (if secretName is not provided)
+      username: ""
+      # Database password (if secretName is not provided)
+      password: ""
+      # Database name (if secretName is not provided)
+      database: ""
+      # Database port (if secretName is not provided)
+      port: 3306
+      # Name of the secret containing the connection information for the database
+      secretName: ""
+    aws:
+      # AWS region for the S3 bucket
+      region: ""
+      # AWS bucket to store the database dump
+      bucket: ""
+      # Prefix for the database dump in the S3 bucket
+      bucketPrefix: ""
+      # AWS role ARN for the database (if secretName is not provided)
+      roleArn: ""
+      # Name of the secret containing the AWS credentials
+      secretName: ""
+    # Schedule for the database dump (cron format)
+    schedule: "0 2 * * *"
+    # Extra arguments for the database dump (e.g. --encoding=utf8)
+    extraArgs: ""
+
+serviceAccount:
+  # Create a service account
+  create: true
+  # Automount service account token
+  automount: true
+  # Annotations for the service account
+  annotations: {}
+  # Name of the service account
+  name: ""
+  # Namespace for the service account. Required if create=true
+  namespace: "" 
+
+# Annotations for the pod
+podAnnotations: {}
+
+# Labels for the pod
+podLabels: {}
+
+# Security context for the pod
+podSecurityContext: {}
+  # fsGroup: 2000
+
+# Security context for the container
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+# Resource requests and limits for the container
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+# Node selector for the pod
+nodeSelector: {}
+
+# Tolerations for the pod
+tolerations: []
+
+# Affinity rules for the pod
+affinity: {}
