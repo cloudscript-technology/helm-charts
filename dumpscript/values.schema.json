@@ -283,10 +283,6 @@
                     "type": "string",
                     "description": "Prefixo para o dump do banco no bucket S3"
                 },
-                "roleArn": {
-                    "type": "string",
-                    "description": "ARN da role AWS para o banco de dados"
-                },
                 "secretName": {
                     "type": "string",
                     "description": "Nome do secret contendo as credenciais AWS"

@@ -42,8 +42,6 @@ databases: []
   #     bucket: ""
   #     # Prefix for the database dump in the S3 bucket
   #     bucketPrefix: ""
-  #     # AWS role ARN for the database (if secretName is not provided)
-  #     roleArn: ""
   #     # Name of the secret containing the AWS credentials
   #     secretName: ""
   #   # Schedule for the database dump (cron format)
@@ -76,8 +74,6 @@ databases: []
   #     bucket: ""
   #     # Prefix for the database dump in the S3 bucket
   #     bucketPrefix: ""
-  #     # AWS role ARN for the database (if secretName is not provided)
-  #     roleArn: ""
   #     # Name of the secret containing the AWS credentials
   #     secretName: ""
   #   # Schedule for the database dump (cron format)

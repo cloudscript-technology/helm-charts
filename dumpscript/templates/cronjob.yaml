@@ -110,14 +110,6 @@ spec:
                 secretKeyRef:
                   name: {{ $database.aws.secretName }}
                   key: secretAccessKey
-            - name: AWS_ROLE_ARN
-              valueFrom:
-                secretKeyRef:
-                  name: {{ $database.aws.secretName }}
-                  key: roleArn
-            {{- else }}
-            - name: AWS_ROLE_ARN
-              value: {{ $database.aws.roleArn | quote }}
             {{- end }}
             - name: AWS_REGION
               value: {{ $database.aws.region | quote }}

@@ -61,7 +61,6 @@ databases:
       region: "us-west-2"
       bucket: "my-company-backups"
       bucketPrefix: "postgres-dumps/"
-      roleArn: "arn:aws:iam::123456789012:role/BackupRole"
     schedule: "0 2 * * *"  # Every day at 2:00 AM
     extraArgs: "--verbose --single-transaction"
 
@@ -154,7 +153,6 @@ data:
   region: dXMtd2VzdC0y                        # us-west-2
   bucket: bXktY29tcGFueS1iYWNrdXBz            # my-company-backups
   bucketPrefix: ZGF0YWJhc2UtZHVtcHMv            # database-dumps/
-  roleArn: YXJuOmF3czppYW06OjEyMzQ1Njc4OTAxMjpyb2xlL0JhY2t1cFJvbGU=  # arn:aws:iam::123456789012:role/BackupRole
   # Optional: direct credentials (not recommended)
   # accessKeyId: QUtJQUlPU0ZPRE5ON0VYQU1QTEU=
   # secretAccessKey: d0phbExyWGVOdC9LN21ESVkvYk1FeFJZSEs0WUs1TUVRc1pKVHU=
@@ -173,7 +171,6 @@ data:
   region: dXMtZWFzdC0x                        # us-east-1
   bucket: cHJvZHVjdGlvbi1kYi1iYWNrdXBz        # production-db-backups
   bucketPrefix: cG9zdGdyZXMtcHJvZC8=          # postgres-prod/
-  roleArn: YXJuOmF3czppYW06OjEyMzQ1Njc4OTAxMjpyb2xlL1Byb2R1Y3Rpb25CYWNrdXBSb2xl  # arn:aws:iam::123456789012:role/ProductionBackupRole
 ```
 
 ## Creating Secrets via kubectl
@@ -199,8 +196,7 @@ kubectl create secret generic postgres-credentials \
 kubectl create secret generic aws-credentials \
   --from-literal=region=us-west-2 \
   --from-literal=bucket=my-company-backups \
-  --from-literal=bucketPrefix=database-dumps/ \
-  --from-literal=roleArn=arn:aws:iam::123456789012:role/BackupRole
+  --from-literal=bucketPrefix=database-dumps/
 
 # Secret for AWS (using Access Keys - not recommended)
 kubectl create secret generic aws-credentials-keys \
@@ -239,7 +235,6 @@ kubectl create secret generic aws-credentials-keys \
 | `databases[].aws.region` | AWS region | ✅* |
 | `databases[].aws.bucket` | S3 bucket | ✅* |
 | `databases[].aws.bucketPrefix` | Bucket prefix | ❌ |
-| `databases[].aws.roleArn` | IAM Role ARN | ❌ |
 | `databases[].aws.secretName` | AWS secret name | ✅** |
 | `databases[].extraArgs` | Extra arguments for dump | ❌ |
 
@@ -287,7 +282,6 @@ databases:
       region: "us-west-2"
       bucket: "secure-backups"
       bucketPrefix: "production/postgres/"
-      roleArn: "arn:aws:iam::123456789012:role/DatabaseBackupRole"
     schedule: "0 1 * * *"
     extraArgs: "--verbose --single-transaction"
 
