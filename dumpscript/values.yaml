@@ -17,65 +17,73 @@ nameOverride: ""
 # Override the full name of the chart
 fullnameOverride: ""
 
-databases:
-  - type: postgresql
-    connectionInfo:
-      # Database host (if secretName is not provided)
-      host: ""
-      # Database username (if secretName is not provided)
-      username: ""
-      # Database password (if secretName is not provided)
-      password: ""
-      # Database name (if secretName is not provided)
-      database: ""
-      # Database port (if secretName is not provided)
-      port: 5432
-      # Name of the secret containing the connection information for the database
-      secretName: ""
-    aws:
-      # AWS region for the S3 bucket
-      region: ""
-      # AWS bucket to store the database dump
-      bucket: ""
-      # Prefix for the database dump in the S3 bucket
-      bucketPrefix: ""
-      # AWS role ARN for the database (if secretName is not provided)
-      roleArn: ""
-      # Name of the secret containing the AWS credentials
-      secretName: ""
-    # Schedule for the database dump (cron format)
-    schedule: "0 2 * * *"
-    # Extra arguments for the database dump (e.g. --encoding=utf8)
-    extraArgs: ""
-  - type: mysql
-    connectionInfo:
-      # Database host (if secretName is not provided)
-      host: ""
-      # Database username (if secretName is not provided)
-      username: ""
-      # Database password (if secretName is not provided)
-      password: ""
-      # Database name (if secretName is not provided)
-      database: ""
-      # Database port (if secretName is not provided)
-      port: 3306
-      # Name of the secret containing the connection information for the database
-      secretName: ""
-    aws:
-      # AWS region for the S3 bucket
-      region: ""
-      # AWS bucket to store the database dump
-      bucket: ""
-      # Prefix for the database dump in the S3 bucket
-      bucketPrefix: ""
-      # AWS role ARN for the database (if secretName is not provided)
-      roleArn: ""
-      # Name of the secret containing the AWS credentials
-      secretName: ""
-    # Schedule for the database dump (cron format)
-    schedule: "0 2 * * *"
-    # Extra arguments for the database dump (e.g. --encoding=utf8)
-    extraArgs: ""
+databases: []
+  # - type: postgresql
+  #   # Version of the PostgreSQL client (13, 14, 15, 16, 17)
+  #   # This version should match your PostgreSQL server version to avoid compatibility issues
+  #   version: "17"
+  #   connectionInfo:
+  #     # Database host (if secretName is not provided)
+  #     host: ""
+  #     # Database username (if secretName is not provided)
+  #     username: ""
+  #     # Database password (if secretName is not provided)
+  #     password: ""
+  #     # Database name (if secretName is not provided)
+  #     database: ""
+  #     # Database port (if secretName is not provided)
+  #     port: 5432
+  #     # Name of the secret containing the connection information for the database
+  #     secretName: ""
+  #   aws:
+  #     # AWS region for the S3 bucket
+  #     region: ""
+  #     # AWS bucket to store the database dump
+  #     bucket: ""
+  #     # Prefix for the database dump in the S3 bucket
+  #     bucketPrefix: ""
+  #     # AWS role ARN for the database (if secretName is not provided)
+  #     roleArn: ""
+  #     # Name of the secret containing the AWS credentials
+  #     secretName: ""
+  #   # Schedule for the database dump (cron format)
+  #   schedule: "0 2 * * *"
+  #   # Extra arguments for the database dump (e.g. --encoding=utf8, --no-owner)
+  #   extraArgs: ""
+  # - type: mysql
+  #   # Version of the MySQL/MariaDB client (8.0, 10.11, 11.4)
+  #   # - Use "8.0" for MySQL 8.0
+  #   # - Use "10.11" for MariaDB 10.11 (default)
+  #   # - Use "11.4" for MariaDB 11.4
+  #   version: "10.11"
+  #   connectionInfo:
+  #     # Database host (if secretName is not provided)
+  #     host: ""
+  #     # Database username (if secretName is not provided)
+  #     username: ""
+  #     # Database password (if secretName is not provided)
+  #     password: ""
+  #     # Database name (if secretName is not provided)
+  #     database: ""
+  #     # Database port (if secretName is not provided)
+  #     port: 3306
+  #     # Name of the secret containing the connection information for the database
+  #     secretName: ""
+  #   aws:
+  #     # AWS region for the S3 bucket
+  #     region: ""
+  #     # AWS bucket to store the database dump
+  #     bucket: ""
+  #     # Prefix for the database dump in the S3 bucket
+  #     bucketPrefix: ""
+  #     # AWS role ARN for the database (if secretName is not provided)
+  #     roleArn: ""
+  #     # Name of the secret containing the AWS credentials
+  #     secretName: ""
+  #   # Schedule for the database dump (cron format)
+  #   schedule: "0 2 * * *"
+  #   # Extra arguments for the database dump (e.g. --single-transaction, --routines)
+  #   extraArgs: ""
 
 serviceAccount:
   # Create a service account

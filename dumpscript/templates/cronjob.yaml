@@ -8,8 +8,11 @@ metadata:
   labels:
     {{- include "dumpscript.labels" $ | nindent 4 }}
     app.kubernetes.io/component: cronjob
-    dumpscript.io/database-index: "{{ $index }}"
-    dumpscript.io/database-type: "{{ $database.type }}"
+    dumpscript/database-index: "{{ $index }}"
+    dumpscript/database-type: "{{ $database.type }}"
+    {{- if $database.version }}
+    dumpscript/database-version: "{{ $database.version }}"
+    {{- end }}
 spec:
   schedule: {{ $database.schedule | quote }}
   jobTemplate:
@@ -23,8 +26,11 @@ spec:
           labels:
             {{- include "dumpscript.labels" $ | nindent 12 }}
             app.kubernetes.io/component: cronjob
-            dumpscript.io/database-index: "{{ $index }}"
-            dumpscript.io/database-type: "{{ $database.type }}"
+            dumpscript/database-index: "{{ $index }}"
+            dumpscript/database-type: "{{ $database.type }}"
+            {{- if $database.version }}
+            dumpscript/database-version: "{{ $database.version }}"
+            {{- end }}
             {{- with $.Values.podLabels }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
@@ -46,6 +52,15 @@ spec:
             env:
             - name: DB_TYPE
               value: {{ $database.type | quote }}
+            {{- if $database.version }}
+            {{- if eq $database.type "postgresql" }}
+            - name: POSTGRES_VERSION
+              value: {{ $database.version | quote }}
+            {{- else if eq $database.type "mysql" }}
+            - name: MYSQL_VERSION
+              value: {{ $database.version | quote }}
+            {{- end }}
+            {{- end }}
             {{- if $database.connectionInfo.secretName }}
             - name: DB_HOST
               valueFrom:
