@@ -3,7 +3,7 @@ name: dumpscript
 description: The DumpScript is a unified system for backup and restore of MySQL and PostgreSQL databases to Amazon S3.
 type: application
 version: 1.1.0
-appVersion: "v0.0.15"
+appVersion: "v0.0.16"
 kubeVersion: ">= 1.27.0-0"
 home: https://cloudscript.com.br
 icon: https://charts.cloudscript.com.br/helm-charts/dumpscript/cloudscript-logo.png
@@ -30,7 +30,7 @@ annotations:
   artifacthub.io/containsSecurityUpdates: "true"
   artifacthub.io/images: |
     - name: dumpscript
-      image: ghcr.io/cloudscript-technology/dumpscript:v0.0.15
+      image: ghcr.io/cloudscript-technology/dumpscript:v0.0.16
   artifacthub.io/displayName: "Dump Script"
   artifacthub.io/license: "MIT"
   artifacthub.io/provider: "Cloudscript"
