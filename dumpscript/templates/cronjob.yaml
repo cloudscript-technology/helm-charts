@@ -117,6 +117,12 @@ spec:
               value: {{ $database.aws.bucket | quote }}
             - name: S3_PREFIX
               value: {{ $database.aws.bucketPrefix | quote }}
+            - name: PERIODICITY
+              value: {{ $database.periodicity | quote }}
+            {{- if $database.retentionDays }}
+            - name: RETENTION_DAYS
+              value: {{ $database.retentionDays | quote }}
+            {{- end }}
             {{- if $database.extraArgs }}
             - name: DUMP_OPTIONS
               value: {{ $database.extraArgs | quote }}

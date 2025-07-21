@@ -22,6 +22,11 @@ databases: []
   #   # Version of the PostgreSQL client (13, 14, 15, 16, 17)
   #   # This version should match your PostgreSQL server version to avoid compatibility issues
   #   version: "17"
+  #   # Backup periodicity: daily, weekly, monthly, yearly
+  #   periodicity: daily
+  #   # Retention period in days
+  #   retentionDays: 7
+  #   # Database connection information
   #   connectionInfo:
   #     # Database host (if secretName is not provided)
   #     host: ""
@@ -54,6 +59,11 @@ databases: []
   #   # - Use "10.11" for MariaDB 10.11 (default)
   #   # - Use "11.4" for MariaDB 11.4
   #   version: "10.11"
+  #   # Backup periodicity: daily, weekly, monthly, yearly
+  #   periodicity: weekly
+  #   # Retention period in days
+  #   retentionDays: 30
+  #   # Database connection information
   #   connectionInfo:
   #     # Database host (if secretName is not provided)
   #     host: ""

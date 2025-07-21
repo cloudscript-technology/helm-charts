@@ -51,6 +51,8 @@ image:
 databases:
   # PostgreSQL with direct credentials
   - type: postgresql
+    periodicity: daily
+    retentionDays: 7
     connectionInfo:
       host: "postgres.example.com"
       username: "backup_user"
@@ -66,6 +68,8 @@ databases:
 
   # MySQL with secrets
   - type: mysql
+    periodicity: weekly
+    retentionDays: 30
     connectionInfo:
       secretName: "mysql-credentials"
     aws:
@@ -75,6 +79,8 @@ databases:
 
   # PostgreSQL in production
   - type: postgresql
+    periodicity: monthly
+    retentionDays: 365
     connectionInfo:
       secretName: "production-db-credentials"
     aws:
@@ -226,6 +232,8 @@ kubectl create secret generic aws-credentials-keys \
 |-----------|-------------|----------|
 | `databases[].type` | Database type (`postgresql` or `mysql`) | ✅ |
 | `databases[].schedule` | Cron expression for scheduling | ✅ |
+| `databases[].periodicity` | Backup periodicity (`daily`, `weekly`, `monthly`, `yearly`) | ✅ |
+| `databases[].retentionDays` | Retention period in days (integer) | ❌ |
 | `databases[].connectionInfo.host` | Database host | ✅* |
 | `databases[].connectionInfo.username` | Database username | ✅* |
 | `databases[].connectionInfo.password` | Database password | ✅* |
@@ -258,6 +266,8 @@ kubectl create secret generic aws-credentials-keys \
 ```yaml
 databases:
   - type: postgresql
+    periodicity: daily
+    retentionDays: 7
     connectionInfo:
       host: "postgres.internal"
       username: "backup_user"
@@ -276,6 +286,8 @@ databases:
 ```yaml
 databases:
   - type: postgresql
+    periodicity: daily
+    retentionDays: 14
     connectionInfo:
       secretName: "db-credentials"
     aws:
@@ -297,6 +309,8 @@ serviceAccount:
 databases:
   # Production PostgreSQL
   - type: postgresql
+    periodicity: daily
+    retentionDays: 30
     connectionInfo:
       secretName: "prod-postgres-creds"
     aws:
@@ -309,6 +323,8 @@ databases:
 
   # Development MySQL
   - type: mysql
+    periodicity: weekly
+    retentionDays: 14
     connectionInfo:
       secretName: "dev-mysql-creds"
     aws:
@@ -321,6 +337,8 @@ databases:
 
   # Test PostgreSQL
   - type: postgresql
+    periodicity: monthly
+    retentionDays: 90
     connectionInfo:
       secretName: "test-postgres-creds"
     aws:
@@ -467,25 +485,3 @@ Generate new digest:
 ```bash
 shasum -a 256 dumpscript-<version>.tgz
 ```
-
-## Contributing
-
-To contribute to this project:
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Open a Pull Request
-
-## License
-
-This project is licensed under the MIT License. See the LICENSE file for details.
-
-## Support
-
-For support and additional documentation:
-
-- 📧 Email: supporte@cloudscript.com.br
-- 🐛 Issues: [GitHub Issues](https://github.com/cloudscript-technology/dumpscript/issues)
-- 📖 Site: [cloudscript.com.br](https://cloudscript.com.br)
