@@ -42,7 +42,7 @@ spec:
           serviceAccountName: {{ include "dumpscript.serviceAccountName" $ }}
           securityContext:
             {{- toYaml $.Values.podSecurityContext | nindent 12 }}
-          restartPolicy: OnFailure
+          restartPolicy: Never
           containers:
           - name: {{ $.Chart.Name }}
             securityContext:
