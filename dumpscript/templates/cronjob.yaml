@@ -15,8 +15,12 @@ metadata:
     {{- end }}
 spec:
   schedule: {{ $database.schedule | quote }}
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  concurrencyPolicy: Forbid
   jobTemplate:
     spec:
+      backoffLimit: 0
       template:
         metadata:
           {{- with $.Values.podAnnotations }}
