@@ -50,6 +50,9 @@
                 },
                 "global": {
                     "$ref": "#/$defs/helm-values.global"
+                },
+                "notifications": {
+                    "$ref": "#/$defs/helm-values.notifications"
                 }
             }
         },
@@ -317,6 +320,45 @@
             "type": "integer",
             "description": "Retention period in days",
             "default": 0
+        },
+        "helm-values.notifications": {
+            "type": "object",
+            "description": "Notifications settings",
+            "additionalProperties": false,
+            "properties": {
+                "slack": {
+                    "$ref": "#/$defs/helm-values.notifications.slack"
+                }
+            }
+        },
+        "helm-values.notifications.slack": {
+            "type": "object",
+            "description": "Slack notifications settings",
+            "additionalProperties": false,
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "description": "Enable Slack notifications",
+                    "default": false
+                },
+                "webhookUrl": {
+                    "type": "string",
+                    "description": "Slack webhook URL"
+                },
+                "channel": {
+                    "type": "string",
+                    "description": "Slack channel"
+                },
+                "username": {
+                    "type": "string",
+                    "description": "Slack username"
+                },
+                "notifyOnSuccess": {
+                    "type": "boolean",
+                    "description": "Notify on success",
+                    "default": false
+                }
+            }
         }
     }
 }

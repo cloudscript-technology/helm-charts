@@ -127,6 +127,16 @@ spec:
             - name: DUMP_OPTIONS
               value: {{ $database.extraArgs | quote }}
             {{- end }}
+            {{- if $.Values.notifications.slack.enabled }}
+            - name: SLACK_WEBHOOK_URL
+              value: {{ $.Values.notifications.slack.webhookUrl | quote }}
+            - name: SLACK_CHANNEL
+              value: {{ $.Values.notifications.slack.channel | quote }}
+            - name: SLACK_USERNAME
+              value: {{ $.Values.notifications.slack.username | quote }}
+            - name: SLACK_NOTIFY_SUCCESS
+              value: {{ $.Values.notifications.slack.notifyOnSuccess | quote }}
+            {{- end }}
             resources:
               {{- toYaml $.Values.resources | nindent 14 }}
           {{- with $.Values.nodeSelector }}

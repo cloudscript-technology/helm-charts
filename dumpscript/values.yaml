@@ -91,6 +91,19 @@ databases: []
   #   # Extra arguments for the database dump (e.g. --single-transaction, --routines)
   #   extraArgs: ""
 
+notifications:
+  slack:
+    # Enable Slack notifications
+    enabled: false
+    # Slack webhook URL
+    webhookUrl: ""
+    # Slack channel (optional)
+    channel: ""
+    # Slack username (optional)
+    username: ""
+    # Notify on success
+    notifyOnSuccess: false
+
 serviceAccount:
   # Create a service account
   create: true
