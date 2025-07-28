@@ -1,20 +1,23 @@
-{{- range $index, $database := .Values.databases }}
-{{- if $database.schedule }}
+{{- range $dbIndex, $database := .Values.databases }}
+{{- if $database.periodicity }}
+{{- range $periodIndex, $period := $database.periodicity }}
+{{- if $period.schedule }}
 ---
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: {{ include "dumpscript.fullname" $ }}-db-{{ $index }}
+  name: {{ include "dumpscript.fullname" $ }}-db-{{ $dbIndex }}-{{ $period.type }}
   labels:
     {{- include "dumpscript.labels" $ | nindent 4 }}
     app.kubernetes.io/component: cronjob
-    dumpscript/database-index: "{{ $index }}"
+    dumpscript/database-index: "{{ $dbIndex }}"
     dumpscript/database-type: "{{ $database.type }}"
+    dumpscript/periodicity-type: "{{ $period.type }}"
     {{- if $database.version }}
     dumpscript/database-version: "{{ $database.version }}"
     {{- end }}
 spec:
-  schedule: {{ $database.schedule | quote }}
+  schedule: {{ $period.schedule | quote }}
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 1
   concurrencyPolicy: Forbid
@@ -30,8 +33,9 @@ spec:
           labels:
             {{- include "dumpscript.labels" $ | nindent 12 }}
             app.kubernetes.io/component: cronjob
-            dumpscript/database-index: "{{ $index }}"
+            dumpscript/database-index: "{{ $dbIndex }}"
             dumpscript/database-type: "{{ $database.type }}"
+            dumpscript/periodicity-type: "{{ $period.type }}"
             {{- if $database.version }}
             dumpscript/database-version: "{{ $database.version }}"
             {{- end }}
@@ -122,10 +126,10 @@ spec:
             - name: S3_PREFIX
               value: {{ $database.aws.bucketPrefix | quote }}
             - name: PERIODICITY
-              value: {{ $database.periodicity | quote }}
-            {{- if $database.retentionDays }}
+              value: {{ $period.type | quote }}
+            {{- if $period.retentionDays }}
             - name: RETENTION_DAYS
-              value: {{ $database.retentionDays | quote }}
+              value: {{ $period.retentionDays | quote }}
             {{- end }}
             {{- if $database.extraArgs }}
             - name: DUMP_OPTIONS
@@ -155,5 +159,7 @@ spec:
           tolerations:
             {{- toYaml . | nindent 12 }}
           {{- end }}
+{{- end }}
+{{- end }}
 {{- end }}
 {{- end }} 

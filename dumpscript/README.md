@@ -9,13 +9,16 @@ A Helm Chart for automating PostgreSQL and MySQL database backups on Kubernetes,
 ## Features
 
 - ✅ **Multiple databases**: Support for PostgreSQL and MySQL
+- ✅ **Database version support**: Configurable client versions for compatibility
+- ✅ **Multiple backup schedules**: Support for daily, weekly, monthly, and yearly backups per database
 - ✅ **Independent jobs**: Each database runs in a separate CronJob
 - ✅ **S3 storage**: Automatic upload to Amazon S3
 - ✅ **Flexible authentication**: Support for Kubernetes secrets or direct values
-- ✅ **Custom scheduling**: Individual cron expressions per database
+- ✅ **Custom scheduling**: Individual cron expressions per backup type
 - ✅ **Custom arguments**: Database-specific dump options
 - ✅ **AWS IAM Roles**: Support for roles for authentication
 - ✅ **Security**: Credentials protected via Kubernetes Secrets
+- ✅ **Slack notifications**: Optional notifications for backup status
 
 ## Installation
 
@@ -51,8 +54,17 @@ image:
 databases:
   # PostgreSQL with direct credentials
   - type: postgresql
-    periodicity: daily
-    retentionDays: 7
+    version: "17"  # PostgreSQL client version
+    periodicity:
+      - type: daily
+        retentionDays: 7
+        schedule: "0 2 * * *"  # Every day at 2:00 AM
+      - type: weekly
+        retentionDays: 30
+        schedule: "0 3 * * 0"  # Every Sunday at 3:00 AM
+      - type: monthly
+        retentionDays: 365
+        schedule: "0 4 1 * *"  # First day of month at 4:00 AM
     connectionInfo:
       host: "postgres.example.com"
       username: "backup_user"
@@ -63,30 +75,32 @@ databases:
       region: "us-west-2"
       bucket: "my-company-backups"
       bucketPrefix: "postgres-dumps/"
-    schedule: "0 2 * * *"  # Every day at 2:00 AM
     extraArgs: "--verbose --single-transaction"
 
   # MySQL with secrets
   - type: mysql
-    periodicity: weekly
-    retentionDays: 30
+    version: "10.11"  # MariaDB client version
+    periodicity:
+      - type: daily
+        retentionDays: 7
+        schedule: "0 1 * * *"  # Every day at 1:00 AM
+      - type: weekly
+        retentionDays: 30
+        schedule: "0 2 * * 0"  # Every Sunday at 2:00 AM
     connectionInfo:
       secretName: "mysql-credentials"
     aws:
       secretName: "aws-credentials"
-    schedule: "0 3 * * *"  # Every day at 3:00 AM
     extraArgs: "--opt --single-transaction"
 
-  # PostgreSQL in production
-  - type: postgresql
-    periodicity: monthly
-    retentionDays: 365
-    connectionInfo:
-      secretName: "production-db-credentials"
-    aws:
-      secretName: "production-aws-credentials"
-    schedule: "0 1 * * *"  # Every day at 1:00 AM
-    extraArgs: "--verbose --single-transaction --clean"
+# Slack notifications
+notifications:
+  slack:
+    enabled: true
+    webhookUrl: "https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK"
+    channel: "#backups"
+    username: "Dumpscript Bot"
+    notifyOnSuccess: false
 
 # Service Account configuration
 serviceAccount:
@@ -96,6 +110,14 @@ serviceAccount:
     eks.amazonaws.com/role-arn: "arn:aws:iam::123456789012:role/BackupRole"
   name: ""
   namespace: ""
+
+# Pod configuration
+podAnnotations: {}
+podLabels: {}
+
+# Security context
+podSecurityContext: {}
+securityContext: {}
 
 # Pod resources and configuration
 resources:
@@ -110,6 +132,45 @@ resources:
 nodeSelector: {}
 tolerations: []
 affinity: {}
+```
+
+## Database Version Support
+
+### PostgreSQL Versions
+- **13**: PostgreSQL 13.x
+- **14**: PostgreSQL 14.x
+- **15**: PostgreSQL 15.x
+- **16**: PostgreSQL 16.x
+- **17**: PostgreSQL 17.x (default)
+
+### MySQL/MariaDB Versions
+- **8.0**: MySQL 8.0
+- **10.11**: MariaDB 10.11 (default)
+- **11.4**: MariaDB 11.4
+
+**Important**: The client version should match your database server version to avoid compatibility issues.
+
+## Multiple Backup Schedules
+
+Each database can have multiple backup schedules with different retention policies:
+
+```yaml
+databases:
+  - type: postgresql
+    version: "17"
+    periodicity:
+      - type: daily
+        retentionDays: 7
+        schedule: "0 2 * * *"  # Daily at 2:00 AM
+      - type: weekly
+        retentionDays: 30
+        schedule: "0 3 * * 0"  # Weekly on Sunday at 3:00 AM
+      - type: monthly
+        retentionDays: 365
+        schedule: "0 4 1 * *"  # Monthly on 1st at 4:00 AM
+      - type: yearly
+        retentionDays: 2555  # 7 years
+        schedule: "0 5 1 1 *"  # Yearly on January 1st at 5:00 AM
 ```
 
 ## Kubernetes Secrets
@@ -231,9 +292,10 @@ kubectl create secret generic aws-credentials-keys \
 | Parameter | Description | Required |
 |-----------|-------------|----------|
 | `databases[].type` | Database type (`postgresql` or `mysql`) | ✅ |
-| `databases[].schedule` | Cron expression for scheduling | ✅ |
-| `databases[].periodicity` | Backup periodicity (`daily`, `weekly`, `monthly`, `yearly`) | ✅ |
-| `databases[].retentionDays` | Retention period in days (integer) | ❌ |
+| `databases[].version` | Database client version | ✅ |
+| `databases[].periodicity[].type` | Backup type (`daily`, `weekly`, `monthly`, `yearly`) | ✅ |
+| `databases[].periodicity[].schedule` | Cron expression for scheduling | ✅ |
+| `databases[].periodicity[].retentionDays` | Retention period in days (integer) | ✅ |
 | `databases[].connectionInfo.host` | Database host | ✅* |
 | `databases[].connectionInfo.username` | Database username | ✅* |
 | `databases[].connectionInfo.password` | Database password | ✅* |
@@ -249,6 +311,16 @@ kubectl create secret generic aws-credentials-keys \
 *\* Required when `secretName` is not provided*  
 *\*\* Required when direct values are not provided*
 
+### Slack Notifications
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `notifications.slack.enabled` | Enable Slack notifications | `false` |
+| `notifications.slack.webhookUrl` | Slack webhook URL | `""` |
+| `notifications.slack.channel` | Slack channel (optional) | `""` |
+| `notifications.slack.username` | Slack username (optional) | `""` |
+| `notifications.slack.notifyOnSuccess` | Notify on successful backups | `false` |
+
 ### Service Account Configuration
 
 | Parameter | Description | Default |
@@ -259,15 +331,34 @@ kubectl create secret generic aws-credentials-keys \
 | `serviceAccount.name` | Service account name | `""` |
 | `serviceAccount.namespace` | Service account namespace | `""` |
 
+### Pod Configuration
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `podAnnotations` | Pod annotations | `{}` |
+| `podLabels` | Pod labels | `{}` |
+| `podSecurityContext` | Pod security context | `{}` |
+| `securityContext` | Container security context | `{}` |
+| `resources` | Resource requests and limits | `{}` |
+| `nodeSelector` | Node selector | `{}` |
+| `tolerations` | Tolerations | `[]` |
+| `affinity` | Affinity rules | `{}` |
+
 ## Usage Examples
 
-### Simple PostgreSQL Backup
+### Simple PostgreSQL Backup with Multiple Schedules
 
 ```yaml
 databases:
   - type: postgresql
-    periodicity: daily
-    retentionDays: 7
+    version: "17"
+    periodicity:
+      - type: daily
+        retentionDays: 7
+        schedule: "0 2 * * *"  # Daily at 2:00 AM
+      - type: weekly
+        retentionDays: 30
+        schedule: "0 3 * * 0"  # Weekly on Sunday at 3:00 AM
     connectionInfo:
       host: "postgres.internal"
       username: "backup_user"
@@ -278,24 +369,37 @@ databases:
       region: "us-west-2"
       bucket: "myapp-backups"
       bucketPrefix: "postgres/"
-    schedule: "0 2 * * *"
+    extraArgs: "--verbose --single-transaction"
 ```
 
-### Backup with AWS IAM Role
+### Backup with AWS IAM Role and Slack Notifications
 
 ```yaml
 databases:
   - type: postgresql
-    periodicity: daily
-    retentionDays: 14
+    version: "16"
+    periodicity:
+      - type: daily
+        retentionDays: 14
+        schedule: "0 1 * * *"  # Daily at 1:00 AM
+      - type: monthly
+        retentionDays: 365
+        schedule: "0 4 1 * *"  # Monthly on 1st at 4:00 AM
     connectionInfo:
       secretName: "db-credentials"
     aws:
       region: "us-west-2"
       bucket: "secure-backups"
       bucketPrefix: "production/postgres/"
-    schedule: "0 1 * * *"
     extraArgs: "--verbose --single-transaction"
+
+notifications:
+  slack:
+    enabled: true
+    webhookUrl: "https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK"
+    channel: "#backups"
+    username: "Dumpscript Bot"
+    notifyOnSuccess: false
 
 serviceAccount:
   create: true
@@ -303,14 +407,20 @@ serviceAccount:
     eks.amazonaws.com/role-arn: "arn:aws:iam::123456789012:role/DatabaseBackupRole"
 ```
 
-### Multiple Databases
+### Multiple Databases with Different Versions
 
 ```yaml
 databases:
   # Production PostgreSQL
   - type: postgresql
-    periodicity: daily
-    retentionDays: 30
+    version: "17"
+    periodicity:
+      - type: daily
+        retentionDays: 30
+        schedule: "0 1 * * *"  # Daily at 1:00 AM
+      - type: monthly
+        retentionDays: 365
+        schedule: "0 4 1 * *"  # Monthly on 1st at 4:00 AM
     connectionInfo:
       secretName: "prod-postgres-creds"
     aws:
@@ -318,13 +428,18 @@ databases:
       region: "us-west-2"
       bucket: "secure-backups"
       bucketPrefix: "production/postgres/"
-    schedule: "0 1 * * *"
     extraArgs: "--verbose --single-transaction"
 
   # Development MySQL
   - type: mysql
-    periodicity: weekly
-    retentionDays: 14
+    version: "10.11"
+    periodicity:
+      - type: daily
+        retentionDays: 14
+        schedule: "0 2 * * *"  # Daily at 2:00 AM
+      - type: weekly
+        retentionDays: 60
+        schedule: "0 3 * * 0"  # Weekly on Sunday at 3:00 AM
     connectionInfo:
       secretName: "dev-mysql-creds"
     aws:
@@ -332,13 +447,15 @@ databases:
       region: "us-west-2"
       bucket: "secure-backups"
       bucketPrefix: "develop/mysql/"
-    schedule: "0 3 * * *"
     extraArgs: "--opt --single-transaction"
 
   # Test PostgreSQL
   - type: postgresql
-    periodicity: monthly
-    retentionDays: 90
+    version: "15"
+    periodicity:
+      - type: weekly
+        retentionDays: 90
+        schedule: "0 0 * * 0"  # Weekly on Sunday at midnight
     connectionInfo:
       secretName: "test-postgres-creds"
     aws:
@@ -346,7 +463,6 @@ databases:
       region: "us-west-2"
       bucket: "secure-backups"
       bucketPrefix: "test/postgres/"
-    schedule: "0 0 * * 0"  # Weekly on Sunday
     extraArgs: "--clean --if-exists"
 ```
 
@@ -359,6 +475,7 @@ databases:
 | `0 1 * * 0` | Every Sunday at 1:00 AM |
 | `0 3 1 * *` | First day of month at 3:00 AM |
 | `0 2 * * 1-5` | Monday to Friday at 2:00 AM |
+| `0 5 1 1 *` | January 1st at 5:00 AM (yearly) |
 
 ## Common Extra Arguments
 
@@ -432,6 +549,14 @@ aws s3 ls s3://my-company-backups/database-dumps/
 aws s3 cp test.txt s3://my-company-backups/database-dumps/
 ```
 
+**4. Version compatibility issues**
+```bash
+# Check database server version
+kubectl run debug --image=postgres:17 --rm -it -- psql -h postgres.example.com -U backup_user -d app_db -c "SELECT version();"
+
+# Verify client version matches server version
+```
+
 ### Detailed Logs
 
 ```bash
@@ -455,6 +580,7 @@ kubectl logs -f -l app.kubernetes.io/name=dumpscript
 4. **Use namespaces** for isolation
 5. **Configure Network Policies** for traffic control
 6. **Monitor logs** for suspicious activities
+7. **Match client versions** with database server versions
 
 ## AWS IAM Policy Requirements
 

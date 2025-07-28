@@ -307,14 +307,37 @@
             "description": "Extra arguments for the database dump"
         },
         "helm-values.databases.periodicity": {
-            "type": "string",
-            "description": "Backup periodicity for the database dump",
-            "enum": [
-                "daily",
-                "weekly",
-                "monthly",
-                "yearly"
-            ]
+            "type": "array",
+            "description": "Backup periodicity configurations for the database dump",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "description": "Periodicity type",
+                        "enum": [
+                            "daily",
+                            "weekly",
+                            "monthly",
+                            "yearly"
+                        ]
+                    },
+                    "retentionDays": {
+                        "type": "integer",
+                        "description": "Retention period in days for this periodicity type"
+                    },
+                    "schedule": {
+                        "type": "string",
+                        "description": "Schedule for this periodicity type (cron format)"
+                    }
+                },
+                "required": [
+                    "type",
+                    "retentionDays",
+                    "schedule"
+                ]
+            }
         },
         "helm-values.databases.retentionDays": {
             "type": "integer",
