@@ -53,6 +53,12 @@
                 },
                 "notifications": {
                     "$ref": "#/$defs/helm-values.notifications"
+                },
+                "extraVolumes": {
+                    "$ref": "#/$defs/helm-values.extraVolumes"
+                },
+                "extraVolumeMounts": {
+                    "$ref": "#/$defs/helm-values.extraVolumeMounts"
                 }
             }
         },
@@ -230,6 +236,18 @@
             "type": "object",
             "description": "Global values for the chart",
             "default": {}
+        },
+        "helm-values.extraVolumes": {
+            "type": "array",
+            "description": "Extra volumes for the pod",
+            "default": [],
+            "items": {}
+        },
+        "helm-values.extraVolumeMounts": {
+            "type": "array",
+            "description": "Extra volume mounts for the pod",
+            "default": [],
+            "items": {}
         },
         "helm-values.databases.type": {
             "type": "string",

@@ -166,3 +166,19 @@ tolerations: []
 
 # Affinity rules for the pod
 affinity: {}
+
+# IMPORTANT: We recommend using a emptyDir volume to store the database dump if the database is too large
+
+# Extra volumes for the pod
+extraVolumes: []
+# extraVolumes:
+#   - name: "data"
+#     emptyDir:
+#       sizeLimit: "30Gi"
+
+# Extra volume mounts for the pod
+extraVolumeMounts: []
+# extraVolumeMounts:
+#   - name: "data"
+#     mountPath: "/dumpscript"
+#     readOnly: false

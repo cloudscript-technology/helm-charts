@@ -147,6 +147,14 @@ spec:
             {{- end }}
             resources:
               {{- toYaml $.Values.resources | nindent 14 }}
+            {{- with $.Values.extraVolumeMounts }}
+            volumeMounts:
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- with $.Values.extraVolumes }}
+          volumes:
+            {{- toYaml . | nindent 10 }}
+          {{- end }}
           {{- with $.Values.nodeSelector }}
           nodeSelector:
             {{- toYaml . | nindent 12 }}
