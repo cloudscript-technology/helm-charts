@@ -274,6 +274,78 @@ kubectl create secret generic aws-credentials-keys \
   --from-literal=secretAccessKey=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
 ```
 
+## Storage and Volumes
+
+### ⚠️ Critical: Storage Requirements
+
+The DumpScript container uses the `/dumpscript` directory as its working directory and **temporary storage** for database dumps before uploading to S3. It is **critical** to ensure this directory has sufficient storage space to accommodate the full size of your database dump.
+
+#### Why Storage Space Matters
+
+- **Temporary Storage**: Database dumps are created locally in `/dumpscript` before being compressed and uploaded to S3
+- **Compression Process**: The dump is compressed using gzip, which requires additional temporary space during compression
+- **No Streaming**: The current implementation creates the complete dump file locally before uploading (not streaming)
+- **Failure Risk**: Insufficient space will cause the backup process to fail with "No space left on device" errors
+
+#### Storage Space Calculation
+
+**Minimum Required Space:**
+```
+Required Space = Database Size × 1.5
+```
+
+**Recommended Space:**
+```
+Recommended Space = Database Size × 2.0
+```
+
+#### Examples
+
+| Database Size | Minimum Space | Recommended Space |
+|---------------|---------------|-------------------|
+| 1 GB          | 1.5 GB        | 2 GB              |
+| 10 GB         | 15 GB         | 20 GB             |
+| 100 GB        | 150 GB        | 200 GB            |
+| 500 GB        | 750 GB        | 1 TB              |
+
+### Volume Configuration
+
+#### Using emptyDir (Recommended for most cases)
+
+```yaml
+# In your values.yaml
+volumeMounts:
+  - name: data
+    mountPath: /dumpscript
+
+volumes:
+  - name: data
+    emptyDir:
+      sizeLimit: 20Gi  # Adjust based on your database size
+```
+
+### Monitoring Storage Usage
+
+The container includes debug logs to monitor storage usage:
+
+```bash
+# Check logs for storage information
+kubectl logs -l app.kubernetes.io/name=dumpscript
+
+# Look for these debug messages:
+[DEBUG] Available space in /dumpscript: Filesystem      Size  Used Avail Use% Mounted on
+[DEBUG] Available space in /dumpscript: tmpfs           20G   1.2G   19G   6% /dumpscript
+```
+
+### Troubleshooting Storage Issues
+
+If you encounter storage-related failures:
+
+1. **Check available space**: Look for `[DEBUG] Available space in /dumpscript` in logs
+2. **Monitor during backup**: Watch space usage during the dump process
+3. **Increase storage**: Add more storage to the `/dumpscript` directory
+4. **Consider database size**: Large databases may require significant temporary storage
+
 ## Configuration Parameters
 
 ### Global Configuration
@@ -343,6 +415,13 @@ kubectl create secret generic aws-credentials-keys \
 | `nodeSelector` | Node selector | `{}` |
 | `tolerations` | Tolerations | `[]` |
 | `affinity` | Affinity rules | `{}` |
+
+### Volume Configuration
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `extraVolumeMounts` | Volume mounts for the container | `[]` |
+| `extraVolumes` | Pod volumes | `[]` |
 
 ## Usage Examples
 
