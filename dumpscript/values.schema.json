@@ -53,12 +53,6 @@
                 },
                 "notifications": {
                     "$ref": "#/$defs/helm-values.notifications"
-                },
-                "extraVolumes": {
-                    "$ref": "#/$defs/helm-values.extraVolumes"
-                },
-                "extraVolumeMounts": {
-                    "$ref": "#/$defs/helm-values.extraVolumeMounts"
                 }
             }
         },
@@ -93,6 +87,18 @@
                     },
                     "retentionDays": {
                         "$ref": "#/$defs/helm-values.databases.retentionDays"
+                    },
+                    "extraVolumes": {
+                        "$ref": "#/$defs/helm-values.databases.extraVolumes"
+                    },
+                    "extraVolumeMounts": {
+                        "$ref": "#/$defs/helm-values.databases.extraVolumeMounts"
+                    },
+                    "successHistoryLimit": {
+                        "$ref": "#/$defs/helm-values.databases.successHistoryLimit"
+                    },
+                    "failureHistoryLimit": {
+                        "$ref": "#/$defs/helm-values.databases.failureHistoryLimit"
                     }
                 }
             }
@@ -237,17 +243,27 @@
             "description": "Global values for the chart",
             "default": {}
         },
-        "helm-values.extraVolumes": {
+        "helm-values.databases.extraVolumes": {
             "type": "array",
             "description": "Extra volumes for the pod",
             "default": [],
             "items": {}
         },
-        "helm-values.extraVolumeMounts": {
+        "helm-values.databases.extraVolumeMounts": {
             "type": "array",
             "description": "Extra volume mounts for the pod",
             "default": [],
             "items": {}
+        },
+        "helm-values.databases.successHistoryLimit": {
+            "type": "integer",
+            "description": "Successful jobs history limit",
+            "default": 3
+        },
+        "helm-values.databases.failureHistoryLimit": {
+            "type": "integer",
+            "description": "Failed jobs history limit",
+            "default": 1
         },
         "helm-values.databases.type": {
             "type": "string",

@@ -76,6 +76,15 @@ databases:
       bucket: "my-company-backups"
       bucketPrefix: "postgres-dumps/"
     extraArgs: "--verbose --single-transaction"
+    # Volume configuration for temporary storage
+    extraVolumes:
+      - name: temp-data
+        emptyDir:
+          sizeLimit: 20Gi
+    extraVolumeMounts:
+      - name: temp-data
+        mountPath: /dumpscript
+        readOnly: false
 
   # MySQL with secrets
   - type: mysql
@@ -92,6 +101,15 @@ databases:
     aws:
       secretName: "aws-credentials"
     extraArgs: "--opt --single-transaction"
+    # Volume configuration for temporary storage
+    extraVolumes:
+      - name: temp-data
+        emptyDir:
+          sizeLimit: 15Gi
+    extraVolumeMounts:
+      - name: temp-data
+        mountPath: /dumpscript
+        readOnly: false
 
 # Slack notifications
 notifications:
@@ -310,18 +328,91 @@ Recommended Space = Database Size × 2.0
 
 ### Volume Configuration
 
+Each database can now be configured with custom volumes and volume mounts using the `extraVolumes` and `extraVolumeMounts` parameters. This allows for flexible storage solutions based on your specific requirements.
+
 #### Using emptyDir (Recommended for most cases)
 
 ```yaml
 # In your values.yaml
-volumeMounts:
-  - name: data
-    mountPath: /dumpscript
+databases:
+  - type: postgresql
+    version: "17"
+    # ... other configuration ...
+    extraVolumes:
+      - name: temp-data
+        emptyDir:
+          sizeLimit: 20Gi  # Adjust based on your database size
+    extraVolumeMounts:
+      - name: temp-data
+        mountPath: /dumpscript
+        readOnly: false
+```
 
-volumes:
-  - name: data
-    emptyDir:
-      sizeLimit: 20Gi  # Adjust based on your database size
+#### Using Ephemeral Volumes (Recommended for large databases)
+
+For large databases that require persistent storage during the backup process:
+
+```yaml
+databases:
+  - type: postgresql
+    version: "17"
+    # ... other configuration ...
+    extraVolumes:
+      - name: temp-data
+        ephemeral:
+          volumeClaimTemplate:
+            metadata:
+              labels:
+                type: temp-data
+            spec:
+              accessModes: ["ReadWriteOnce"]
+              storageClassName: "gp3"
+              resources:
+                requests:
+                  storage: 100Gi  # Adjust based on your database size
+    extraVolumeMounts:
+      - name: temp-data
+        mountPath: /dumpscript
+        readOnly: false
+```
+
+#### Using Persistent Volumes
+
+For databases that need persistent storage across pod restarts:
+
+```yaml
+databases:
+  - type: postgresql
+    version: "17"
+    # ... other configuration ...
+    extraVolumes:
+      - name: temp-data
+        persistentVolumeClaim:
+          claimName: dumpscript-temp-pvc
+    extraVolumeMounts:
+      - name: temp-data
+        mountPath: /dumpscript
+        readOnly: false
+```
+
+#### Using Host Path (Development only)
+
+⚠️ **Warning**: Only use for development/testing environments:
+
+```yaml
+databases:
+  - type: postgresql
+    version: "17"
+    # ... other configuration ...
+    extraVolumes:
+      - name: temp-data
+        hostPath:
+          path: /tmp/dumpscript
+          type: DirectoryOrCreate
+    extraVolumeMounts:
+      - name: temp-data
+        mountPath: /dumpscript
+        readOnly: false
 ```
 
 ### Monitoring Storage Usage
@@ -345,6 +436,7 @@ If you encounter storage-related failures:
 2. **Monitor during backup**: Watch space usage during the dump process
 3. **Increase storage**: Add more storage to the `/dumpscript` directory
 4. **Consider database size**: Large databases may require significant temporary storage
+5. **Verify volume mounts**: Ensure volumes are properly mounted at `/dumpscript`
 
 ## Configuration Parameters
 
@@ -420,8 +512,8 @@ If you encounter storage-related failures:
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `extraVolumeMounts` | Volume mounts for the container | `[]` |
-| `extraVolumes` | Pod volumes | `[]` |
+| `databases[].extraVolumes` | Extra volumes for each database pod | `[]` |
+| `databases[].extraVolumeMounts` | Extra volume mounts for each database container | `[]` |
 
 ## Usage Examples
 
@@ -449,6 +541,15 @@ databases:
       bucket: "myapp-backups"
       bucketPrefix: "postgres/"
     extraArgs: "--verbose --single-transaction"
+    # Volume configuration for temporary storage
+    extraVolumes:
+      - name: temp-data
+        emptyDir:
+          sizeLimit: 20Gi
+    extraVolumeMounts:
+      - name: temp-data
+        mountPath: /dumpscript
+        readOnly: false
 ```
 
 ### Backup with AWS IAM Role and Slack Notifications
@@ -484,6 +585,46 @@ serviceAccount:
   create: true
   annotations:
     eks.amazonaws.com/role-arn: "arn:aws:iam::123456789012:role/DatabaseBackupRole"
+```
+
+### Large Database with Ephemeral Volume
+
+For large databases that require significant temporary storage:
+
+```yaml
+databases:
+  - type: postgresql
+    version: "17"
+    periodicity:
+      - type: daily
+        retentionDays: 30
+        schedule: "0 1 * * *"  # Daily at 1:00 AM
+    connectionInfo:
+      secretName: "prod-postgres-creds"
+    aws:
+      secretName: "prod-aws-creds"
+      region: "us-west-2"
+      bucket: "secure-backups"
+      bucketPrefix: "production/postgres/"
+    extraArgs: "--verbose --single-transaction"
+    # Ephemeral volume for large database temporary storage
+    extraVolumes:
+      - name: temp-data
+        ephemeral:
+          volumeClaimTemplate:
+            metadata:
+              labels:
+                type: temp-data
+            spec:
+              accessModes: ["ReadWriteOnce"]
+              storageClassName: "gp3"
+              resources:
+                requests:
+                  storage: 200Gi  # Large storage for big database
+    extraVolumeMounts:
+      - name: temp-data
+        mountPath: /dumpscript
+        readOnly: false
 ```
 
 ### Multiple Databases with Different Versions

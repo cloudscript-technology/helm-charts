@@ -58,6 +58,31 @@ databases:
       secretName: ""
     # Extra arguments for the database dump (e.g. --encoding=utf8, --no-owner)
     extraArgs: ""
+    # IMPORTANT: We recommend using a ephemeral volume to store the database dump if the database is too large
+    # Extra volumes for the pod
+    extraVolumes: []
+    # extraVolumes:
+    #   - name: temp-data
+    #     ephemeral:
+    #       volumeClaimTemplate:
+    #         metadata:
+    #           labels:
+    #             type: temp-data
+    #         spec:
+    #           accessModes: [ "ReadWriteOnce" ]
+    #           storageClassName: "gp3"
+    #           resources:
+    #             requests:
+    #               storage: 10Gi
+
+    # Extra volume mounts for the pod
+    extraVolumeMounts: []
+    # extraVolumeMounts:
+    #   - name: "temp-data"
+    #     mountPath: "/dumpscript"
+    #     readOnly: false
+    successHistoryLimit: 3
+    failureHistoryLimit: 1
   - type: mysql
     # Version of the MySQL/MariaDB client (8.0, 10.11, 11.4)
     # - Use "8.0" for MySQL 8.0
@@ -100,6 +125,31 @@ databases:
       secretName: ""
     # Extra arguments for the database dump (e.g. --single-transaction, --routines)
     extraArgs: ""
+    # IMPORTANT: We recommend using a ephemeral volume to store the database dump if the database is too large
+    # Extra volumes for the pod
+    extraVolumes: []
+    # extraVolumes:
+    #   - name: temp-data
+    #     ephemeral:
+    #       volumeClaimTemplate:
+    #         metadata:
+    #           labels:
+    #             type: temp-data
+    #         spec:
+    #           accessModes: [ "ReadWriteOnce" ]
+    #           storageClassName: "gp3"
+    #           resources:
+    #             requests:
+    #               storage: 10Gi
+
+    # Extra volume mounts for the pod
+    extraVolumeMounts: []
+    # extraVolumeMounts:
+    #   - name: "temp-data"
+    #     mountPath: "/dumpscript"
+    #     readOnly: false
+    successHistoryLimit: 3
+    failureHistoryLimit: 1
 
 notifications:
   slack:
@@ -171,19 +221,3 @@ tolerations: []
 
 # Affinity rules for the pod
 affinity: {}
-
-# IMPORTANT: We recommend using a emptyDir volume to store the database dump if the database is too large
-
-# Extra volumes for the pod
-extraVolumes: []
-# extraVolumes:
-#   - name: "data"
-#     emptyDir:
-#       sizeLimit: "30Gi"
-
-# Extra volume mounts for the pod
-extraVolumeMounts: []
-# extraVolumeMounts:
-#   - name: "data"
-#     mountPath: "/dumpscript"
-#     readOnly: false

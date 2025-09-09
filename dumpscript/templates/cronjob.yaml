@@ -18,8 +18,8 @@ metadata:
     {{- end }}
 spec:
   schedule: {{ $period.schedule | quote }}
-  successfulJobsHistoryLimit: 3
-  failedJobsHistoryLimit: 1
+  successfulJobsHistoryLimit: {{ $database.successHistoryLimit }}
+  failedJobsHistoryLimit: {{ $database.failureHistoryLimit }}
   concurrencyPolicy: Forbid
   jobTemplate:
     spec:
@@ -155,11 +155,11 @@ spec:
             {{- end }}
             resources:
               {{- toYaml $.Values.resources | nindent 14 }}
-            {{- with $.Values.extraVolumeMounts }}
+            {{- with $database.extraVolumeMounts }}
             volumeMounts:
               {{- toYaml . | nindent 12 }}
             {{- end }}
-          {{- with $.Values.extraVolumes }}
+          {{- with $database.extraVolumes }}
           volumes:
             {{- toYaml . | nindent 10 }}
           {{- end }}
