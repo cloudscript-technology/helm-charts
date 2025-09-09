@@ -384,7 +384,25 @@
                 },
                 "webhookUrl": {
                     "type": "string",
-                    "description": "Slack webhook URL"
+                    "description": "Slack webhook URL",
+                    "default": ""
+                },
+                "webhookUrlFromSecret": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "default": {},
+                    "properties": {
+                        "name": {
+                            "type": "string",
+                            "description": "Name of the secret containing the Slack webhook URL",
+                            "default": "dumpscript-slack-webhook-secret"
+                        },
+                        "key": {
+                            "type": "string",
+                            "description": "Key of the Slack webhook URL in the secret",
+                            "default": "webhook_url"
+                        }
+                    }
                 },
                 "channel": {
                     "type": "string",

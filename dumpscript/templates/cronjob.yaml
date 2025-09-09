@@ -136,8 +136,16 @@ spec:
               value: {{ $database.extraArgs | quote }}
             {{- end }}
             {{- if $.Values.notifications.slack.enabled }}
+            {{- if $.Values.notifications.slack.webhookUrlFromSecret }}
+            - name: SLACK_WEBHOOK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $.Values.notifications.slack.webhookUrlFromSecret.name }}
+                  key: {{ $.Values.notifications.slack.webhookUrlFromSecret.key }}
+            {{- else if $.Values.notifications.slack.webhookUrl }}
             - name: SLACK_WEBHOOK_URL
               value: {{ $.Values.notifications.slack.webhookUrl | quote }}
+            {{- end }}
             - name: SLACK_CHANNEL
               value: {{ $.Values.notifications.slack.channel | quote }}
             - name: SLACK_USERNAME
