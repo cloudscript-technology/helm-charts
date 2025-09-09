@@ -104,7 +104,7 @@ databases:
 notifications:
   slack:
     # Enable Slack notifications
-    enabled: true
+    enabled: false
     # Slack webhook URL (will be ignored if webhookUrlFromSecret is provided)
     webhookUrl: ""
     # Name of the secret containing the Slack webhook URL (optional)
