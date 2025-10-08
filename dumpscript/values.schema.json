@@ -273,7 +273,8 @@
             "description": "Database type",
             "enum": [
                 "postgresql",
-                "mysql"
+                "mysql",
+                "mongodb"
             ]
         },
         "helm-values.databases.version": {
