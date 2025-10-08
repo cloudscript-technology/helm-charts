@@ -353,13 +353,7 @@
                 "properties": {
                     "type": {
                         "type": "string",
-                        "description": "Periodicity type",
-                        "enum": [
-                            "daily",
-                            "weekly",
-                            "monthly",
-                            "yearly"
-                        ]
+                        "description": "Periodicity type"
                     },
                     "retentionDays": {
                         "type": "integer",
