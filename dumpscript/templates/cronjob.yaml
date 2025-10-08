@@ -90,13 +90,11 @@ spec:
                 secretKeyRef:
                   name: {{ $database.connectionInfo.secretName }}
                   key: password
-            {{- if $database.type ne "mongodb" }}
             - name: DB_NAME
               valueFrom:
                 secretKeyRef:
                   name: {{ $database.connectionInfo.secretName }}
                   key: database
-            {{- end }}
             - name: DB_PORT
               valueFrom:
                 secretKeyRef:
