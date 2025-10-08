@@ -26,7 +26,7 @@ dependencies: []
 annotations:
   artifacthub.io/changes: |
     - kind: added
-      description: Add alpine 3.20 and 3.21 images
+      description: Add alpine 3.20 and 3.21 images and fix mongodb dump
   artifacthub.io/containsSecurityUpdates: "true"
   artifacthub.io/images: |
     - name: dumpscript alpine3.21
