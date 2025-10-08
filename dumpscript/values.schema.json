@@ -67,6 +67,9 @@
                     "type": {
                         "$ref": "#/$defs/helm-values.databases.type"
                     },
+                    "image": {
+                        "$ref": "#/$defs/helm-values.databases.image"
+                    },
                     "version": {
                         "$ref": "#/$defs/helm-values.databases.version"
                     },
@@ -377,6 +380,36 @@
             "type": "integer",
             "description": "Retention period in days",
             "default": 0
+        },
+        "helm-values.databases.image": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "repository": {
+                    "$ref": "#/$defs/helm-values.databases.image.repository"
+                },
+                "pullPolicy": {
+                    "$ref": "#/$defs/helm-values.databases.image.pullPolicy"
+                },
+                "tag": {
+                    "$ref": "#/$defs/helm-values.databases.image.tag"
+                }
+            }
+        },
+        "helm-values.databases.image.repository": {
+            "type": "string",
+            "description": "Image repository",
+            "default": ""
+        },
+        "helm-values.databases.image.pullPolicy": {
+            "type": "string",
+            "description": "Image pull policy",
+            "default": "IfNotPresent"
+        },
+        "helm-values.databases.image.tag": {
+            "type": "string",
+            "description": "Image tag",
+            "default": ""
         },
         "helm-values.notifications": {
             "type": "object",

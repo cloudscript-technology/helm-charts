@@ -19,6 +19,11 @@ fullnameOverride: ""
 
 databases:
   - type: postgresql
+    # Explicitly set the dumpscriptimage for the PostgreSQL database
+    # image:
+      # repository: ghcr.io/cloudscript-technology/dumpscript
+      # pullPolicy: IfNotPresent
+      # tag: "xyz-alpine-3.21"
     # Version of the PostgreSQL client (13, 14, 15, 16, 17)
     # This version should match your PostgreSQL server version to avoid compatibility issues
     version: "17"

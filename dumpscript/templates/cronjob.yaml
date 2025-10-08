@@ -55,8 +55,13 @@ spec:
           - name: {{ $.Chart.Name }}
             securityContext:
               {{- toYaml $.Values.securityContext | nindent 14 }}
+            {{- if $database.image }}
+            image: "{{ $database.image.repository }}:{{ $database.image.tag | default $.Chart.AppVersion }}"
+            imagePullPolicy: {{ $database.image.pullPolicy }}
+            {{- else }}
             image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag | default $.Chart.AppVersion }}"
             imagePullPolicy: {{ $.Values.image.pullPolicy }}
+            {{- end }}
             env:
             - name: DB_TYPE
               value: {{ $database.type | quote }}

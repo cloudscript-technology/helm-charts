@@ -155,11 +155,16 @@ affinity: {}
 ## Database Version Support
 
 ### PostgreSQL Versions
-- **13**: PostgreSQL 13.x
 - **14**: PostgreSQL 14.x
 - **15**: PostgreSQL 15.x
-- **16**: PostgreSQL 16.x
-- **17**: PostgreSQL 17.x (default)
+- **16**: PostgreSQL 16.x (default)
+- **17**: PostgreSQL 17.x
+
+**Version Availability by Alpine Base Image:**
+- **Alpine 3.20**: PostgreSQL versions `14`, `15`, `16`
+- **Alpine 3.21**: PostgreSQL versions `15`, `16`, `17`
+
+> **Note**: PostgreSQL versions 14 and below are only available on Alpine 3.20, and PostgreSQL 17 is only available on Alpine 3.21. The container will automatically use the appropriate Alpine version based on the requested PostgreSQL version.
 
 ### MySQL/MariaDB Versions
 - **8.0**: MySQL 8.0

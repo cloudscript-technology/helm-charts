@@ -2,8 +2,8 @@ apiVersion: v2
 name: dumpscript
 description: The DumpScript is a unified system for backup and restore of MySQL and PostgreSQL databases to Amazon S3.
 type: application
-version: 1.4.4
-appVersion: "v0.0.25"
+version: 1.5.0
+appVersion: "v0.0.33-alpine-3-21"
 kubeVersion: ">= 1.27.0-0"
 home: https://cloudscript.com.br
 icon: https://charts.cloudscript.com.br/helm-charts/dumpscript/cloudscript-logo.png
@@ -26,11 +26,13 @@ dependencies: []
 annotations:
   artifacthub.io/changes: |
     - kind: added
-      description: First release
+      description: Add alpine 3.20 and 3.21 images
   artifacthub.io/containsSecurityUpdates: "true"
   artifacthub.io/images: |
-    - name: dumpscript
-      image: ghcr.io/cloudscript-technology/dumpscript:v0.0.25
+    - name: dumpscript alpine3.21
+      image: ghcr.io/cloudscript-technology/dumpscript:v0.0.33-alpine-3-21
+    - name: dumpscript alpine3.20
+      image: ghcr.io/cloudscript-technology/dumpscript:v0.0.33-alpine-3-20
   artifacthub.io/displayName: "Dump Script"
   artifacthub.io/license: "MIT"
   artifacthub.io/provider: "Cloudscript"
@@ -39,4 +41,4 @@ annotations:
       url: https://cloudscript.com.br
     - name: Source
       url: https://github.com/cloudscript-technology/helm-charts
-  artifacthub.io/valuesSchema: "https://charts.cloudscript.com.br/dumpscript/1.4.4/values-schema.json"
+  artifacthub.io/valuesSchema: "https://charts.cloudscript.com.br/dumpscript/1.5.0/values-schema.json"
