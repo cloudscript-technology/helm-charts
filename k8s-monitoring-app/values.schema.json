@@ -62,6 +62,12 @@
         },
         "rbac": {
           "$ref": "#/$defs/rbac"
+        },
+        "livenessProbe": {
+          "$ref": "#/$defs/livenessProbe"
+        },
+        "readinessProbe": {
+          "$ref": "#/$defs/readinessProbe"
         }
       }
     },
@@ -404,6 +410,86 @@
         "create": {
           "type": "boolean",
           "default": true
+        }
+      }
+    },
+    "livenessProbe": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "httpGet": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string",
+              "default": "/health"
+            },
+            "port": {
+              "type": "string",
+              "default": "http"
+            }
+          }
+        },
+        "initialDelaySeconds": {
+          "type": "integer",
+          "default": 15
+        },
+        "periodSeconds": {
+          "type": "integer",
+          "default": 10
+        },
+        "timeoutSeconds": {
+          "type": "integer",
+          "default": 5
+        },
+        "successThreshold": {
+          "type": "integer",
+          "default": 1
+        },
+        "failureThreshold": {
+          "type": "integer",
+          "default": 3
+        }
+      }
+    },
+    "readinessProbe": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "httpGet": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string",
+              "default": "/health"
+            },
+            "port": {
+              "type": "string",
+              "default": "http"
+            }
+          }
+        },
+        "initialDelaySeconds": {
+          "type": "integer",
+          "default": 10
+        },
+        "periodSeconds": {
+          "type": "integer",
+          "default": 10
+        },
+        "timeoutSeconds": {
+          "type": "integer",
+          "default": 5
+        },
+        "successThreshold": {
+          "type": "integer",
+          "default": 1
+        },
+        "failureThreshold": {
+          "type": "integer",
+          "default": 3
         }
       }
     }

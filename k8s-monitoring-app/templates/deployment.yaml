@@ -46,6 +46,10 @@ spec:
         - name: {{ include "k8s-monitoring-app.name" . }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          livenessProbe:
+            {{- toYaml .Values.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.readinessProbe | nindent 12 }}
           ports:
             - name: http
               containerPort: {{ .Values.config.port | default 8080 }}
