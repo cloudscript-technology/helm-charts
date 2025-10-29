@@ -65,6 +65,8 @@ spec:
           env:
             - name: ENV
               value: {{ .Values.config.environment | quote }}
+            - name: PORT
+              value: {{ .Values.config.port | default 8080 | toString | quote }}
             {{- if .Values.config.database.path }}
             - name: DB_PATH
               value: {{ .Values.config.database.path | quote }}
