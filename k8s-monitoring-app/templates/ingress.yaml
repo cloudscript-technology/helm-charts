@@ -25,7 +25,7 @@ spec:
               service:
                 name: {{ include "k8s-monitoring-app.fullname" $ }}
                 port:
-                  number: {{ .Values.config.port | default 8080 }}
+                  number: {{ $.Values.config.port | default 8080 }}
           {{- end }}
     {{- end }}
   {{- with .Values.ingress.tls }}
