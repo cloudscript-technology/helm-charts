@@ -21,6 +21,9 @@
         "config": {
           "$ref": "#/$defs/config"
         },
+        "persistence": {
+          "$ref": "#/$defs/persistence"
+        },
         "global": {
           "$ref": "#/$defs/global"
         },
@@ -344,6 +347,49 @@
             "type": "object"
           },
           "default": []
+        }
+      }
+    },
+    "persistence": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "existingClaim": {
+          "type": "string",
+          "default": ""
+        },
+        "size": {
+          "type": "string",
+          "default": "5Gi"
+        },
+        "storageClass": {
+          "type": "string",
+          "default": ""
+        },
+        "accessModes": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": ["ReadWriteOnce"]
+        },
+        "mountPath": {
+          "type": "string",
+          "default": "/data"
+        },
+        "subPath": {
+          "type": "string",
+          "default": ""
+        },
+        "annotations": {
+          "type": "object",
+          "default": {}
+        },
+        "labels": {
+          "type": "object",
+          "default": {}
         }
       }
     },

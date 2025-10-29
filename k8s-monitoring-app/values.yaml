@@ -125,3 +125,25 @@ tolerations: []
 
 # Affinity rules for the pod
 affinity: {}
+
+# Persistence (SQLite file stored on a PVC)
+persistence:
+  # Enable persistence and mount a PVC to the pod
+  enabled: true
+  # Use an existing claim if provided; when empty and enabled, a PVC will be created
+  existingClaim: ""
+  # Requested storage size for the PVC
+  size: 5Gi
+  # StorageClass for the PVC (optional). Example: standard, gp2, gp3
+  storageClass: ""
+  # Access modes for the PVC
+  accessModes:
+    - ReadWriteOnce
+  # Mount path inside the container
+  mountPath: /app/data
+  # Optional subPath for the volume mount
+  subPath: ""
+  # Additional annotations for the PVC
+  annotations: {}
+  # Additional labels for the PVC
+  labels: {}

@@ -54,12 +54,23 @@ spec:
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
+          {{- if .Values.persistence.enabled }}
+          volumeMounts:
+            - name: data
+              mountPath: {{ .Values.persistence.mountPath | default "/data" }}
+              {{- with .Values.persistence.subPath }}
+              subPath: {{ . }}
+              {{- end }}
+          {{- end }}
           env:
             - name: ENV
               value: {{ .Values.config.environment | quote }}
-            {{- with .Values.config.database.path }}
+            {{- if .Values.config.database.path }}
             - name: DB_PATH
-              value: {{ . | quote }}
+              value: {{ .Values.config.database.path | quote }}
+            {{- else if .Values.persistence.enabled }}
+            - name: DB_PATH
+              value: {{ printf "%s/%s" (.Values.persistence.mountPath | default "/data") "k8s_monitoring.db" | quote }}
             {{- end }}
             - name: METRICS_RETENTION_DAYS
               value: {{ .Values.config.metrics.retentionDays | toString | quote }}
@@ -110,3 +121,14 @@ spec:
             - name: ALLOWED_GOOGLE_DOMAINS
               value: {{ . | quote }}
             {{- end }}
+      {{- if .Values.persistence.enabled }}
+      volumes:
+        - name: data
+          {{- if .Values.persistence.existingClaim }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.existingClaim }}
+          {{- else }}
+          persistentVolumeClaim:
+            claimName: {{ include "k8s-monitoring-app.fullname" . }}-pvc
+          {{- end }}
+      {{- end }}
