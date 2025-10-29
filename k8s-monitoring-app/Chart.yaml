@@ -23,7 +23,9 @@ maintainers:
     email: helias.rodrigues@cloudscript.com.br
 dependencies: []
 annotations:
-  artifacthub.io/changes: "Add initial version of the K8s Monitoring App"
+  artifacthub.io/changes: |
+    - kind: Added
+      description: "Initial release of K8s Monitoring App"
   artifacthub.io/containsSecurityUpdates: "true"
   artifacthub.io/images: |
     - name: k8s-monitoring-app
