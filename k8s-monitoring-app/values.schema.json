@@ -143,7 +143,7 @@
           "properties": {
             "path": {
               "type": "string",
-              "default": ""
+              "default": "/app/data/k8s_monitoring.db"
             }
           }
         },
@@ -372,12 +372,16 @@
         },
         "accessModes": {
           "type": "array",
-          "items": { "type": "string" },
-          "default": ["ReadWriteOnce"]
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "ReadWriteOnce"
+          ]
         },
         "mountPath": {
           "type": "string",
-          "default": "/data"
+          "default": "/app/data"
         },
         "subPath": {
           "type": "string",

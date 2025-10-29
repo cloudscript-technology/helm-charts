@@ -26,8 +26,8 @@ config:
     cleanupInterval: "0 2 * * *"
     collectionInterval: 5
   database:
-    # Optional path to the SQLite database file. Default: ./data/k8s_monitoring.db
-    path: ""
+    # Optional path to the SQLite database file. Default: /app/data/k8s_monitoring.db
+    path: "/app/data/k8s_monitoring.db"
   notifications:
     enabled: true
     dedupMinutes: 10
@@ -92,8 +92,8 @@ podAnnotations: {}
 podLabels: {}
 
 # Security context for the pod
-podSecurityContext: {}
-  # fsGroup: 2000
+podSecurityContext:
+  fsGroup: 1000
 
 # Security context for the container
 securityContext: {}
