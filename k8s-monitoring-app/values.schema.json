@@ -21,6 +21,9 @@
         "config": {
           "$ref": "#/$defs/config"
         },
+        "global": {
+          "$ref": "#/$defs/global"
+        },
         "serviceAccount": {
           "$ref": "#/$defs/serviceAccount"
         },
@@ -58,6 +61,11 @@
           "$ref": "#/$defs/rbac"
         }
       }
+    },
+    "global": {
+      "type": "object",
+      "description": "Global values from parent charts; accepted for subchart compatibility.",
+      "additionalProperties": true
     },
     "image": {
       "type": "object",
