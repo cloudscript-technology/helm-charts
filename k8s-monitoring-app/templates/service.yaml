@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "k8s-monitoring-app.fullname" . }}
+  labels:
+    {{- include "k8s-monitoring-app.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    {{- include "k8s-monitoring-app.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: http
+      port: {{ .Values.service.port | default 8080 }}
+      targetPort: {{ .Values.config.port | default 8080 }}
+      protocol: TCP

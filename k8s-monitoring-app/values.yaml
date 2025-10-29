@@ -1,0 +1,127 @@
+# Default values for k8s-monitoring-app
+
+image:
+  # Image repository
+  repository: ghcr.io/cloudscript-technology/k8s-monitoring-app
+  # Image pull policy
+  pullPolicy: IfNotPresent
+  # Image tag. Default is the chart appVersion
+  tag: ""
+
+# Image pull secrets
+imagePullSecrets: []
+
+# Override the name of the chart
+nameOverride: ""
+
+# Override the full name of the chart
+fullnameOverride: ""
+
+config:
+  environment: production
+  # Port to expose the HTTP server. Default: 8080
+  port: 8080
+  metrics:
+    retentionDays: 1
+    cleanupInterval: "0 2 * * *"
+    collectionInterval: 5
+  database:
+    # Optional path to the SQLite database file. Default: ./data/k8s_monitoring.db
+    path: ""
+  notifications:
+    enabled: true
+    dedupMinutes: 10
+    slack:
+      enabled: true
+      webhook:
+        # URL of the Slack webhook. Ex: https://hooks.slack.com/services/XXXXXXX/XXXXXXXX/XXXXXXXXXXXX
+        url: ""
+        # Name of the secret containing the Slack webhook URL. Ex: slack-webhook-url
+        fromSecret: ""
+  oauth:
+    google:
+      # Redirect URL for OAuth callback. Ex: http://app-url/auth/callback
+      redirectURL: ""
+      # Comma-separated list of allowed domains. Ex: mydomain.com.br,example.com
+      allowedDomains: ""
+
+      # Client ID for Google OAuth. Ex: 123456789012.apps.googleusercontent.com
+      clientID: ""
+      # Client secret for Google OAuth. Ex: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+      clientSecret: ""
+      # Or
+      # Name of the secret containing the Google OAuth client credentials. Ex: google-oauth-client-credentials
+      fromSecret: ""
+
+# Service configuration
+service:
+  type: ClusterIP
+
+# Ingress configuration
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+# RBAC configuration
+rbac:
+  create: true
+
+serviceAccount:
+  # Create a service account
+  create: true
+  # Automount service account token
+  automount: true
+  # Annotations for the service account
+  annotations: {}
+  # Name of the service account
+  name: ""
+  # Namespace for the service account. Required if create=true
+  namespace: "" 
+
+# Annotations for the pod
+podAnnotations: {}
+
+# Labels for the pod
+podLabels: {}
+
+# Security context for the pod
+podSecurityContext: {}
+  # fsGroup: 2000
+
+# Security context for the container
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+# Resource requests and limits for the container
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+# Node selector for the pod
+nodeSelector: {}
+
+# Tolerations for the pod
+tolerations: []
+
+# Affinity rules for the pod
+affinity: {}

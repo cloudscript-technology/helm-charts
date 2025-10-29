@@ -1,0 +1,112 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "k8s-monitoring-app.fullname" . }}
+  labels:
+    {{- include "k8s-monitoring-app.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "k8s-monitoring-app.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "k8s-monitoring-app.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "k8s-monitoring-app.serviceAccountName" . }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ include "k8s-monitoring-app.name" . }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.config.port | default 8080 }}
+              protocol: TCP
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          env:
+            - name: ENV
+              value: {{ .Values.config.environment | quote }}
+            {{- with .Values.config.database.path }}
+            - name: DB_PATH
+              value: {{ . | quote }}
+            {{- end }}
+            - name: METRICS_RETENTION_DAYS
+              value: {{ .Values.config.metrics.retentionDays | toString | quote }}
+            - name: METRICS_CLEANUP_INTERVAL
+              value: {{ .Values.config.metrics.cleanupInterval | quote }}
+            - name: METRICS_COLLECTION_INTERVAL
+              value: {{ .Values.config.metrics.collectionInterval | toString | quote }}
+            - name: SLACK_ALERTS_ENABLED
+              value: {{ and .Values.config.notifications.enabled .Values.config.notifications.slack.enabled | toString | quote }}
+            - name: SLACK_ALERTS_DEDUP_MINUTES
+              value: {{ .Values.config.notifications.dedupMinutes | toString | quote }}
+            {{- if .Values.config.notifications.slack.webhook.fromSecret }}
+            - name: SLACK_WEBHOOK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.config.notifications.slack.webhook.fromSecret }}
+                  key: url
+            {{- else if .Values.config.notifications.slack.webhook.url }}
+            - name: SLACK_WEBHOOK_URL
+              value: {{ .Values.config.notifications.slack.webhook.url | quote }}
+            {{- end }}
+            {{- if .Values.config.oauth.google.fromSecret }}
+            - name: GOOGLE_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.config.oauth.google.fromSecret }}
+                  key: clientID
+            - name: GOOGLE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.config.oauth.google.fromSecret }}
+                  key: clientSecret
+            {{- else }}
+            {{- with .Values.config.oauth.google.clientID }}
+            - name: GOOGLE_CLIENT_ID
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with .Values.config.oauth.google.clientSecret }}
+            - name: GOOGLE_CLIENT_SECRET
+              value: {{ . | quote }}
+            {{- end }}
+            {{- end }}
+            {{- with .Values.config.oauth.google.redirectURL }}
+            - name: GOOGLE_REDIRECT_URL
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with .Values.config.oauth.google.allowedDomains }}
+            - name: ALLOWED_GOOGLE_DOMAINS
+              value: {{ . | quote }}
+            {{- end }}

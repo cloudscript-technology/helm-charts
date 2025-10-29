@@ -1,0 +1,18 @@
+1. Acessando a aplicação
+   - Serviço: `{{ include "k8s-monitoring-app.fullname" . }}`
+   - Porta: `{{ .Values.service.port }}`
+   - Tipo: `{{ .Values.service.type }}`
+
+2. Ingress
+   {{- if .Values.ingress.enabled }}
+   - Hosts:
+   {{- range .Values.ingress.hosts }}
+     - {{ .host }}
+   {{- end }}
+   {{- else }}
+   - Ingress desabilitado. Habilite com `--set ingress.enabled=true`.
+   {{- end }}
+
+3. ServiceAccount & RBAC
+   - ServiceAccount: `{{ include "k8s-monitoring-app.serviceAccountName" . }}`
+   - RBAC: {{ .Values.rbac.create | ternary "habilitado" "desabilitado" }}

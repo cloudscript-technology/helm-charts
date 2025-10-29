@@ -1,0 +1,353 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/$defs/helm-values",
+  "$defs": {
+    "helm-values": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "image": {
+          "$ref": "#/$defs/image"
+        },
+        "imagePullSecrets": {
+          "$ref": "#/$defs/imagePullSecrets"
+        },
+        "nameOverride": {
+          "$ref": "#/$defs/nameOverride"
+        },
+        "fullnameOverride": {
+          "$ref": "#/$defs/fullnameOverride"
+        },
+        "config": {
+          "$ref": "#/$defs/config"
+        },
+        "serviceAccount": {
+          "$ref": "#/$defs/serviceAccount"
+        },
+        "podAnnotations": {
+          "$ref": "#/$defs/podAnnotations"
+        },
+        "podLabels": {
+          "$ref": "#/$defs/podLabels"
+        },
+        "podSecurityContext": {
+          "$ref": "#/$defs/podSecurityContext"
+        },
+        "securityContext": {
+          "$ref": "#/$defs/securityContext"
+        },
+        "resources": {
+          "$ref": "#/$defs/resources"
+        },
+        "nodeSelector": {
+          "$ref": "#/$defs/nodeSelector"
+        },
+        "tolerations": {
+          "$ref": "#/$defs/tolerations"
+        },
+        "affinity": {
+          "$ref": "#/$defs/affinity"
+        },
+        "service": {
+          "$ref": "#/$defs/service"
+        },
+        "ingress": {
+          "$ref": "#/$defs/ingress"
+        },
+        "rbac": {
+          "$ref": "#/$defs/rbac"
+        }
+      }
+    },
+    "image": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "repository": {
+          "type": "string",
+          "default": "ghcr.io/cloudscript-technology/k8s-monitoring-app"
+        },
+        "pullPolicy": {
+          "type": "string",
+          "default": "IfNotPresent"
+        },
+        "tag": {
+          "type": "string",
+          "default": ""
+        }
+      }
+    },
+    "imagePullSecrets": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "nameOverride": {
+      "type": "string",
+      "default": ""
+    },
+    "fullnameOverride": {
+      "type": "string",
+      "default": ""
+    },
+    "config": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "environment": {
+          "type": "string",
+          "default": "production"
+        },
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535,
+          "default": 8080
+        },
+        "metrics": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "retentionDays": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "cleanupInterval": {
+              "type": "string",
+              "default": "0 2 * * *"
+            },
+            "collectionInterval": {
+              "type": "integer",
+              "minimum": 5,
+              "default": 5
+            }
+          }
+        },
+        "database": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string",
+              "default": ""
+            }
+          }
+        },
+        "notifications": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "dedupMinutes": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 10
+            },
+            "slack": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "webhook": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "default": ""
+                    },
+                    "fromSecret": {
+                      "type": "string",
+                      "default": ""
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "oauth": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "google": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "clientID": {
+                  "type": "string",
+                  "default": ""
+                },
+                "clientSecret": {
+                  "type": "string",
+                  "default": ""
+                },
+                "fromSecret": {
+                  "type": "string",
+                  "default": ""
+                },
+                "redirectURL": {
+                  "type": "string",
+                  "default": ""
+                },
+                "allowedDomains": {
+                  "type": "string",
+                  "default": ""
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "serviceAccount": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "create": {
+          "type": "boolean",
+          "default": true
+        },
+        "automount": {
+          "type": "boolean",
+          "default": true
+        },
+        "annotations": {
+          "type": "object",
+          "default": {}
+        },
+        "name": {
+          "type": "string",
+          "default": ""
+        },
+        "namespace": {
+          "type": "string",
+          "default": ""
+        }
+      }
+    },
+    "podAnnotations": {
+      "type": "object",
+      "default": {}
+    },
+    "podLabels": {
+      "type": "object",
+      "default": {}
+    },
+    "podSecurityContext": {
+      "type": "object",
+      "default": {}
+    },
+    "securityContext": {
+      "type": "object",
+      "default": {}
+    },
+    "resources": {
+      "type": "object",
+      "default": {}
+    },
+    "nodeSelector": {
+      "type": "object",
+      "default": {}
+    },
+    "tolerations": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "default": []
+    },
+    "affinity": {
+      "type": "object",
+      "default": {}
+    },
+    "service": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "default": "ClusterIP"
+        }
+      }
+    },
+    "ingress": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "className": {
+          "type": "string",
+          "default": ""
+        },
+        "annotations": {
+          "type": "object",
+          "default": {}
+        },
+        "hosts": {
+          "type": "array",
+          "default": [],
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "host": {
+                "type": "string"
+              },
+              "paths": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "path": {
+                      "type": "string"
+                    },
+                    "pathType": {
+                      "type": "string",
+                      "enum": [
+                        "Prefix",
+                        "Exact",
+                        "ImplementationSpecific"
+                      ],
+                      "default": "Prefix"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tls": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          },
+          "default": []
+        }
+      }
+    },
+    "rbac": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "create": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    }
+  }
+}
