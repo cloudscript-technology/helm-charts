@@ -89,7 +89,7 @@ spec:
             - name: METRICS_COLLECTION_INTERVAL
               value: {{ .Values.config.metrics.collectionInterval | toString | quote }}
             - name: SLACK_ALERTS_ENABLED
-              value: {{ and .Values.config.notifications.enabled .Values.config.notifications.slack.enabled | toString | quote }}
+              value: {{ .Values.config.notifications.slack.enabled | toString | quote }}
             - name: SLACK_ALERTS_DEDUP_MINUTES
               value: {{ .Values.config.notifications.dedupMinutes | toString | quote }}
             {{- if .Values.config.notifications.slack.webhook.fromSecret }}
@@ -129,6 +129,10 @@ spec:
             {{- end }}
             {{- with .Values.config.oauth.google.allowedDomains }}
             - name: ALLOWED_GOOGLE_DOMAINS
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with .Values.config.oauth.google.allowedEmails }}
+            - name: ALLOWED_GOOGLE_EMAILS
               value: {{ . | quote }}
             {{- end }}
       {{- if .Values.persistence.enabled }}

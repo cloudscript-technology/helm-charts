@@ -157,10 +157,6 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "enabled": {
-              "type": "boolean",
-              "default": true
-            },
             "dedupMinutes": {
               "type": "integer",
               "minimum": 1,
@@ -217,6 +213,10 @@
                   "default": ""
                 },
                 "allowedDomains": {
+                  "type": "string",
+                  "default": ""
+                },
+                "allowedEmails": {
                   "type": "string",
                   "default": ""
                 }

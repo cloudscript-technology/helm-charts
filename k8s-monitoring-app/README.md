@@ -62,7 +62,6 @@ config:
     # Caminho do arquivo SQLite; monte um volume se desejar persistência
     path: "/data/k8s_monitoring.db"
   notifications:
-    enabled: true
     dedupMinutes: 10
     slack:
       enabled: true
@@ -74,6 +73,7 @@ config:
     google:
       redirectURL: "https://monitoring.example.com/auth/callback"
       allowedDomains: "example.com"
+      allowedEmails: "user@example.com"
       # Defina clientID/clientSecret OU fromSecret
       clientID: ""
       clientSecret: ""

@@ -29,7 +29,6 @@ config:
     # Optional path to the SQLite database file. Default: /app/data/k8s_monitoring.db
     path: "/app/data/k8s_monitoring.db"
   notifications:
-    enabled: true
     dedupMinutes: 10
     slack:
       enabled: true
@@ -44,6 +43,8 @@ config:
       redirectURL: ""
       # Comma-separated list of allowed domains. Ex: mydomain.com.br,example.com
       allowedDomains: ""
+      # Comma-separated list of allowed emails. Ex: user@domain.com,admin@domain.com
+      allowedEmails: ""
 
       # Client ID for Google OAuth. Ex: 123456789012.apps.googleusercontent.com
       clientID: ""
