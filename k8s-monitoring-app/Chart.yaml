@@ -3,7 +3,7 @@ name: k8s-monitoring-app
 description: The K8s Monitoring App is a unified system for monitoring and alerting of Kubernetes clusters.
 type: application
 version: 1.0.0
-appVersion: "v0.0.21"
+appVersion: "v0.0.23"
 kubeVersion: ">= 1.27.0-0"
 home: https://cloudscript.com.br
 icon: https://charts.cloudscript.com.br/helm-charts/k8s-monitoring-app/cloudscript-logo.png
@@ -29,7 +29,7 @@ annotations:
   artifacthub.io/containsSecurityUpdates: "true"
   artifacthub.io/images: |
     - name: k8s-monitoring-app
-      image: ghcr.io/cloudscript-technology/k8s-monitoring-app:v0.0.21
+      image: ghcr.io/cloudscript-technology/k8s-monitoring-app:v0.0.23
   artifacthub.io/displayName: "K8s Monitoring App"
   artifacthub.io/license: "MIT"
   artifacthub.io/provider: "Cloudscript"
