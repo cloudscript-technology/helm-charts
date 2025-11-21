@@ -274,7 +274,8 @@
             "enum": [
                 "postgresql",
                 "mysql",
-                "mongodb"
+                "mongodb",
+                "mariadb"
             ]
         },
         "helm-values.databases.version": {
