@@ -1,6 +1,6 @@
 # Dumpscript Helm Chart
 
-A Helm Chart for automating PostgreSQL and MySQL database backups on Kubernetes, with automatic upload to Amazon S3.
+A Helm Chart for automating PostgreSQL, MySQL/MariaDB and MongoDB database backups on Kubernetes, with automatic upload to Amazon S3.
 
 ## Description
 
@@ -8,8 +8,8 @@ A Helm Chart for automating PostgreSQL and MySQL database backups on Kubernetes,
 
 ## Features
 
-- ✅ **Multiple databases**: Support for PostgreSQL and MySQL
-- ✅ **Database version support**: Configurable client versions for compatibility
+- ✅ **Multiple databases**: Support for PostgreSQL, MySQL/MariaDB and MongoDB
+- ✅ **Runtime configurable client versions**: No need to rebuild images
 - ✅ **Multiple backup schedules**: Support for daily, weekly, monthly, and yearly backups per database
 - ✅ **Independent jobs**: Each database runs in a separate CronJob
 - ✅ **S3 storage**: Automatic upload to Amazon S3
@@ -19,6 +19,7 @@ A Helm Chart for automating PostgreSQL and MySQL database backups on Kubernetes,
 - ✅ **AWS IAM Roles**: Support for roles for authentication
 - ✅ **Security**: Credentials protected via Kubernetes Secrets
 - ✅ **Slack notifications**: Optional notifications for backup status
+- ✅ **Alpine base image**: Containerized execution on Alpine Linux
 
 ## Installation
 
@@ -86,9 +87,9 @@ databases:
         mountPath: /dumpscript
         readOnly: false
 
-  # MySQL with secrets
-  - type: mysql
-    version: "10.11"  # MariaDB client version
+  # MariaDB with secrets
+  - type: mariadb
+    version: "11.4"  # MariaDB client version
     periodicity:
       - type: daily
         retentionDays: 7
@@ -97,7 +98,7 @@ databases:
         retentionDays: 30
         schedule: "0 2 * * 0"  # Every Sunday at 2:00 AM
     connectionInfo:
-      secretName: "mysql-credentials"
+      secretName: "mariadb-credentials"
     aws:
       secretName: "aws-credentials"
     extraArgs: "--opt --single-transaction"
@@ -152,6 +153,34 @@ tolerations: []
 affinity: {}
 ```
 
+## MongoDB Configuration
+
+```yaml
+databases:
+  - type: mongodb
+    periodicity:
+      - type: daily
+        retentionDays: 7
+        schedule: "0 2 * * *"  # Daily at 2:00 AM
+    connectionInfo:
+      host: "mongo.example.com"
+      username: "backup_user"
+      password: "secure_password"
+      database: "app_db"
+      port: 27017
+    aws:
+      region: "us-east-1"
+      bucket: "my-db-backups"
+      bucketPrefix: "mongodb/app"
+    extraArgs: "--authenticationDatabase=admin"
+```
+
+MongoDB backup notes:
+- Uses `mongodump` to create a compressed archive (`dump_restore.archive.gz`).
+- Set `extraArgs` for cluster URIs (e.g., `--uri="mongodb+srv://..."`).
+- For SCRAM auth, ensure `--authenticationDatabase` matches your setup (often `admin`).
+- Grant the backup user `read` on target DB; cluster-wide backups may require broader roles.
+
 ## Database Version Support
 
 ### PostgreSQL Versions
@@ -167,11 +196,16 @@ affinity: {}
 > **Note**: PostgreSQL versions 14 and below are only available on Alpine 3.20, and PostgreSQL 17 is only available on Alpine 3.21. The container will automatically use the appropriate Alpine version based on the requested PostgreSQL version.
 
 ### MySQL/MariaDB Versions
+- **5.7**: MySQL 5.7
 - **8.0**: MySQL 8.0
 - **10.11**: MariaDB 10.11 (default)
 - **11.4**: MariaDB 11.4
 
 **Important**: The client version should match your database server version to avoid compatibility issues.
+
+### MongoDB Tools
+- MongoDB backups use `mongodump`/`mongorestore` from MongoDB Database Tools.
+- Tools are installed at runtime (no version pinning).
 
 ## Multiple Backup Schedules
 
@@ -269,6 +303,14 @@ data:
 # Secret for MySQL database
 kubectl create secret generic mysql-credentials \
   --from-literal=host=mysql.example.com \
+  --from-literal=username=backup_user \
+  --from-literal=password=super_secret_password \
+  --from-literal=database=app_db \
+  --from-literal=port=3306
+
+# Secret for MariaDB database
+kubectl create secret generic mariadb-credentials \
+  --from-literal=host=mariadb.example.com \
   --from-literal=username=backup_user \
   --from-literal=password=super_secret_password \
   --from-literal=database=app_db \
@@ -460,7 +502,7 @@ If you encounter storage-related failures:
 
 | Parameter | Description | Required |
 |-----------|-------------|----------|
-| `databases[].type` | Database type (`postgresql` or `mysql`) | ✅ |
+| `databases[].type` | Database type (`postgresql`, `mysql`, `mariadb`, `mongodb`) | ✅ |
 | `databases[].version` | Database client version | ✅ |
 | `databases[].periodicity[].type` | Backup type (`daily`, `weekly`, `monthly`, `yearly`) | ✅ |
 | `databases[].periodicity[].schedule` | Cron expression for scheduling | ✅ |
@@ -655,9 +697,9 @@ databases:
       bucketPrefix: "production/postgres/"
     extraArgs: "--verbose --single-transaction"
 
-  # Development MySQL
-  - type: mysql
-    version: "10.11"
+  # Development MariaDB
+  - type: mariadb
+    version: "11.4"
     periodicity:
       - type: daily
         retentionDays: 14
@@ -666,12 +708,12 @@ databases:
         retentionDays: 60
         schedule: "0 3 * * 0"  # Weekly on Sunday at 3:00 AM
     connectionInfo:
-      secretName: "dev-mysql-creds"
+      secretName: "dev-mariadb-creds"
     aws:
       secretName: "dev-aws-creds"
       region: "us-west-2"
       bucket: "secure-backups"
-      bucketPrefix: "develop/mysql/"
+      bucketPrefix: "develop/mariadb/"
     extraArgs: "--opt --single-transaction"
 
   # Test PostgreSQL
@@ -728,6 +770,16 @@ databases:
 --flush-logs                 # Flush logs before dump
 --master-data=2              # Include replication information
 --no-tablespaces             # Don't include tablespaces
+```
+
+### MongoDB (`mongodump`)
+
+```bash
+--authenticationDatabase=admin   # Auth database (often 'admin')
+--uri="mongodb+srv://..."        # Cluster URI for Atlas/replicasets
+--gzip                           # Compress output
+--archive                        # Output to archive
+--db=app_db                      # Single-DB dump; omit for full instance
 ```
 
 ## Troubleshooting
@@ -851,3 +903,27 @@ Generate new digest:
 ```bash
 shasum -a 256 dumpscript-<version>.tgz
 ```
+
+## How It Works
+
+1. Runtime installation: The container installs the appropriate database client based on the configured `version` for each database.
+2. Dynamic client installation: Clients are installed via Alpine's package manager at startup.
+3. Version verification: Installation is verified and the client version is logged.
+4. Database operations: Dump/restore scripts run with the correct client for each engine.
+5. Multiple schedules: Each database supports independent schedules with distinct retention policies.
+6. S3 path structure: Dumps are uploaded to `s3://$S3_BUCKET/$S3_PREFIX/$PERIODICITY/$YEAR/$MONTH/$DAY/$DUMP_FILE_GZ`.
+7. Notifications: Optional Slack notifications for backup status.
+
+## Full Instance Dump/Restore
+
+### Full instance dump (database omitted)
+- MySQL/MariaDB: use `--all-databases` with `mysqldump`/`mariadb-dump`.
+- PostgreSQL: use `pg_dumpall` for all databases, roles, and tablespaces.
+- MongoDB: omit `--db` in `mongodump` to dump the entire instance.
+
+### Full instance restore (database omitted)
+- MySQL/MariaDB: import directly into the server without selecting a database (`mysql`/`mariadb` reading the file). If the dump was generated with `--all-databases`, it will include creation and data for all databases.
+- PostgreSQL: use `psql -d postgres` to apply `pg_dumpall` (roles, tablespaces, and all databases). Requires elevated privileges.
+- MongoDB: omit `--db` in `mongorestore` to restore the entire instance.
+
+For full instance restores, `CREATE_DB` only has an effect when a specific database is defined.
