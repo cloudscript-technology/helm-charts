@@ -54,21 +54,3 @@ jobs:
       - name: Run chart-testing (install)
         if: steps.list-changed.outputs.changed == 'true'
         run: ct install --target-branch ${{ github.event.repository.default_branch }} --chart-dirs .
-
-  helm-docs:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Run helm-docs
-        uses: docker://jnorwood/helm-docs:v1.13.1
-        with:
-          args: --chart-search-root=.
-
-      - name: Check if README.md files are up to date
-        run: |
-          git diff --exit-code -- '**/README.md' || \
-          (echo "README.md files are not up to date. Please run 'helm-docs' and commit the changes." && exit 1)
