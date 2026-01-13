@@ -63,7 +63,7 @@ jobs:
                 version=$(grep '^version:' "$chart_dir/Chart.yaml" | awk '{print $2}')
 
                 # Check if this version already exists in the public repo
-                if [ ! -f "../gh-pages-repo/helm-charts/${chart_dir}-${version}.tgz" ]; then
+                if [ ! -f "../gh-pages-repo/helm-charts/${chart_dir}/${version}/${chart_dir}-${version}.tgz" ]; then
                   echo "  Version $version is new, will release"
                   changed_charts+=("$chart_dir")
                 else
@@ -111,19 +111,24 @@ jobs:
 
             # Copy package to public repo
             echo "Copying package to public repository..."
-            mkdir -p ../gh-pages-repo/helm-charts
-            cp /tmp/chart-packages/${chart}-${chart_version}.tgz ../gh-pages-repo/helm-charts/
+            mkdir -p ../gh-pages-repo/helm-charts/${chart}/${chart_version}
+            cp /tmp/chart-packages/${chart}-${chart_version}.tgz ../gh-pages-repo/helm-charts/${chart}/${chart_version}/
 
             # Generate SHA256
-            cd ../gh-pages-repo/helm-charts
+            cd ../gh-pages-repo/helm-charts/${chart}/${chart_version}
             sha256=$(sha256sum "${chart}-${chart_version}.tgz" | awk '{print $1}')
             echo "SHA256: $sha256"
 
             # Copy README if exists
             if [ -f "../../helm-charts/$chart/README.md" ]; then
               echo "Copying README..."
-              mkdir -p "$chart"
-              cp "../../helm-charts/$chart/README.md" "$chart/"
+              cp "../../helm-charts/$chart/README.md" ./
+            fi
+
+            # Copy values.schema.json if exists
+            if [ -f "../../helm-charts/$chart/values.schema.json" ]; then
+              echo "Copying values.schema.json..."
+              cp "../../helm-charts/$chart/values.schema.json" ./
             fi
 
             # Create/update artifacthub metadata
@@ -154,7 +159,7 @@ jobs:
               echo "    url: https://github.com/cloudscript-technology/helm-charts"
               echo "  - name: Cloudscript"
               echo "    url: https://cloudscript.com.br"
-            } > "${chart}-artifacthub.yml"
+            } > "artifacthub-pkg.yml"
 
             cd ../../helm-charts
 
@@ -165,10 +170,10 @@ jobs:
       - name: Update repository index
         if: steps.detect-changes.outputs.has_changes == 'true'
         run: |
-          cd gh-pages-repo/helm-charts
+          cd gh-pages-repo
 
           echo "Updating Helm repository index..."
-          helm repo index . --url https://cloudscript-technology.github.io/helm-charts
+          helm repo index . --url https://cloudscript-technology.github.io
 
           echo "✓ Repository index updated"
 
