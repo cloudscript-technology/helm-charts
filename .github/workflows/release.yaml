@@ -177,7 +177,12 @@ jobs:
           cd gh-pages-repo
 
           echo "Updating Helm repository index..."
-          helm repo index . --url https://cloudscript-technology.github.io
+          # Use --merge to preserve existing entries
+          if [ -f index.yaml ]; then
+            helm repo index . --url https://cloudscript-technology.github.io --merge index.yaml
+          else
+            helm repo index . --url https://cloudscript-technology.github.io
+          fi
 
           echo "✓ Repository index updated"
 
