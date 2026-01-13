@@ -133,19 +133,43 @@ This repository uses GitHub Actions for automated chart releases:
 A new release is automatically created when:
 1. Changes are pushed to `main` branch
 2. A chart's `version` in `Chart.yaml` is incremented
-3. All CI checks pass (lint, test, install)
+3. The version doesn't already exist in the public repository
+4. All CI checks pass (lint, test, install)
 
 ### What happens during release?
 
-1. 🔍 **Validation:** Chart is linted and tested
-2. 📦 **Packaging:** Chart is packaged as `.tgz`
-3. 🏷️ **Tagging:** Git tag is created (`<chart-name>-<version>`)
-4. 📤 **Publishing:** Chart is published to GitHub Pages
-5. 📊 **Indexing:** `index.yaml` is updated
-6. 🔐 **Checksums:** SHA256 is calculated
-7. 📝 **Metadata:** Artifact Hub metadata is updated
+1. 🔍 **Detection:** Automatically detects which charts changed
+2. 🧪 **Validation:** Chart is linted with `helm lint`
+3. 📦 **Packaging:** Chart is packaged as `.tgz`
+4. 🔐 **Checksums:** SHA256 is calculated
+5. 🏷️ **Tagging:** Git tag is created (`<chart-name>-<version>`)
+6. 📤 **Publishing:** Chart is published to `cloudscript-technology.github.io`
+7. 📊 **Indexing:** `index.yaml` is updated
+8. 📝 **Metadata:** Artifact Hub metadata is generated
+9. 📋 **Release:** GitHub Release is created with package attached
 
 ### Making a Release
+
+#### Option 1: Using Makefile (Recommended)
+
+```bash
+# 1. Make your changes
+vim deploy-apps/values.yaml
+
+# 2. Test locally
+make lint CHART=deploy-apps
+make test CHART=deploy-apps
+
+# 3. Increment version
+make bump CHART=deploy-apps TYPE=patch
+
+# 4. Commit and push
+git add .
+git commit -m "feat(deploy-apps): add new feature"
+git push origin main
+```
+
+#### Option 2: Manual
 
 1. Make your changes to a chart
 2. Increment version in `Chart.yaml`:
@@ -158,9 +182,23 @@ A new release is automatically created when:
    git commit -m "feat(chart-name): add new feature"
    git push origin main
    ```
-4. GitHub Actions will automatically create the release!
+4. GitHub Actions will automatically:
+   - Create a GitHub Release in this repository
+   - Publish the chart to `cloudscript-technology.github.io`
+   - Update the Helm repository index
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
+### Repository Architecture
+
+```
+helm-charts (source)           →   cloudscript-technology.github.io (public)
+├── deploy-apps/                   └── helm-charts/
+│   ├── Chart.yaml                     ├── index.yaml
+│   ├── values.yaml                    ├── deploy-apps-0.1.0.tgz
+│   └── templates/                     ├── deploy-apps-artifacthub.yml
+└── ...                                └── ...
+```
+
+See [.github/README.md](./.github/README.md) and [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
 
 ## 🧪 Testing Charts Locally
 
