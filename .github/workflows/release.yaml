@@ -200,7 +200,7 @@ jobs:
 
           # Fix URLs in the generated index to match our organized structure
           echo "Fixing URLs to match directory structure..."
-          sed -E 's|^(    - )(.+)-([0-9]+\.[0-9]+\.[0-9]+[^/]*)\.tgz$|\1helm-charts/\2/\3/\2-\3.tgz|g' \
+          sed -E 's|^(    - ).*/(([a-z0-9-]+)-([0-9]+\.[0-9]+\.[0-9]+[^/]*))\.tgz$|\1helm-charts/\3/\4/\2.tgz|g' \
             /tmp/helm-index-temp/index.yaml > index.yaml.new
 
           # If we had an existing index, we keep it as the new one should have all entries
