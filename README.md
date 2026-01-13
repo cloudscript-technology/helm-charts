@@ -22,7 +22,7 @@ Welcome to the official **Cloudscript** Helm Charts repository! This repository 
 Add the Cloudscript Helm Charts repository:
 
 ```bash
-helm repo add cloudscript https://cloudscript-technology.github.io/helm-charts
+helm repo add cloudscript https://cloudscript-technology.github.io
 helm repo update
 ```
 
@@ -268,7 +268,7 @@ Each chart has its own detailed README:
 
 ## 🔗 Useful Links
 
-- **Chart Repository:** https://cloudscript-technology.github.io/helm-charts
+- **Chart Repository:** https://cloudscript-technology.github.io
 - **Artifact Hub:** https://artifacthub.io/packages/search?org=cloudscript
 - **GitHub Releases:** https://github.com/cloudscript-technology/helm-charts/releases
 - **Cloudscript Website:** https://cloudscript.com.br

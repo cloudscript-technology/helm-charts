@@ -214,18 +214,18 @@ Verifique:
 ### 3. GitHub Pages
 
 Após alguns minutos:
-- ✅ Chart disponível em: https://cloudscript-technology.github.io/helm-charts
+- ✅ Chart disponível em: https://cloudscript-technology.github.io
 
 Verifique o index:
 ```bash
-curl https://cloudscript-technology.github.io/helm-charts/index.yaml
+curl https://cloudscript-technology.github.io/index.yaml
 ```
 
 ### 4. Teste de Instalação
 
 ```bash
 # Adicione o repositório
-helm repo add cloudscript https://cloudscript-technology.github.io/helm-charts
+helm repo add cloudscript https://cloudscript-technology.github.io
 helm repo update
 
 # Procure o chart
@@ -397,10 +397,10 @@ git push origin main
 
 ```bash
 # Via curl
-curl -s https://cloudscript-technology.github.io/helm-charts/index.yaml | grep deploy-apps -A 10
+curl -s https://cloudscript-technology.github.io/index.yaml | grep deploy-apps -A 10
 
 # Via helm
-helm repo add cloudscript https://cloudscript-technology.github.io/helm-charts
+helm repo add cloudscript https://cloudscript-technology.github.io
 helm search repo cloudscript/deploy-apps --versions
 ```
 
@@ -446,7 +446,7 @@ helm install test ./deploy-apps -f test-values.yaml --dry-run --debug
 
 ## 🔗 Links Úteis
 
-- **Chart Repository:** https://cloudscript-technology.github.io/helm-charts
+- **Chart Repository:** https://cloudscript-technology.github.io
 - **Source Code:** https://github.com/cloudscript-technology/helm-charts
 - **Public Repo:** https://github.com/cloudscript-technology/cloudscript-technology.github.io
 - **Releases:** https://github.com/cloudscript-technology/helm-charts/releases

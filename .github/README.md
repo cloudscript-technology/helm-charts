@@ -23,7 +23,7 @@ Este diretório contém os workflows de CI/CD para publicação automática dos 
 **Saídas:**
 - GitHub Release criada automaticamente no repositório `helm-charts`
 - Tag do chart (`<chart-name>-<version>`)
-- Chart package disponível em `https://cloudscript-technology.github.io/helm-charts`
+- Chart package disponível em `https://cloudscript-technology.github.io`
 - `index.yaml` atualizado no repositório público
 - Metadados para Artifact Hub
 
@@ -77,7 +77,7 @@ Este diretório contém os workflows de CI/CD para publicação automática dos 
               │
               │ GitHub Pages
               ▼
-  https://cloudscript-technology.github.io/helm-charts/
+  https://cloudscript-technology.github.io/
 ```
 
 ## Configuração
@@ -276,8 +276,8 @@ git push
 
 ## URLs Importantes
 
-- **Chart Repository:** https://cloudscript-technology.github.io/helm-charts
-- **Repository Index:** https://cloudscript-technology.github.io/helm-charts/index.yaml
+- **Chart Repository:** https://cloudscript-technology.github.io
+- **Repository Index:** https://cloudscript-technology.github.io/index.yaml
 - **GitHub Releases:** https://github.com/cloudscript-technology/helm-charts/releases
 - **Source Code:** https://github.com/cloudscript-technology/helm-charts
 - **Public Repo:** https://github.com/cloudscript-technology/cloudscript-technology.github.io
@@ -325,7 +325,7 @@ helm lint ./deploy-apps
 make bump CHART=deploy-apps TYPE=patch
 
 # Verifique versões existentes:
-curl -s https://cloudscript-technology.github.io/helm-charts/index.yaml | grep deploy-apps -A 5
+curl -s https://cloudscript-technology.github.io/index.yaml | grep deploy-apps -A 5
 ```
 
 ### Chart não aparece no index.yaml

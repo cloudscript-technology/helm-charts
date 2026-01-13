@@ -86,6 +86,10 @@ jobs:
       - name: Package and publish charts
         if: steps.detect-changes.outputs.has_changes == 'true'
         run: |
+          # Save working directory
+          HELM_CHARTS_DIR="$(pwd)/helm-charts"
+          GH_PAGES_DIR="$(pwd)/gh-pages-repo"
+
           cd helm-charts
 
           # Create temp directory for packages
@@ -111,24 +115,24 @@ jobs:
 
             # Copy package to public repo
             echo "Copying package to public repository..."
-            mkdir -p ../gh-pages-repo/helm-charts/${chart}/${chart_version}
-            cp /tmp/chart-packages/${chart}-${chart_version}.tgz ../gh-pages-repo/helm-charts/${chart}/${chart_version}/
+            mkdir -p "${GH_PAGES_DIR}/helm-charts/${chart}/${chart_version}"
+            cp /tmp/chart-packages/${chart}-${chart_version}.tgz "${GH_PAGES_DIR}/helm-charts/${chart}/${chart_version}/"
 
             # Generate SHA256
-            cd ../gh-pages-repo/helm-charts/${chart}/${chart_version}
+            cd "${GH_PAGES_DIR}/helm-charts/${chart}/${chart_version}"
             sha256=$(sha256sum "${chart}-${chart_version}.tgz" | awk '{print $1}')
             echo "SHA256: $sha256"
 
             # Copy README if exists
-            if [ -f "../../helm-charts/$chart/README.md" ]; then
+            if [ -f "${HELM_CHARTS_DIR}/$chart/README.md" ]; then
               echo "Copying README..."
-              cp "../../helm-charts/$chart/README.md" ./
+              cp "${HELM_CHARTS_DIR}/$chart/README.md" ./
             fi
 
             # Copy values.schema.json if exists
-            if [ -f "../../helm-charts/$chart/values.schema.json" ]; then
+            if [ -f "${HELM_CHARTS_DIR}/$chart/values.schema.json" ]; then
               echo "Copying values.schema.json..."
-              cp "../../helm-charts/$chart/values.schema.json" ./
+              cp "${HELM_CHARTS_DIR}/$chart/values.schema.json" ./
             fi
 
             # Create/update artifacthub metadata
@@ -136,9 +140,9 @@ jobs:
             {
               echo "version: ${chart_version}"
               echo "name: ${chart}"
-              echo "displayName: $(grep '^name:' "../../helm-charts/$chart/Chart.yaml" | awk '{print $2}')"
+              echo "displayName: $(grep '^name:' "${HELM_CHARTS_DIR}/$chart/Chart.yaml" | awk '{print $2}')"
               echo "createdAt: $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
-              echo "description: $(grep '^description:' "../../helm-charts/$chart/Chart.yaml" | cut -d':' -f2- | sed 's/^[[:space:]]*//' | sed 's/^"//' | sed 's/"$//')"
+              echo "description: $(grep '^description:' "${HELM_CHARTS_DIR}/$chart/Chart.yaml" | cut -d':' -f2- | sed 's/^[[:space:]]*//' | sed 's/^"//' | sed 's/"$//')"
               echo "digest: ${sha256}"
               echo "license: Apache-2.0"
               echo "homeURL: https://cloudscript.com.br"
@@ -161,7 +165,7 @@ jobs:
               echo "    url: https://cloudscript.com.br"
             } > "artifacthub-pkg.yml"
 
-            cd ../../helm-charts
+            cd "${HELM_CHARTS_DIR}"
 
             echo "✓ Chart $chart version $chart_version packaged successfully"
             echo ""
@@ -207,7 +211,7 @@ jobs:
               echo "## Installation"
               echo ""
               echo '```bash'
-              echo "helm repo add cloudscript https://cloudscript-technology.github.io/helm-charts"
+              echo "helm repo add cloudscript https://cloudscript-technology.github.io"
               echo "helm repo update"
               echo "helm install my-release cloudscript/${chart}"
               echo '```'
@@ -270,15 +274,15 @@ jobs:
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "**Install:**" >> $GITHUB_STEP_SUMMARY
             echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
-            echo "helm repo add cloudscript https://cloudscript-technology.github.io/helm-charts" >> $GITHUB_STEP_SUMMARY
+            echo "helm repo add cloudscript https://cloudscript-technology.github.io" >> $GITHUB_STEP_SUMMARY
             echo "helm install my-release cloudscript/$chart --version $version" >> $GITHUB_STEP_SUMMARY
             echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
           done
 
           echo "---" >> $GITHUB_STEP_SUMMARY
-          echo "**Repository:** https://cloudscript-technology.github.io/helm-charts" >> $GITHUB_STEP_SUMMARY
-          echo "**Index:** https://cloudscript-technology.github.io/helm-charts/index.yaml" >> $GITHUB_STEP_SUMMARY
+          echo "**Repository:** https://cloudscript-technology.github.io" >> $GITHUB_STEP_SUMMARY
+          echo "**Index:** https://cloudscript-technology.github.io/index.yaml" >> $GITHUB_STEP_SUMMARY
 
       - name: No changes detected
         if: steps.detect-changes.outputs.has_changes == 'false'
