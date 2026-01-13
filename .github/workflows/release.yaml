@@ -177,14 +177,41 @@ jobs:
           cd gh-pages-repo
 
           echo "Updating Helm repository index..."
-          # Use --merge to preserve existing entries
+
+          # Backup existing index
           if [ -f index.yaml ]; then
-            helm repo index . --url https://cloudscript-technology.github.io --merge index.yaml
-          else
-            helm repo index . --url https://cloudscript-technology.github.io
+            cp index.yaml index.yaml.backup
+            echo "Backed up existing index.yaml"
           fi
 
-          echo "✓ Repository index updated"
+          # Create a temporary directory with all .tgz files at the same level
+          mkdir -p /tmp/helm-index-temp
+
+          echo "Finding and linking all chart packages..."
+          find helm-charts -name "*.tgz" -type f | while read tgz_file; do
+            ln -sf "$(pwd)/$tgz_file" "/tmp/helm-index-temp/$(basename $tgz_file)"
+          done
+
+          # Generate new index for found packages
+          echo "Generating index for all packages..."
+          cd /tmp/helm-index-temp
+          helm repo index . --url https://cloudscript-technology.github.io/
+          cd -
+
+          # Fix URLs in the generated index to match our organized structure
+          echo "Fixing URLs to match directory structure..."
+          sed -E 's|^(    - )(.+)-([0-9]+\.[0-9]+\.[0-9]+[^/]*)\.tgz$|\1helm-charts/\2/\3/\2-\3.tgz|g' \
+            /tmp/helm-index-temp/index.yaml > index.yaml.new
+
+          # If we had an existing index, we keep it as the new one should have all entries
+          # since we're indexing all .tgz files found
+          mv index.yaml.new index.yaml
+
+          # Cleanup
+          rm -rf /tmp/helm-index-temp
+          rm -f index.yaml.backup
+
+          echo "✓ Repository index updated with all chart versions"
 
       - name: Create GitHub releases
         if: steps.detect-changes.outputs.has_changes == 'true'
