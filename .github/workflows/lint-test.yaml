@@ -1,0 +1,74 @@
+name: Lint and Test Charts
+
+on:
+  pull_request:
+    paths:
+      - 'agent-script/**'
+      - 'deploy-apps/**'
+      - 'dumpscript/**'
+      - 'k8s-monitoring-app/**'
+  push:
+    branches:
+      - main
+    paths:
+      - 'agent-script/**'
+      - 'deploy-apps/**'
+      - 'dumpscript/**'
+      - 'k8s-monitoring-app/**'
+
+jobs:
+  lint-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.14.0
+
+      - name: Set up chart-testing
+        uses: helm/chart-testing-action@v2.6.1
+
+      - name: Run chart-testing (list-changed)
+        id: list-changed
+        run: |
+          changed=$(ct list-changed --target-branch ${{ github.event.repository.default_branch }} --chart-dirs .)
+          if [[ -n "$changed" ]]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "Changed charts:"
+            echo "$changed"
+          fi
+
+      - name: Run chart-testing (lint)
+        if: steps.list-changed.outputs.changed == 'true'
+        run: ct lint --target-branch ${{ github.event.repository.default_branch }} --chart-dirs . --validate-maintainers=false
+
+      - name: Create kind cluster
+        if: steps.list-changed.outputs.changed == 'true'
+        uses: helm/kind-action@v1.10.0
+
+      - name: Run chart-testing (install)
+        if: steps.list-changed.outputs.changed == 'true'
+        run: ct install --target-branch ${{ github.event.repository.default_branch }} --chart-dirs .
+
+  helm-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run helm-docs
+        uses: docker://jnorwood/helm-docs:v1.13.1
+        with:
+          args: --chart-search-root=.
+
+      - name: Check if README.md files are up to date
+        run: |
+          git diff --exit-code -- '**/README.md' || \
+          (echo "README.md files are not up to date. Please run 'helm-docs' and commit the changes." && exit 1)

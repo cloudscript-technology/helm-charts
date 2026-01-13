@@ -1,0 +1,160 @@
+name: Release Charts
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "agent-script/**"
+      - "deploy-apps/**"
+      - "dumpscript/**"
+      - "k8s-monitoring-app/**"
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: "v3.14.0"
+
+      - name: Add Helm repositories
+        run: |
+          helm repo add cloudscript https://charts.cloudscript.com.br
+          helm repo update
+
+      - name: Run chart-releaser
+        uses: helm/chart-releaser-action@v1.6.0
+        env:
+          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          CR_SKIP_EXISTING: "true"
+        with:
+          charts_dir: .
+          pages_branch: gh-pages
+
+      - name: Checkout GitHub Pages branch
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages
+
+      - name: Update Chart READMEs in GitHub Pages
+        run: |
+          for chart in agent-script deploy-apps dumpscript k8s-monitoring-app; do
+            if [ -d "$chart" ] && [ -f "$chart/README.md" ]; then
+              echo "Updating README for $chart"
+
+              # Copy README to gh-pages if chart exists there
+              if [ -d "gh-pages" ]; then
+                mkdir -p "gh-pages/charts/$chart"
+                cp "$chart/README.md" "gh-pages/charts/$chart/" || true
+              fi
+            fi
+          done
+
+      - name: Generate and update chart metadata
+        run: |
+          cd gh-pages || exit 0
+
+          for chart_dir in */; do
+            chart_name="${chart_dir%/}"
+
+            # Skip if not a chart directory
+            [ ! -f "../$chart_name/Chart.yaml" ] && continue
+
+            echo "Processing $chart_name"
+
+            # Get chart version from Chart.yaml
+            version=$(grep '^version:' "../$chart_name/Chart.yaml" | awk '{print $2}')
+
+            # Get chart package file
+            chart_package="${chart_name}-${version}.tgz"
+
+            if [ -f "$chart_package" ]; then
+              # Generate SHA256
+              sha256=$(sha256sum "$chart_package" | awk '{print $1}')
+              echo "Chart: $chart_name"
+              echo "Version: $version"
+              echo "SHA256: $sha256"
+
+              # Create/update artifacthub-pkg.yml
+              cat > "artifacthub-pkg-${chart_name}.yml" <<EOF
+          version: $version
+          name: $chart_name
+          displayName: $(grep '^name:' "../$chart_name/Chart.yaml" | awk '{print $2}')
+          createdAt: $(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          description: $(grep '^description:' "../$chart_name/Chart.yaml" | cut -d'"' -f2)
+          digest: $sha256
+          license: Apache-2.0
+          homeURL: https://cloudscript.com.br
+          appVersion: $(grep '^appVersion:' "../$chart_name/Chart.yaml" | awk '{print $2}' | tr -d '"')
+          containsSecurityUpdates: false
+          operator: false
+          deprecated: false
+          prerelease: false
+          keywords:
+            - kubernetes
+            - helm
+            - cloudscript
+          maintainers:
+            - name: Jonathan Schmitt
+              email: jonathan.schmitt@cloudscript.com.br
+          recommendations:
+            - url: https://cloudscript.com.br
+          screenshots: []
+          changes: []
+          EOF
+            fi
+          done
+
+          # Commit changes if any
+          if [ -n "$(git status --porcelain)" ]; then
+            git config user.name "$GITHUB_ACTOR"
+            git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+            git add .
+            git commit -m "Update chart metadata and READMEs"
+            git push
+          fi
+
+  update-repo-readme:
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout cloudscript-technology.github.io
+        uses: actions/checkout@v4
+        with:
+          repository: cloudscript-technology/cloudscript-technology.github.io
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: gh-pages-repo
+
+      - name: Update index from helm-charts repository
+        run: |
+          # Download index.yaml from helm-charts gh-pages
+          curl -fsSL https://cloudscript-technology.github.io/helm-charts/index.yaml \
+            -o gh-pages-repo/helm-charts/index.yaml || true
+
+          cd gh-pages-repo
+
+          # Commit if changed
+          if [ -n "$(git status --porcelain)" ]; then
+            git config user.name "$GITHUB_ACTOR"
+            git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+            git add .
+            git commit -m "Update helm charts index from helm-charts repository"
+            git push
+          fi

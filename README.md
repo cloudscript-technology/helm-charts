@@ -1,91 +1,252 @@
 # Helm Charts - Cloudscript
 
 [![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/cloudscript)](https://artifacthub.io/packages/search?repo=cloudscript)
+[![Release Charts](https://github.com/cloudscript-technology/helm-charts/actions/workflows/release.yaml/badge.svg)](https://github.com/cloudscript-technology/helm-charts/actions/workflows/release.yaml)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-Welcome to the official **Cloudscript** Helm Charts repository! This repository centralizes all Helm Charts developed by the company, providing an easy and standardized way to deploy our tools on Kubernetes clusters.
+Welcome to the official **Cloudscript** Helm Charts repository! This repository centralizes all Helm Charts developed by Cloudscript, providing an easy and standardized way to deploy our tools and applications on Kubernetes clusters.
 
-## Repository Structure
+## 📦 Available Charts
 
-Each directory in this repository represents an independent Helm Chart. The general structure follows this pattern:
+| Chart | Description | Version | App Version |
+|-------|-------------|---------|-------------|
+| [agent-script](./agent-script) | Agent Script for Kubernetes automation | See Chart.yaml | See Chart.yaml |
+| [deploy-apps](./deploy-apps) | Multi-app deployment (Deployment, StatefulSet, CronJob, Job) with External Secrets support | 0.1.0 | 1.0.0 |
+| [dumpscript](./dumpscript) | Database backup automation with multiple schedulers | See Chart.yaml | See Chart.yaml |
+| [k8s-monitoring-app](./k8s-monitoring-app) | Kubernetes cluster monitoring application | See Chart.yaml | See Chart.yaml |
 
-```
-├── agentscript/       # Chart for AgentScript
-│   ├── Chart.yaml
-│   ├── values.yaml
-│   ├── templates/
-│   └── README.md
-├── another-tool/      # Chart for another tool
-│   ├── Chart.yaml
-│   ├── values.yaml
-│   ├── templates/
-│   └── README.md
-└── ...
-```
-
-## Requirements
-
-- Kubernetes 1.20+
-- Helm 3.0+
-
-## General Usage
+## 🚀 Quick Start
 
 ### Adding the Repository
 
-Add the Cloudscript Helm Charts repository to your local environment:
+Add the Cloudscript Helm Charts repository:
+
 ```bash
-helm repo add cloudscript https://charts.cloudscript.com.br
+helm repo add cloudscript https://cloudscript-technology.github.io/helm-charts
 helm repo update
 ```
 
 ### Installing a Chart
 
-Choose the directory corresponding to the desired tool and install the Chart:
-```bash
-helm install <release-name> cloudscript/<chart-name>
-```
-Replace `<release-name>` with your chosen name for the installation and `<chart-name>` with the name of the Chart you want to install.
+Install a chart with default values:
 
-### Updating a Chart
-
-To apply updates to an existing installation:
 ```bash
-helm upgrade <release-name> cloudscript/<chart-name> --values values.yaml
+helm install my-release cloudscript/<chart-name>
 ```
 
-### Removing a Chart
+With custom values:
 
-To uninstall a Chart:
 ```bash
-helm uninstall <release-name>
+helm install my-release cloudscript/<chart-name> -f values.yaml
 ```
 
-## Contributing
+### Examples
 
-Contributions are welcome! Follow the guidelines below to contribute to this repository:
+#### Deploy-Apps Chart (Multi-Application)
 
-1. Fork this repository.
-2. Create a branch for your contribution:
-   ```bash
-   git checkout -b my-contribution
+```bash
+# Create a values file
+cat > my-values.yaml <<EOF
+apps:
+  - name: web-app
+    enabled: true
+    type: deployment
+    image:
+      repository: nginx
+      tag: "1.21"
+    service:
+      enabled: true
+      ports:
+        - name: http
+          port: 80
+          targetPort: 80
+    ingress:
+      enabled: true
+      hosts:
+        - host: myapp.example.com
+          paths:
+            - path: /
+              pathType: Prefix
+EOF
+
+# Install
+helm install my-apps cloudscript/deploy-apps -f my-values.yaml
+```
+
+#### Agent-Script Chart
+
+```bash
+helm install agent cloudscript/agent-script \
+  --set config.agentServerUrl=https://server.example.com \
+  --set config.agentId=my-agent \
+  --set config.agentToken=secret-token
+```
+
+### Upgrading a Release
+
+```bash
+helm upgrade my-release cloudscript/<chart-name> -f values.yaml
+```
+
+### Uninstalling
+
+```bash
+helm uninstall my-release
+```
+
+## 📋 Requirements
+
+- **Kubernetes:** >= 1.27.0
+- **Helm:** >= 3.0
+
+### Optional Dependencies
+
+Some charts may require:
+- **External Secrets Operator** (for deploy-apps with external secrets)
+- **Metrics Server** (for HPA in deploy-apps)
+- **Ingress Controller** (for Ingress resources)
+
+## 🏗️ Repository Structure
+
+```
+.
+├── .github/
+│   ├── workflows/          # GitHub Actions CI/CD
+│   │   ├── release.yaml    # Automated chart releases
+│   │   └── lint-test.yaml  # Chart validation and testing
+│   ├── scripts/            # Helper scripts
+│   └── README.md           # CI/CD documentation
+├── agent-script/           # Chart: Agent Script
+├── deploy-apps/            # Chart: Multi-app deployment
+├── dumpscript/             # Chart: Database backups
+├── k8s-monitoring-app/     # Chart: K8s monitoring
+├── CONTRIBUTING.md         # Contribution guidelines
+└── README.md              # This file
+```
+
+## 🔄 Automated Releases
+
+This repository uses GitHub Actions for automated chart releases:
+
+### When is a release created?
+
+A new release is automatically created when:
+1. Changes are pushed to `main` branch
+2. A chart's `version` in `Chart.yaml` is incremented
+3. All CI checks pass (lint, test, install)
+
+### What happens during release?
+
+1. 🔍 **Validation:** Chart is linted and tested
+2. 📦 **Packaging:** Chart is packaged as `.tgz`
+3. 🏷️ **Tagging:** Git tag is created (`<chart-name>-<version>`)
+4. 📤 **Publishing:** Chart is published to GitHub Pages
+5. 📊 **Indexing:** `index.yaml` is updated
+6. 🔐 **Checksums:** SHA256 is calculated
+7. 📝 **Metadata:** Artifact Hub metadata is updated
+
+### Making a Release
+
+1. Make your changes to a chart
+2. Increment version in `Chart.yaml`:
+   ```yaml
+   version: 0.2.0  # Increment this
    ```
-3. Make your changes and commit:
+3. Commit and push to `main`:
    ```bash
-   git commit -m "Clear description of changes"
+   git add .
+   git commit -m "feat(chart-name): add new feature"
+   git push origin main
    ```
-4. Push your branch:
+4. GitHub Actions will automatically create the release!
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
+
+## 🧪 Testing Charts Locally
+
+### Lint a Chart
+
+```bash
+helm lint ./chart-name
+```
+
+### Render Templates
+
+```bash
+helm template test-release ./chart-name --debug
+```
+
+### Dry-Run Install
+
+```bash
+helm install test-release ./chart-name --dry-run --debug
+```
+
+### Install in Kind Cluster
+
+```bash
+# Create cluster
+kind create cluster --name test
+
+# Install chart
+helm install test ./chart-name
+
+# Verify
+kubectl get all
+
+# Cleanup
+kind delete cluster --name test
+```
+
+## 🤝 Contributing
+
+We welcome contributions! Please read our [CONTRIBUTING.md](./CONTRIBUTING.md) for:
+
+- 📝 Chart structure guidelines
+- 🔢 Versioning strategy (Semantic Versioning)
+- ✅ PR checklist
+- 🧪 Testing requirements
+- 💬 Commit message conventions
+
+### Quick Contribution Guide
+
+1. Fork this repository
+2. Create a feature branch: `git checkout -b feature/my-feature`
+3. Make your changes and test locally
+4. Commit using [Conventional Commits](https://www.conventionalcommits.org/):
    ```bash
-   git push origin my-contribution
+   git commit -m "feat(chart-name): add new feature"
    ```
-5. Open a Pull Request explaining your contribution.
+5. Push and open a Pull Request
 
-## Support
+## 📚 Documentation
 
-If you encounter issues or have questions, feel free to open an **issue** in this repository or contact our support team via the official Cloudscript website: [https://www.cloudscript.com.br](https://www.cloudscript.com.br).
+Each chart has its own detailed README:
 
-## License
+- [agent-script/README.md](./agent-script/README.md)
+- [deploy-apps/README.md](./deploy-apps/README.md)
+- [dumpscript/README.md](./dumpscript/README.md)
+- [k8s-monitoring-app/README.md](./k8s-monitoring-app/README.md)
 
-All Helm Charts in this repository are licensed under the **MIT** license. Refer to the `LICENSE` file for more details.
+## 🔗 Useful Links
+
+- **Chart Repository:** https://cloudscript-technology.github.io/helm-charts
+- **Artifact Hub:** https://artifacthub.io/packages/search?org=cloudscript
+- **GitHub Releases:** https://github.com/cloudscript-technology/helm-charts/releases
+- **Cloudscript Website:** https://cloudscript.com.br
+
+## 💬 Support
+
+Need help?
+
+- 📖 Check chart-specific README files
+- 🐛 [Open an Issue](https://github.com/cloudscript-technology/helm-charts/issues)
+- 📧 Contact: jonathan.schmitt@cloudscript.com.br
+
+## 📄 License
+
+All Helm Charts in this repository are licensed under [Apache-2.0](https://opensource.org/licenses/Apache-2.0).
 
 ---
 
-Thank you for using Cloudscript Helm Charts! 🚀
+**Developed with ❤️ by Cloudscript**

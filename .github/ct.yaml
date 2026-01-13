@@ -1,0 +1,14 @@
+# Configuration for chart-testing (ct)
+---
+# See https://github.com/helm/chart-testing/blob/main/doc/ct.md#configuration
+
+remote: origin
+target-branch: main
+chart-dirs:
+  - .
+# chart-repos:
+#   - bitnami=https://charts.bitnami.com/bitnami
+helm-extra-args: --timeout 600s
+validate-maintainers: false
+check-version-increment: true
+debug: false
