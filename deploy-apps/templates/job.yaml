@@ -1,0 +1,100 @@
+{{- range $app := .Values.apps }}
+{{- if and $app.enabled (eq $app.type "job") }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "deploy-apps.app.fullname" (dict "root" $ "app" $app) }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "deploy-apps.app.labels" (dict "root" $ "app" $app) | nindent 4 }}
+spec:
+  {{- if $app.backoffLimit }}
+  backoffLimit: {{ $app.backoffLimit }}
+  {{- end }}
+  {{- if $app.ttlSecondsAfterFinished }}
+  ttlSecondsAfterFinished: {{ $app.ttlSecondsAfterFinished }}
+  {{- end }}
+  {{- if $app.completions }}
+  completions: {{ $app.completions }}
+  {{- end }}
+  {{- if $app.parallelism }}
+  parallelism: {{ $app.parallelism }}
+  {{- end }}
+  template:
+    metadata:
+      annotations:
+        {{- $annotations := include "deploy-apps.app.podAnnotations" (dict "root" $ "app" $app) }}
+        {{- if $annotations }}
+        {{- $annotations | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "deploy-apps.app.podLabels" (dict "root" $ "app" $app) | nindent 8 }}
+    spec:
+      {{- $imagePullSecrets := include "deploy-apps.app.imagePullSecrets" (dict "root" $ "app" $app) }}
+      {{- if $imagePullSecrets }}
+      imagePullSecrets:
+        {{- $imagePullSecrets | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "deploy-apps.app.serviceAccountName" (dict "root" $ "app" $app) }}
+      {{- $podSecurityContext := include "deploy-apps.app.podSecurityContext" (dict "root" $ "app" $app) }}
+      {{- if $podSecurityContext }}
+      securityContext:
+        {{- $podSecurityContext | nindent 8 }}
+      {{- end }}
+      restartPolicy: {{ include "deploy-apps.app.restartPolicy" (dict "app" $app) }}
+      containers:
+        - name: {{ $app.name }}
+          {{- $securityContext := include "deploy-apps.app.securityContext" (dict "root" $ "app" $app) }}
+          {{- if $securityContext }}
+          securityContext:
+            {{- $securityContext | nindent 12 }}
+          {{- end }}
+          image: {{ include "deploy-apps.app.image" (dict "root" $ "app" $app) }}
+          imagePullPolicy: {{ include "deploy-apps.app.imagePullPolicy" (dict "root" $ "app" $app) }}
+          {{- with $app.command }}
+          command:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $app.args }}
+          args:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $app.env }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $app.envFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- $resources := include "deploy-apps.app.resources" (dict "root" $ "app" $app) }}
+          {{- if $resources }}
+          resources:
+            {{- $resources | nindent 12 }}
+          {{- end }}
+          {{- with $app.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with $app.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- $nodeSelector := include "deploy-apps.app.nodeSelector" (dict "root" $ "app" $app) }}
+      {{- if $nodeSelector }}
+      nodeSelector:
+        {{- $nodeSelector | nindent 8 }}
+      {{- end }}
+      {{- $affinity := include "deploy-apps.app.affinity" (dict "root" $ "app" $app) }}
+      {{- if $affinity }}
+      affinity:
+        {{- $affinity | nindent 8 }}
+      {{- end }}
+      {{- $tolerations := include "deploy-apps.app.tolerations" (dict "root" $ "app" $app) }}
+      {{- if $tolerations }}
+      tolerations:
+        {{- $tolerations | nindent 8 }}
+      {{- end }}
+{{- end }}
+{{- end }}

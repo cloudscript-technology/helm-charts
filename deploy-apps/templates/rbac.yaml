@@ -1,0 +1,113 @@
+{{- if .Values.rbac.create }}
+{{- if .Values.rbac.useClusterRole }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "deploy-apps.fullname" . }}
+  labels:
+    {{- include "deploy-apps.labels" . | nindent 4 }}
+rules:
+  {{- toYaml .Values.rbac.rules | nindent 2 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "deploy-apps.fullname" . }}
+  labels:
+    {{- include "deploy-apps.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "deploy-apps.fullname" . }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "deploy-apps.serviceAccountName" . }}
+    namespace: {{ .Release.Namespace }}
+{{- else }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "deploy-apps.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "deploy-apps.labels" . | nindent 4 }}
+rules:
+  {{- toYaml .Values.rbac.rules | nindent 2 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "deploy-apps.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "deploy-apps.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "deploy-apps.fullname" . }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "deploy-apps.serviceAccountName" . }}
+    namespace: {{ .Release.Namespace }}
+{{- end }}
+{{- end }}
+---
+{{- range $app := .Values.apps }}
+{{- if and $app.enabled $app.rbac }}
+{{- if $app.rbac.create }}
+{{- if $app.rbac.useClusterRole }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "deploy-apps.app.fullname" (dict "root" $ "app" $app) }}
+  labels:
+    {{- include "deploy-apps.app.labels" (dict "root" $ "app" $app) | nindent 4 }}
+rules:
+  {{- toYaml $app.rbac.rules | nindent 2 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "deploy-apps.app.fullname" (dict "root" $ "app" $app) }}
+  labels:
+    {{- include "deploy-apps.app.labels" (dict "root" $ "app" $app) | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "deploy-apps.app.fullname" (dict "root" $ "app" $app) }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "deploy-apps.app.serviceAccountName" (dict "root" $ "app" $app) }}
+    namespace: {{ $.Release.Namespace }}
+---
+{{- else }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "deploy-apps.app.fullname" (dict "root" $ "app" $app) }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "deploy-apps.app.labels" (dict "root" $ "app" $app) | nindent 4 }}
+rules:
+  {{- toYaml $app.rbac.rules | nindent 2 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "deploy-apps.app.fullname" (dict "root" $ "app" $app) }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "deploy-apps.app.labels" (dict "root" $ "app" $app) | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "deploy-apps.app.fullname" (dict "root" $ "app" $app) }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "deploy-apps.app.serviceAccountName" (dict "root" $ "app" $app) }}
+    namespace: {{ $.Release.Namespace }}
+---
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

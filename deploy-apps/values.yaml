@@ -1,0 +1,567 @@
+# Default values for deploy-apps.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Global image defaults (can be overridden per app)
+image:
+  repository: ""
+  pullPolicy: IfNotPresent
+  tag: ""
+
+# Global image pull secrets
+imagePullSecrets: []
+  # - name: registry-secret
+
+# Override chart name
+nameOverride: ""
+# Override full name
+fullnameOverride: ""
+
+# Global defaults for all apps (can be overridden per app)
+global:
+  # Global pod annotations
+  podAnnotations: {}
+    # prometheus.io/scrape: "true"
+    # prometheus.io/port: "8080"
+
+  # Global pod labels
+  podLabels: {}
+    # environment: production
+
+  # Global pod security context
+  podSecurityContext: {}
+    # fsGroup: 2000
+    # runAsNonRoot: true
+    # runAsUser: 1000
+
+  # Global container security context
+  securityContext: {}
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 1000
+
+  # Global resources
+  resources: {}
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
+
+  # Global node selector
+  nodeSelector: {}
+    # kubernetes.io/os: linux
+
+  # Global tolerations
+  tolerations: []
+    # - key: "key1"
+    #   operator: "Equal"
+    #   value: "value1"
+    #   effect: "NoSchedule"
+
+  # Global affinity
+  affinity: {}
+    # nodeAffinity:
+    #   requiredDuringSchedulingIgnoredDuringExecution:
+    #     nodeSelectorTerms:
+    #     - matchExpressions:
+    #       - key: kubernetes.io/e2e-az-name
+    #         operator: In
+    #         values:
+    #         - e2e-az1
+    #         - e2e-az2
+
+# Global ServiceAccount (shared by all apps unless overridden)
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Automatically mount a ServiceAccount's API credentials?
+  automount: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+  # The namespace of the service account (defaults to release namespace)
+  namespace: ""
+
+# Global RBAC configuration
+rbac:
+  # Specifies whether RBAC resources should be created
+  create: false
+  # Rules for the global ClusterRole/Role
+  rules: []
+  # Example rules:
+  # - apiGroups: [""]
+  #   resources: ["pods"]
+  #   verbs: ["get", "list", "watch"]
+  # - apiGroups: ["apps"]
+  #   resources: ["deployments"]
+  #   verbs: ["get", "list"]
+  # Use ClusterRole (true) or Role (false)
+  useClusterRole: true
+
+# Applications array - define your apps here
+apps: []
+
+## Example applications (commented out):
+
+# Example 1: Web Application (Deployment)
+#  - name: web-app
+#    # Enable this application
+#    enabled: true
+#
+#    # Workload type: deployment, statefulset, cronjob, job
+#    type: deployment
+#
+#    # Image configuration (overrides global)
+#    image:
+#      repository: nginx
+#      pullPolicy: IfNotPresent
+#      tag: "1.21"
+#
+#    # Number of replicas (for Deployment/StatefulSet only)
+#    replicaCount: 2
+#
+#    # Container command and args
+#    command: []
+#    args: []
+#
+#    # Container ports
+#    ports:
+#      - name: http
+#        containerPort: 80
+#        protocol: TCP
+#
+#    # Environment variables
+#    env:
+#      - name: ENV
+#        value: production
+#      - name: LOG_LEVEL
+#        value: info
+#
+#    # Environment from ConfigMap or Secret
+#    envFrom: []
+#    # - configMapRef:
+#    #     name: app-config
+#    # - secretRef:
+#    #     name: app-secrets
+#
+#    # Secrets configuration
+#    secrets:
+#      # External Secrets Operator
+#      external:
+#        enabled: false
+#        items: []
+#        # - name: app-credentials
+#        #   secretStoreRef:
+#        #     name: aws-secret-store
+#        #     kind: SecretStore
+#        #   refreshInterval: 1h
+#        #   data:
+#        #     - secretKey: username
+#        #       remoteRef:
+#        #         key: prod/app/credentials
+#        #         property: username
+#        #     - secretKey: password
+#        #       remoteRef:
+#        #         key: prod/app/credentials
+#        #         property: password
+#
+#      # Native Kubernetes secrets
+#      native:
+#        enabled: false
+#        items: []
+#        # - name: app-secret
+#        #   type: Opaque
+#        #   data: {}
+#        #   stringData:
+#        #     API_KEY: my-api-key
+#        #     API_SECRET: my-secret
+#
+#      # Reference existing secrets
+#      existing: []
+#      # - name: existing-secret
+#
+#    # ConfigMaps
+#    configMaps:
+#      enabled: false
+#      items: []
+#      # - name: app-config
+#      #   data:
+#      #     config.yaml: |
+#      #       server:
+#      #         port: 8080
+#      #         host: 0.0.0.0
+#
+#    # Volumes
+#    volumes: []
+#    # - name: config
+#    #   configMap:
+#    #     name: app-config
+#    # - name: cache
+#    #   emptyDir: {}
+#
+#    # Volume mounts
+#    volumeMounts: []
+#    # - name: config
+#    #   mountPath: /etc/config
+#    #   readOnly: true
+#    # - name: cache
+#    #   mountPath: /tmp/cache
+#
+#    # Persistent Volume Claims (for Deployment/StatefulSet)
+#    persistence:
+#      enabled: false
+#      items: []
+#      # - name: data
+#      #   # Use existing claim
+#      #   existingClaim: ""
+#      #   # Size for new PVC
+#      #   size: 10Gi
+#      #   # Storage class
+#      #   storageClass: ""
+#      #   # Access modes
+#      #   accessModes:
+#      #     - ReadWriteOnce
+#      #   # Mount path
+#      #   mountPath: /data
+#      #   # Sub path
+#      #   subPath: ""
+#      #   # Annotations
+#      #   annotations: {}
+#
+#    # Probes
+#    livenessProbe:
+#      httpGet:
+#        path: /healthz
+#        port: http
+#      initialDelaySeconds: 30
+#      periodSeconds: 10
+#      timeoutSeconds: 5
+#      successThreshold: 1
+#      failureThreshold: 3
+#
+#    readinessProbe:
+#      httpGet:
+#        path: /ready
+#        port: http
+#      initialDelaySeconds: 5
+#      periodSeconds: 10
+#      timeoutSeconds: 5
+#      successThreshold: 1
+#      failureThreshold: 3
+#
+#    startupProbe: {}
+#    # httpGet:
+#    #   path: /startup
+#    #   port: http
+#    # initialDelaySeconds: 0
+#    # periodSeconds: 10
+#    # timeoutSeconds: 5
+#    # successThreshold: 1
+#    # failureThreshold: 30
+#
+#    # Service configuration
+#    service:
+#      # Auto-enabled for Deployment/StatefulSet
+#      enabled: true
+#      type: ClusterIP
+#      ports:
+#        - name: http
+#          port: 80
+#          targetPort: http
+#          protocol: TCP
+#      annotations: {}
+#      # service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+#      labels: {}
+#
+#    # Ingress configuration
+#    ingress:
+#      enabled: true
+#      className: nginx
+#      annotations:
+#        cert-manager.io/cluster-issuer: letsencrypt-prod
+#      hosts:
+#        - host: web-app.example.com
+#          paths:
+#            - path: /
+#              pathType: Prefix
+#              portName: http
+#      tls:
+#        - secretName: web-app-tls
+#          hosts:
+#            - web-app.example.com
+#
+#    # Per-app ServiceAccount (overrides global)
+#    serviceAccount:
+#      # Create per-app service account
+#      create: false
+#      # Automount service account token
+#      automount: true
+#      # Annotations
+#      annotations: {}
+#      # Name (auto-generated if empty)
+#      name: ""
+#
+#    # Per-app RBAC (overrides global)
+#    rbac:
+#      create: false
+#      rules: []
+#      useClusterRole: false
+#
+#    # HorizontalPodAutoscaler (only for deployment/statefulset)
+#    autoscaling:
+#      enabled: false
+#      minReplicas: 2
+#      maxReplicas: 10
+#      # Target CPU utilization percentage
+#      targetCPUUtilizationPercentage: 80
+#      # Target Memory utilization percentage
+#      targetMemoryUtilizationPercentage: 80
+#      # Custom metrics (optional)
+#      customMetrics: []
+#      # - type: Pods
+#      #   pods:
+#      #     metric:
+#      #       name: http_requests_per_second
+#      #     target:
+#      #       type: AverageValue
+#      #       averageValue: "1000"
+#      # Scaling behavior (optional)
+#      behavior: {}
+#      # scaleDown:
+#      #   stabilizationWindowSeconds: 300
+#      #   policies:
+#      #   - type: Percent
+#      #     value: 50
+#      #     periodSeconds: 15
+#      # scaleUp:
+#      #   stabilizationWindowSeconds: 0
+#      #   policies:
+#      #   - type: Percent
+#      #     value: 100
+#      #     periodSeconds: 15
+#      #   - type: Pods
+#      #     value: 4
+#      #     periodSeconds: 15
+#      #   selectPolicy: Max
+#
+#    # Labels applied to ALL resources of this app (Deployment, Service, Ingress, etc.)
+#    labels: {}
+#    # team: platform
+#    # cost-center: engineering
+#
+#    # Pod-level overrides
+#    podAnnotations: {}
+#    # Labels applied ONLY to pods (in addition to app labels)
+#    podLabels: {}
+#    # version: v1.2.3
+#    # release: stable
+#    podSecurityContext: {}
+#    securityContext: {}
+#    resources:
+#      limits:
+#        cpu: 500m
+#        memory: 512Mi
+#      requests:
+#        cpu: 250m
+#        memory: 256Mi
+#    nodeSelector: {}
+#    tolerations: []
+#    affinity: {}
+
+# Example 2: Backup Job (CronJob)
+#  - name: backup-job
+#    enabled: true
+#    type: cronjob
+#
+#    # CronJob schedule
+#    schedule: "0 2 * * *"  # Every day at 2 AM
+#
+#    # CronJob specific settings
+#    successfulJobsHistoryLimit: 3
+#    failedJobsHistoryLimit: 1
+#    concurrencyPolicy: Forbid  # Forbid, Allow, or Replace
+#
+#    # Job specific settings (applies to CronJob's job template too)
+#    backoffLimit: 3
+#    ttlSecondsAfterFinished: 86400  # 24 hours
+#
+#    # Restart policy for Job/CronJob (Never or OnFailure)
+#    restartPolicy: Never
+#
+#    image:
+#      repository: backup-tool
+#      tag: latest
+#
+#    command: ["/bin/sh"]
+#    args:
+#      - "-c"
+#      - |
+#        echo "Starting backup..."
+#        # Backup commands here
+#        echo "Backup completed successfully"
+#
+#    # Environment variables
+#    env:
+#      - name: BACKUP_TYPE
+#        value: full
+#      - name: RETENTION_DAYS
+#        value: "30"
+#
+#    # External secrets for AWS credentials
+#    secrets:
+#      external:
+#        enabled: false
+#        items: []
+#        # - name: aws-creds
+#        #   secretStoreRef:
+#        #     name: aws-secret-store
+#        #     kind: SecretStore
+#        #   refreshInterval: 1h
+#        #   data:
+#        #     - secretKey: AWS_ACCESS_KEY_ID
+#        #       remoteRef:
+#        #         key: prod/backup/aws
+#        #         property: accessKeyId
+#        #     - secretKey: AWS_SECRET_ACCESS_KEY
+#        #       remoteRef:
+#        #         key: prod/backup/aws
+#        #         property: secretAccessKey
+#
+#    # Resources for backup job
+#    resources:
+#      limits:
+#        cpu: 1000m
+#        memory: 1Gi
+#      requests:
+#        cpu: 500m
+#        memory: 512Mi
+#
+#    # Volumes for temporary storage
+#    volumes:
+#      - name: backup-tmp
+#        emptyDir:
+#          sizeLimit: 10Gi
+#
+#    volumeMounts:
+#      - name: backup-tmp
+#        mountPath: /tmp/backup
+
+# Example 3: Database (StatefulSet)
+#  - name: database
+#    enabled: false
+#    type: statefulset
+#
+#    # Number of replicas
+#    replicaCount: 3
+#
+#    image:
+#      repository: postgres
+#      tag: "14-alpine"
+#
+#    # StatefulSet specific configuration
+#    serviceName: database-headless
+#    podManagementPolicy: OrderedReady  # OrderedReady or Parallel
+#    updateStrategy:
+#      type: RollingUpdate
+#
+#    # Container ports
+#    ports:
+#      - name: postgresql
+#        containerPort: 5432
+#        protocol: TCP
+#
+#    # Environment variables
+#    env:
+#      - name: POSTGRES_DB
+#        value: mydb
+#      - name: PGDATA
+#        value: /var/lib/postgresql/data/pgdata
+#
+#    # Secrets for database credentials
+#    secrets:
+#      native:
+#        enabled: false
+#        items: []
+#        # - name: db-creds
+#        #   type: Opaque
+#        #   stringData:
+#        #     POSTGRES_USER: admin
+#        #     POSTGRES_PASSWORD: changeme
+#
+#    # Probes
+#    livenessProbe:
+#      exec:
+#        command:
+#          - /bin/sh
+#          - -c
+#          - pg_isready -U postgres
+#      initialDelaySeconds: 30
+#      periodSeconds: 10
+#      timeoutSeconds: 5
+#      failureThreshold: 6
+#
+#    readinessProbe:
+#      exec:
+#        command:
+#          - /bin/sh
+#          - -c
+#          - pg_isready -U postgres
+#      initialDelaySeconds: 5
+#      periodSeconds: 10
+#      timeoutSeconds: 5
+#      failureThreshold: 3
+#
+#    # Service configuration (headless for StatefulSet)
+#    service:
+#      enabled: true
+#      type: ClusterIP
+#      clusterIP: None  # Headless service
+#      ports:
+#        - name: postgresql
+#          port: 5432
+#          targetPort: postgresql
+#          protocol: TCP
+#
+#    # Volume Claim Templates (StatefulSet specific)
+#    volumeClaimTemplates:
+#      - metadata:
+#          name: data
+#          labels:
+#            app.kubernetes.io/name: database
+#        spec:
+#          accessModes:
+#            - ReadWriteOnce
+#          storageClassName: fast-ssd
+#          resources:
+#            requests:
+#              storage: 50Gi
+#
+#    # Volume mounts referencing volumeClaimTemplates
+#    volumeMounts:
+#      - name: data
+#        mountPath: /var/lib/postgresql/data
+#
+#    # Resources
+#    resources:
+#      limits:
+#        cpu: 2000m
+#        memory: 4Gi
+#      requests:
+#        cpu: 1000m
+#        memory: 2Gi
+#
+#    # Per-app ServiceAccount with RBAC
+#    serviceAccount:
+#      create: false
+#      name: ""
+#
+#    rbac:
+#      create: false
+#      rules: []

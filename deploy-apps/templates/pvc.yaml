@@ -1,0 +1,40 @@
+{{- range $app := .Values.apps }}
+{{- if and $app.enabled $app.persistence }}
+{{- if and $app.persistence.enabled $app.persistence.items }}
+{{- if ne $app.type "statefulset" }}
+{{- range $pvc := $app.persistence.items }}
+{{- if not $pvc.existingClaim }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "deploy-apps.app.pvcName" (dict "root" $ "app" $app "pvc" $pvc) }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "deploy-apps.app.labels" (dict "root" $ "app" $app) | nindent 4 }}
+  {{- with $pvc.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  accessModes:
+    {{- toYaml $pvc.accessModes | nindent 4 }}
+  {{- if $pvc.storageClass }}
+  storageClassName: {{ $pvc.storageClass }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ $pvc.size }}
+  {{- if $pvc.selector }}
+  selector:
+    {{- toYaml $pvc.selector | nindent 4 }}
+  {{- end }}
+  {{- if $pvc.volumeName }}
+  volumeName: {{ $pvc.volumeName }}
+  {{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

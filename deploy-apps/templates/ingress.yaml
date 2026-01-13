@@ -1,0 +1,58 @@
+{{- range $app := .Values.apps }}
+{{- if and $app.enabled $app.ingress }}
+{{- if $app.ingress.enabled }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "deploy-apps.app.fullname" (dict "root" $ "app" $app) }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "deploy-apps.app.labels" (dict "root" $ "app" $app) | nindent 4 }}
+    {{- with $app.ingress.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with $app.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if $app.ingress.className }}
+  ingressClassName: {{ $app.ingress.className }}
+  {{- end }}
+  {{- if $app.ingress.tls }}
+  tls:
+    {{- range $tls := $app.ingress.tls }}
+    - hosts:
+        {{- range $host := $tls.hosts }}
+        - {{ $host }}
+        {{- end }}
+      {{- if $tls.secretName }}
+      secretName: {{ $tls.secretName }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+  rules:
+    {{- range $host := $app.ingress.hosts }}
+    - host: {{ $host.host }}
+      http:
+        paths:
+          {{- range $path := $host.paths }}
+          - path: {{ $path.path }}
+            pathType: {{ $path.pathType }}
+            backend:
+              service:
+                name: {{ include "deploy-apps.app.fullname" (dict "root" $ "app" $app) }}
+                port:
+                  {{- if $path.portName }}
+                  name: {{ $path.portName }}
+                  {{- else if $path.portNumber }}
+                  number: {{ $path.portNumber }}
+                  {{- else }}
+                  name: http
+                  {{- end }}
+          {{- end }}
+    {{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

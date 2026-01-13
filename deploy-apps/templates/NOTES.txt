@@ -1,0 +1,93 @@
+Thank you for installing {{ .Chart.Name }}!
+
+Your release is named {{ .Release.Name }}.
+Chart version: {{ .Chart.Version }}
+App version: {{ .Chart.AppVersion }}
+
+{{- if .Values.apps }}
+{{- $enabledApps := list }}
+{{- range $app := .Values.apps }}
+{{- if $app.enabled }}
+{{- $enabledApps = append $enabledApps $app }}
+{{- end }}
+{{- end }}
+
+{{- if $enabledApps }}
+
+Deployed applications:
+{{- range $app := $enabledApps }}
+
+{{ $app.name }} ({{ $app.type }}):
+{{- if or (eq $app.type "deployment") (eq $app.type "statefulset") }}
+  {{- if (include "deploy-apps.app.shouldHaveService" (dict "app" $app)) }}
+  Service: {{ include "deploy-apps.app.fullname" (dict "root" $ "app" $app) }}
+    {{- if $app.service }}
+    {{- if $app.service.ports }}
+    Ports:
+    {{- range $port := $app.service.ports }}
+      - {{ $port.name }}: {{ $port.port }}
+    {{- end }}
+    {{- end }}
+    {{- end }}
+  {{- end }}
+
+  {{- if and $app.ingress $app.ingress.enabled }}
+  Ingress:
+    {{- range $host := $app.ingress.hosts }}
+    - https://{{ $host.host }}
+    {{- end }}
+  {{- end }}
+
+  To check the status of {{ $app.name }}:
+  {{- if eq $app.type "deployment" }}
+    kubectl get deployment {{ include "deploy-apps.app.fullname" (dict "root" $ "app" $app) }} -n {{ $.Release.Namespace }}
+  {{- else }}
+    kubectl get statefulset {{ include "deploy-apps.app.fullname" (dict "root" $ "app" $app) }} -n {{ $.Release.Namespace }}
+  {{- end }}
+
+{{- else if eq $app.type "cronjob" }}
+  Schedule: {{ $app.schedule }}
+
+  To check the status:
+    kubectl get cronjob {{ include "deploy-apps.app.fullname" (dict "root" $ "app" $app) }} -n {{ $.Release.Namespace }}
+
+  To view job history:
+    kubectl get jobs -l deploy-apps/app-name={{ $app.name }} -n {{ $.Release.Namespace }}
+
+{{- else if eq $app.type "job" }}
+  To check the status:
+    kubectl get job {{ include "deploy-apps.app.fullname" (dict "root" $ "app" $app) }} -n {{ $.Release.Namespace }}
+
+  To view logs:
+    kubectl logs -l deploy-apps/app-name={{ $app.name }} -n {{ $.Release.Namespace }}
+{{- end }}
+{{- end }}
+
+{{- else }}
+No applications are currently enabled.
+To enable applications, set .Values.apps[].enabled to true in your values file.
+{{- end }}
+
+{{- else }}
+No applications configured.
+Please define applications in the .Values.apps array.
+{{- end }}
+
+---
+
+Useful commands:
+
+  Get all resources for this release:
+    kubectl get all -l app.kubernetes.io/instance={{ .Release.Name }} -n {{ .Release.Namespace }}
+
+  Get all pods:
+    kubectl get pods -l app.kubernetes.io/instance={{ .Release.Name }} -n {{ .Release.Namespace }}
+
+{{- if .Values.serviceAccount.create }}
+
+  ServiceAccount:
+    {{ include "deploy-apps.serviceAccountName" . }}
+{{- end }}
+
+For more information and documentation, visit:
+  https://github.com/cloudscript-technology/helm-charts/tree/main/deploy-apps

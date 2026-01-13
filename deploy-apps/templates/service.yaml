@@ -1,0 +1,43 @@
+{{- range $app := .Values.apps }}
+{{- if $app.enabled }}
+{{- if (include "deploy-apps.app.shouldHaveService" (dict "app" $app)) }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "deploy-apps.app.fullname" (dict "root" $ "app" $app) }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "deploy-apps.app.labels" (dict "root" $ "app" $app) | nindent 4 }}
+    {{- with $app.service.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with $app.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ $app.service.type | default "ClusterIP" }}
+  {{- if $app.service.clusterIP }}
+  clusterIP: {{ $app.service.clusterIP }}
+  {{- end }}
+  {{- if $app.service.sessionAffinity }}
+  sessionAffinity: {{ $app.service.sessionAffinity }}
+  {{- end }}
+  {{- if $app.service.externalTrafficPolicy }}
+  externalTrafficPolicy: {{ $app.service.externalTrafficPolicy }}
+  {{- end }}
+  {{- if $app.service.loadBalancerIP }}
+  loadBalancerIP: {{ $app.service.loadBalancerIP }}
+  {{- end }}
+  {{- if $app.service.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+    {{- toYaml $app.service.loadBalancerSourceRanges | nindent 4 }}
+  {{- end }}
+  ports:
+    {{- toYaml $app.service.ports | nindent 4 }}
+  selector:
+    {{- include "deploy-apps.app.selectorLabels" (dict "root" $ "app" $app) | nindent 4 }}
+{{- end }}
+{{- end }}
+{{- end }}

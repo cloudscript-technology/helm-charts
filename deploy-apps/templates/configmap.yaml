@@ -1,0 +1,28 @@
+{{- range $app := .Values.apps }}
+{{- if and $app.enabled $app.configMaps }}
+{{- if and $app.configMaps.enabled $app.configMaps.items }}
+{{- range $cm := $app.configMaps.items }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "deploy-apps.app.configMapName" (dict "root" $ "app" $app "cm" $cm) }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "deploy-apps.app.labels" (dict "root" $ "app" $app) | nindent 4 }}
+  {{- with $cm.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- if $cm.data }}
+data:
+  {{- toYaml $cm.data | nindent 2 }}
+{{- end }}
+{{- if $cm.binaryData }}
+binaryData:
+  {{- toYaml $cm.binaryData | nindent 2 }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

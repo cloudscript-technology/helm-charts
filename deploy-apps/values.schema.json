@@ -1,0 +1,58 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "image": {
+      "type": "object",
+      "properties": {
+        "repository": { "type": "string" },
+        "pullPolicy": { "type": "string" },
+        "tag": { "type": "string" }
+      }
+    },
+    "imagePullSecrets": {
+      "type": "array"
+    },
+    "nameOverride": { "type": "string" },
+    "fullnameOverride": { "type": "string" },
+    "serviceAccount": {
+      "type": "object",
+      "properties": {
+        "create": { "type": "boolean" },
+        "automount": { "type": "boolean" },
+        "annotations": { "type": "object" },
+        "name": { "type": "string" },
+        "namespace": { "type": "string" }
+      }
+    },
+    "rbac": {
+      "type": "object",
+      "properties": {
+        "create": { "type": "boolean" },
+        "rules": { "type": "array" },
+        "useClusterRole": { "type": "boolean" }
+      }
+    },
+    "global": {
+      "type": "object"
+    },
+    "apps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "enabled", "type"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "enabled": { "type": "boolean" },
+          "type": {
+            "type": "string",
+            "enum": ["deployment", "statefulset", "cronjob", "job"]
+          }
+        }
+      }
+    }
+  }
+}

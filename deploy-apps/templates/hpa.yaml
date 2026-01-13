@@ -1,0 +1,45 @@
+{{- range $app := .Values.apps }}
+{{- if and $app.enabled $app.autoscaling }}
+{{- if and $app.autoscaling.enabled (or (eq $app.type "deployment") (eq $app.type "statefulset")) }}
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "deploy-apps.app.fullname" (dict "root" $ "app" $app) }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "deploy-apps.app.labels" (dict "root" $ "app" $app) | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: {{ if eq $app.type "deployment" }}Deployment{{ else }}StatefulSet{{ end }}
+    name: {{ include "deploy-apps.app.fullname" (dict "root" $ "app" $app) }}
+  minReplicas: {{ $app.autoscaling.minReplicas | default 1 }}
+  maxReplicas: {{ $app.autoscaling.maxReplicas | default 10 }}
+  metrics:
+    {{- if $app.autoscaling.targetCPUUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ $app.autoscaling.targetCPUUtilizationPercentage }}
+    {{- end }}
+    {{- if $app.autoscaling.targetMemoryUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ $app.autoscaling.targetMemoryUtilizationPercentage }}
+    {{- end }}
+    {{- with $app.autoscaling.customMetrics }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- if $app.autoscaling.behavior }}
+  behavior:
+    {{- toYaml $app.autoscaling.behavior | nindent 4 }}
+  {{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

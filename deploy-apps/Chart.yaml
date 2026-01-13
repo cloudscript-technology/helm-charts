@@ -1,0 +1,45 @@
+apiVersion: v2
+name: deploy-apps
+description: Helm chart flexível para deploy de múltiplas aplicações (Deployment, StatefulSet, CronJob, Job) com suporte a External Secrets
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+kubeVersion: ">= 1.27.0-0"
+home: https://cloudscript.com.br
+icon: https://charts.cloudscript.com.br/helm-charts/deploy-apps/icon.png
+keywords:
+  - kubernetes
+  - helm
+  - multi-app
+  - deployment
+  - statefulset
+  - cronjob
+  - job
+  - external-secrets
+  - cloudscript
+maintainers:
+  - name: Jonathan Schmitt
+    email: jonathan.schmitt@cloudscript.com.br
+dependencies: []
+annotations:
+  artifacthub.io/changes: |
+    - kind: added
+      description: Initial release with multi-application deployment support
+    - kind: added
+      description: Support for Deployment, StatefulSet, CronJob, and Job workload types
+    - kind: added
+      description: External Secrets Operator integration for secure secret management
+    - kind: added
+      description: Flexible RBAC configuration (global and per-app)
+    - kind: added
+      description: Comprehensive probe configuration (liveness, readiness, startup)
+    - kind: added
+      description: Ingress and Service configuration per application
+  artifacthub.io/displayName: "Deploy Apps"
+  artifacthub.io/license: "Apache-2.0"
+  artifacthub.io/provider: "Cloudscript"
+  artifacthub.io/links: |
+    - name: Cloudscript
+      url: https://cloudscript.com.br
+    - name: Documentation
+      url: https://github.com/cloudscript-technology/helm-charts/tree/main/deploy-apps
