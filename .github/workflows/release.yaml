@@ -128,33 +128,36 @@ jobs:
 
             # Create/update artifacthub metadata
             echo "Creating Artifact Hub metadata..."
-            cat > "${chart}-artifacthub.yml" <<EOF
-version: $chart_version
-name: $chart
-displayName: $(grep '^name:' "../../helm-charts/$chart/Chart.yaml" | awk '{print $2}')
-createdAt: $(date -u +"%Y-%m-%dT%H:%M:%SZ")
-description: $(grep '^description:' "../../helm-charts/$chart/Chart.yaml" | cut -d':' -f2- | sed 's/^[[:space:]]*//' | sed 's/^"//' | sed 's/"$//')
-digest: $sha256
-license: Apache-2.0
-homeURL: https://cloudscript.com.br
-appVersion: $chart_app_version
-containsSecurityUpdates: false
-operator: false
-deprecated: false
-prerelease: false
-keywords:
-  - kubernetes
-  - helm
-  - cloudscript
-maintainers:
-  - name: Jonathan Schmitt
-    email: jonathan.schmitt@cloudscript.com.br
-links:
-  - name: Chart Repository
-    url: https://github.com/cloudscript-technology/helm-charts
-  - name: Cloudscript
-    url: https://cloudscript.com.br
-EOF
+            cat > "${chart}-artifacthub.yml" << ARTIFACTHUB_METADATA
+            version: ${chart_version}
+            name: ${chart}
+            displayName: $(grep '^name:' "../../helm-charts/$chart/Chart.yaml" | awk '{print $2}')
+            createdAt: $(date -u +"%Y-%m-%dT%H:%M:%SZ")
+            description: $(grep '^description:' "../../helm-charts/$chart/Chart.yaml" | cut -d':' -f2- | sed 's/^[[:space:]]*//' | sed 's/^"//' | sed 's/"$//')
+            digest: ${sha256}
+            license: Apache-2.0
+            homeURL: https://cloudscript.com.br
+            appVersion: ${chart_app_version}
+            containsSecurityUpdates: false
+            operator: false
+            deprecated: false
+            prerelease: false
+            keywords:
+            - kubernetes
+            - helm
+            - cloudscript
+            maintainers:
+            - name: Jonathan Schmitt
+              email: jonathan.schmitt@cloudscript.com.br
+            links:
+            - name: Chart Repository
+              url: https://github.com/cloudscript-technology/helm-charts
+            - name: Cloudscript
+              url: https://cloudscript.com.br
+            ARTIFACTHUB_METADATA
+
+            # Remove leading whitespace from the generated file
+            sed -i 's/^[[:space:]]*//' "${chart}-artifacthub.yml" || sed -i '' 's/^[[:space:]]*//' "${chart}-artifacthub.yml"
 
             cd ../../helm-charts
 
@@ -193,28 +196,28 @@ EOF
 
             echo "Creating GitHub release: $tag_name"
 
-            # Create release notes
-            cat > /tmp/release-notes.md <<EOF
-# $chart v$chart_version
+            # Create release notes with direct variable expansion
+            cat > /tmp/release-notes.md <<RELEASE_NOTES_END
+            # ${chart} v${chart_version}
 
-$chart_description
+            ${chart_description}
 
-## Installation
+            ## Installation
 
-\`\`\`bash
-helm repo add cloudscript https://cloudscript-technology.github.io/helm-charts
-helm repo update
-helm install my-release cloudscript/$chart
-\`\`\`
+            \`\`\`bash
+            helm repo add cloudscript https://cloudscript-technology.github.io/helm-charts
+            helm repo update
+            helm install my-release cloudscript/${chart}
+            \`\`\`
 
-## What's Changed
+            ## What's Changed
 
-$(git log --pretty=format:"- %s" $(git describe --tags --abbrev=0 ${chart}-* 2>/dev/null || echo "")..HEAD -- $chart/ 2>/dev/null || echo "Initial release")
+            \$(git log --pretty=format:"- %s" \$(git describe --tags --abbrev=0 ${chart}-* 2>/dev/null || echo "")..HEAD -- ${chart}/ 2>/dev/null || echo "Initial release")
 
----
+            ---
 
-**Full Changelog**: https://github.com/cloudscript-technology/helm-charts/commits/${tag_name}
-EOF
+            **Full Changelog**: https://github.com/cloudscript-technology/helm-charts/commits/${tag_name}
+            RELEASE_NOTES_END
 
             # Create release with package attached
             gh release create "$tag_name" \
@@ -235,13 +238,13 @@ EOF
             git add .
             git commit -m "Release Helm charts: ${{ steps.detect-changes.outputs.charts }}
 
-Published charts:
-$(for chart in ${{ steps.detect-changes.outputs.charts }}; do
-  version=$(grep '^version:' "../helm-charts/$chart/Chart.yaml" | awk '{print $2}')
-  echo "- $chart v$version"
-done)
+            Published charts:
+            $(for chart in ${{ steps.detect-changes.outputs.charts }}; do
+              version=$(grep '^version:' "../helm-charts/$chart/Chart.yaml" | awk '{print $2}')
+              echo "- $chart v$version"
+            done)
 
-Source: ${{ github.repository }}@${{ github.sha }}"
+            Source: ${{ github.repository }}@${{ github.sha }}"
 
             git push
 
