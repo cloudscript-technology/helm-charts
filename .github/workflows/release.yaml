@@ -128,36 +128,33 @@ jobs:
 
             # Create/update artifacthub metadata
             echo "Creating Artifact Hub metadata..."
-            cat > "${chart}-artifacthub.yml" << ARTIFACTHUB_METADATA
-            version: ${chart_version}
-            name: ${chart}
-            displayName: $(grep '^name:' "../../helm-charts/$chart/Chart.yaml" | awk '{print $2}')
-            createdAt: $(date -u +"%Y-%m-%dT%H:%M:%SZ")
-            description: $(grep '^description:' "../../helm-charts/$chart/Chart.yaml" | cut -d':' -f2- | sed 's/^[[:space:]]*//' | sed 's/^"//' | sed 's/"$//')
-            digest: ${sha256}
-            license: Apache-2.0
-            homeURL: https://cloudscript.com.br
-            appVersion: ${chart_app_version}
-            containsSecurityUpdates: false
-            operator: false
-            deprecated: false
-            prerelease: false
-            keywords:
-            - kubernetes
-            - helm
-            - cloudscript
-            maintainers:
-            - name: Jonathan Schmitt
-              email: jonathan.schmitt@cloudscript.com.br
-            links:
-            - name: Chart Repository
-              url: https://github.com/cloudscript-technology/helm-charts
-            - name: Cloudscript
-              url: https://cloudscript.com.br
-            ARTIFACTHUB_METADATA
-
-            # Remove leading whitespace from the generated file
-            sed -i 's/^[[:space:]]*//' "${chart}-artifacthub.yml" || sed -i '' 's/^[[:space:]]*//' "${chart}-artifacthub.yml"
+            {
+              echo "version: ${chart_version}"
+              echo "name: ${chart}"
+              echo "displayName: $(grep '^name:' "../../helm-charts/$chart/Chart.yaml" | awk '{print $2}')"
+              echo "createdAt: $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+              echo "description: $(grep '^description:' "../../helm-charts/$chart/Chart.yaml" | cut -d':' -f2- | sed 's/^[[:space:]]*//' | sed 's/^"//' | sed 's/"$//')"
+              echo "digest: ${sha256}"
+              echo "license: Apache-2.0"
+              echo "homeURL: https://cloudscript.com.br"
+              echo "appVersion: ${chart_app_version}"
+              echo "containsSecurityUpdates: false"
+              echo "operator: false"
+              echo "deprecated: false"
+              echo "prerelease: false"
+              echo "keywords:"
+              echo "  - kubernetes"
+              echo "  - helm"
+              echo "  - cloudscript"
+              echo "maintainers:"
+              echo "  - name: Jonathan Schmitt"
+              echo "    email: jonathan.schmitt@cloudscript.com.br"
+              echo "links:"
+              echo "  - name: Chart Repository"
+              echo "    url: https://github.com/cloudscript-technology/helm-charts"
+              echo "  - name: Cloudscript"
+              echo "    url: https://cloudscript.com.br"
+            } > "${chart}-artifacthub.yml"
 
             cd ../../helm-charts
 
@@ -196,28 +193,28 @@ jobs:
 
             echo "Creating GitHub release: $tag_name"
 
-            # Create release notes with direct variable expansion
-            cat > /tmp/release-notes.md <<RELEASE_NOTES_END
-            # ${chart} v${chart_version}
-
-            ${chart_description}
-
-            ## Installation
-
-            \`\`\`bash
-            helm repo add cloudscript https://cloudscript-technology.github.io/helm-charts
-            helm repo update
-            helm install my-release cloudscript/${chart}
-            \`\`\`
-
-            ## What's Changed
-
-            \$(git log --pretty=format:"- %s" \$(git describe --tags --abbrev=0 ${chart}-* 2>/dev/null || echo "")..HEAD -- ${chart}/ 2>/dev/null || echo "Initial release")
-
-            ---
-
-            **Full Changelog**: https://github.com/cloudscript-technology/helm-charts/commits/${tag_name}
-            RELEASE_NOTES_END
+            # Create release notes
+            {
+              echo "# ${chart} v${chart_version}"
+              echo ""
+              echo "${chart_description}"
+              echo ""
+              echo "## Installation"
+              echo ""
+              echo '```bash'
+              echo "helm repo add cloudscript https://cloudscript-technology.github.io/helm-charts"
+              echo "helm repo update"
+              echo "helm install my-release cloudscript/${chart}"
+              echo '```'
+              echo ""
+              echo "## What's Changed"
+              echo ""
+              git log --pretty=format:"- %s" $(git describe --tags --abbrev=0 ${chart}-* 2>/dev/null || echo "")..HEAD -- ${chart}/ 2>/dev/null || echo "Initial release"
+              echo ""
+              echo "---"
+              echo ""
+              echo "**Full Changelog**: https://github.com/cloudscript-technology/helm-charts/commits/${tag_name}"
+            } > /tmp/release-notes.md
 
             # Create release with package attached
             gh release create "$tag_name" \
