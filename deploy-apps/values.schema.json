@@ -50,6 +50,56 @@
           "type": {
             "type": "string",
             "enum": ["deployment", "statefulset", "cronjob", "job"]
+          },
+          "strategy": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": ["RollingUpdate", "Recreate"]
+              },
+              "rollingUpdate": {
+                "type": "object",
+                "properties": {
+                  "maxSurge": {
+                    "oneOf": [
+                      { "type": "string" },
+                      { "type": "integer" }
+                    ]
+                  },
+                  "maxUnavailable": {
+                    "oneOf": [
+                      { "type": "string" },
+                      { "type": "integer" }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "terminationGracePeriodSeconds": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "priorityClassName": {
+            "type": "string"
+          },
+          "topologySpreadConstraints": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "lifecycle": {
+            "type": "object",
+            "properties": {
+              "preStop": {
+                "type": "object"
+              },
+              "postStart": {
+                "type": "object"
+              }
+            }
           }
         }
       }

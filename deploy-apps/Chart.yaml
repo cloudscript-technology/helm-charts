@@ -2,11 +2,11 @@ apiVersion: v2
 name: deploy-apps
 description: Helm chart flexível para deploy de múltiplas aplicações (Deployment, StatefulSet, CronJob, Job) com suporte a External Secrets
 type: application
-version: 0.1.2
-appVersion: "0.1.2"
+version: 0.1.3
+appVersion: "0.1.3"
 kubeVersion: ">= 1.27.0-0"
 home: https://cloudscript.com.br
-icon: https://charts.cloudscript.com.br/helm-charts/deploy-apps/icon.png
+icon: https://charts.cloudscript.com.br/helm-charts/deploy-apps/cloudscript-logo.png
 keywords:
   - kubernetes
   - helm

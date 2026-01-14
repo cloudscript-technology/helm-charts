@@ -374,6 +374,41 @@ apps: []
 #    nodeSelector: {}
 #    tolerations: []
 #    affinity: {}
+#
+#    # Deployment strategy (for Deployment only)
+#    strategy:
+#      type: RollingUpdate
+#      rollingUpdate:
+#        maxSurge: 1
+#        maxUnavailable: 0
+#
+#    # Termination grace period (seconds)
+#    terminationGracePeriodSeconds: 30
+#
+#    # Priority class name
+#    priorityClassName: "high-priority"
+#
+#    # Topology spread constraints
+#    topologySpreadConstraints:
+#      - maxSkew: 1
+#        topologyKey: topology.kubernetes.io/zone
+#        whenUnsatisfiable: DoNotSchedule
+#        labelSelector:
+#          matchLabels:
+#            app.kubernetes.io/component: web-app
+#
+#    # Lifecycle hooks
+#    lifecycle:
+#      preStop:
+#        exec:
+#          command:
+#            - "/bin/sh"
+#            - "-c"
+#            - "sleep 10"
+#      # postStart:
+#      #   httpGet:
+#      #     path: /warmup
+#      #     port: http
 
 # Example 2: Backup Job (CronJob)
 #  - name: backup-job

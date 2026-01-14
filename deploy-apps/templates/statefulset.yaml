@@ -37,6 +37,12 @@ spec:
         {{- $imagePullSecrets | nindent 8 }}
       {{- end }}
       serviceAccountName: {{ include "deploy-apps.app.serviceAccountName" (dict "root" $ "app" $app) }}
+      {{- if $app.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ $app.terminationGracePeriodSeconds }}
+      {{- end }}
+      {{- if $app.priorityClassName }}
+      priorityClassName: {{ $app.priorityClassName }}
+      {{- end }}
       {{- $podSecurityContext := include "deploy-apps.app.podSecurityContext" (dict "root" $ "app" $app) }}
       {{- if $podSecurityContext }}
       securityContext:
@@ -83,6 +89,10 @@ spec:
           startupProbe:
             {{- toYaml . | nindent 12 }}
           {{- end }}
+          {{- with $app.lifecycle }}
+          lifecycle:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           {{- $resources := include "deploy-apps.app.resources" (dict "root" $ "app" $app) }}
           {{- if $resources }}
           resources:
@@ -110,6 +120,10 @@ spec:
       {{- if $tolerations }}
       tolerations:
         {{- $tolerations | nindent 8 }}
+      {{- end }}
+      {{- with $app.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
       {{- end }}
   {{- with $app.volumeClaimTemplates }}
   volumeClaimTemplates:
