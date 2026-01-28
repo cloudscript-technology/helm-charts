@@ -1,6 +1,6 @@
 {{- range $app := .Values.apps }}
 {{- if $app.enabled }}
-{{- if (include "deploy-apps.app.shouldHaveService" (dict "app" $app)) }}
+{{- if eq (include "deploy-apps.app.shouldHaveService" (dict "app" $app)) "true" }}
 ---
 apiVersion: v1
 kind: Service
