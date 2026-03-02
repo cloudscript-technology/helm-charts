@@ -33,6 +33,14 @@
         "useClusterRole": { "type": "boolean" }
       }
     },
+    "gatewayApi": {
+      "type": "object",
+      "description": "Global Gateway API defaults",
+      "properties": {
+        "gatewayClassName": { "type": "string" },
+        "clusterIssuer": { "type": "string" }
+      }
+    },
     "global": {
       "type": "object"
     },
@@ -98,6 +106,53 @@
               },
               "postStart": {
                 "type": "object"
+              }
+            }
+          },
+          "gatewayApi": {
+            "type": "object",
+            "description": "Gateway API (Envoy) configuration",
+            "properties": {
+              "enabled": { "type": "boolean" },
+              "gatewayClassName": { "type": "string" },
+              "clusterIssuer": { "type": "string" },
+              "gateway": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "listeners": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "name": { "type": "string" },
+                        "hostname": { "type": "string" },
+                        "secretName": { "type": "string" },
+                        "port": { "type": "integer" }
+                      }
+                    }
+                  }
+                }
+              },
+              "gatewayRef": {
+                "type": "object",
+                "description": "Reference to existing Gateway (when not creating one)",
+                "properties": {
+                  "name": { "type": "string" },
+                  "namespace": { "type": "string" }
+                }
+              },
+              "httpRoutes": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": { "type": "string" },
+                    "listenerName": { "type": "string" },
+                    "hostnames": { "type": "array", "items": { "type": "string" } },
+                    "rules": { "type": "array" }
+                  }
+                }
               }
             }
           }

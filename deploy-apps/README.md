@@ -10,7 +10,7 @@ Helm chart flexível para deploy de múltiplas aplicações (Deployment, Statefu
 - **Native Secrets**: Suporte também para secrets nativos do Kubernetes
 - **RBAC Flexível**: ServiceAccount e RBAC global ou per-app
 - **Probes**: Configuração completa de liveness, readiness e startup probes
-- **Networking**: Service e Ingress configuráveis por aplicação
+- **Networking**: Service, Ingress e Gateway API (Envoy) configuráveis por aplicação
 - **Persistence**: Suporte a PersistentVolumeClaims e volumeClaimTemplates
 - **Autoscaling**: HorizontalPodAutoscaler para Deployments e StatefulSets
 
@@ -119,6 +119,76 @@ apps:
         port: http
       initialDelaySeconds: 5
       periodSeconds: 10
+```
+
+### Exemplo 1b: Deployment com Gateway API (Envoy/Envoy Gateway)
+
+Suporte a Gateway API para Envoy, permitindo rules flexíveis: HTTP, HTTPS ou redirect.
+
+```yaml
+gatewayApi:
+  gatewayClassName: eg
+  clusterIssuer: letsencrypt-prod
+
+apps:
+  - name: web-app
+    enabled: true
+    type: deployment
+    replicaCount: 2
+
+    image:
+      repository: nginx
+      tag: "1.21"
+
+    service:
+      enabled: true
+      ports:
+        - name: http
+          port: 80
+          targetPort: http
+
+    gatewayApi:
+      enabled: true
+      gateway:
+        name: web-app-gateway
+        listeners:
+          - name: https-main
+            hostname: myapp.example.com
+            secretName: myapp-tls
+      httpRoutes:
+        # Redirect HTTP -> HTTPS
+        - name: redirect
+          listenerName: http-main
+          hostnames:
+            - myapp.example.com
+          rules:
+            - type: redirect
+              requestRedirect:
+                scheme: https
+                port: 443
+                statusCode: 301
+        # Roteamento HTTPS para o service
+        - name: main
+          listenerName: https-main
+          hostnames:
+            - myapp.example.com
+          rules:
+            - type: http
+              backendRef:
+                port: 80
+```
+
+Com `mergeGateways: true` no EnvoyProxy, todos os Gateways são mesclados no mesmo NLB.
+
+Para usar um Gateway existente em vez de criar um novo:
+
+```yaml
+gatewayApi:
+  enabled: true
+  gatewayRef:
+    name: shared-gateway
+    namespace: networking
+  httpRoutes: [...]
 ```
 
 ### Exemplo 2: CronJob com External Secrets

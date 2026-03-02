@@ -105,6 +105,11 @@ rbac:
   # Use ClusterRole (true) or Role (false)
   useClusterRole: true
 
+# Gateway API - valores globais (podem ser sobrescritos por app)
+gatewayApi:
+  gatewayClassName: eg
+  clusterIssuer: letsencrypt-prod
+
 # Applications array - define your apps here
 apps: []
 
@@ -296,6 +301,43 @@ apps: []
 #        - secretName: web-app-tls
 #          hosts:
 #            - web-app.example.com
+#
+#    # Gateway API (Envoy/Envoy Gateway) - alternativo ao Ingress
+#    # Cada app pode definir gateway + httpRoutes. Com mergeGateways no Envoy, todos
+#    # os Gateways são mesclados no mesmo NLB.
+#    gatewayApi:
+#      enabled: true
+#      gatewayClassName: eg
+#      clusterIssuer: letsencrypt-prod
+#      gateway:
+#        name: web-app-gateway
+#        listeners:
+#          - name: https-main
+#            hostname: web-app.example.com
+#            secretName: web-app-tls
+#      httpRoutes:
+#        - name: redirect
+#          listenerName: http-main
+#          hostnames:
+#            - web-app.example.com
+#          rules:
+#            - type: redirect
+#              requestRedirect:
+#                scheme: https
+#                port: 443
+#                statusCode: 301
+#        - name: main
+#          listenerName: https-main
+#          hostnames:
+#            - web-app.example.com
+#          rules:
+#            - type: http
+#              backendRef:
+#                port: 80
+#      # Ou usar gateway existente (sem criar novo):
+#      # gatewayRef:
+#      #   name: shared-gateway
+#      #   namespace: networking
 #
 #    # Per-app ServiceAccount (overrides global)
 #    serviceAccount:

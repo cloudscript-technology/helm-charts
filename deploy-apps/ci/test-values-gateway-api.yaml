@@ -1,0 +1,60 @@
+# Test values para Gateway API
+# helm template test deploy-apps -f ci/test-values-gateway-api.yaml
+
+gatewayApi:
+  gatewayClassName: eg
+  clusterIssuer: letsencrypt-prod
+
+apps:
+  - name: web-app
+    enabled: true
+    type: deployment
+
+    image:
+      repository: nginx
+      tag: "1.21"
+      pullPolicy: IfNotPresent
+
+    replicaCount: 1
+
+    ports:
+      - name: http
+        containerPort: 80
+        protocol: TCP
+
+    service:
+      enabled: true
+      type: ClusterIP
+      ports:
+        - name: http
+          port: 80
+          targetPort: http
+          protocol: TCP
+
+    gatewayApi:
+      enabled: true
+      gateway:
+        name: web-app-gateway
+        listeners:
+          - name: https-main
+            hostname: web-app.example.com
+            secretName: web-app-tls
+      httpRoutes:
+        - name: redirect
+          listenerName: http-main
+          hostnames:
+            - web-app.example.com
+          rules:
+            - type: redirect
+              requestRedirect:
+                scheme: https
+                port: 443
+                statusCode: 301
+        - name: main
+          listenerName: https-main
+          hostnames:
+            - web-app.example.com
+          rules:
+            - type: http
+              backendRef:
+                port: 80

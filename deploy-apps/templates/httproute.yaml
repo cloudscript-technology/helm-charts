@@ -1,0 +1,108 @@
+{{/*
+Gateway API - HTTPRoute resources.
+Uma HTTPRoute por item em gatewayApi.httpRoutes. Cada route pode ter múltiplas
+rules com tipos: redirect (HTTP->HTTPS) ou http (backendRef para o service da app).
+*/}}
+{{- range $app := .Values.apps }}
+{{- if and $app.enabled $app.gatewayApi $app.gatewayApi.enabled $app.gatewayApi.httpRoutes }}
+{{- $gatewayName := "" }}
+{{- if $app.gatewayApi.gatewayRef }}
+{{- $gatewayName = $app.gatewayApi.gatewayRef.name }}
+{{- else if $app.gatewayApi.gateway }}
+{{- $gatewayName = $app.gatewayApi.gateway.name | default (include "deploy-apps.app.fullname" (dict "root" $ "app" $app)) }}
+{{- else }}
+{{- $gatewayName = include "deploy-apps.app.fullname" (dict "root" $ "app" $app) }}
+{{- end }}
+{{- $appFullname := include "deploy-apps.app.fullname" (dict "root" $ "app" $app) }}
+{{- $appServicePort := 80 }}
+{{- if $app.service }}
+{{- $svcPort := first $app.service.ports }}
+{{- if $svcPort }}
+{{- $appServicePort = $svcPort.port | int }}
+{{- end }}
+{{- end }}
+{{- range $idx, $route := $app.gatewayApi.httpRoutes }}
+{{- if $route.enabled | default true }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ printf "%s-%s" $appFullname ($route.name | default (printf "route-%d" $idx)) | trunc 63 }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "deploy-apps.app.labels" (dict "root" $ "app" $app) | nindent 4 }}
+    {{- with $route.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: {{ $gatewayName }}
+      {{- if and $app.gatewayApi.gatewayRef $app.gatewayApi.gatewayRef.namespace }}
+      namespace: {{ $app.gatewayApi.gatewayRef.namespace }}
+      {{- end }}
+      {{- if $route.listenerName }}
+      sectionName: {{ $route.listenerName }}
+      {{- end }}
+  {{- if $route.hostnames }}
+  hostnames:
+    {{- range $route.hostnames }}
+    - {{ . }}
+    {{- end }}
+  {{- end }}
+  rules:
+  {{- range $rule := $route.rules }}
+  {{- if eq $rule.type "redirect" }}
+  {{- /* Rule tipo redirect: RequestRedirect (ex: HTTP -> HTTPS) */}}
+  - matches:
+    {{- if $rule.matches }}
+    {{- toYaml $rule.matches | nindent 4 }}
+    {{- else }}
+    - path:
+        type: PathPrefix
+        value: /
+    {{- end }}
+    filters:
+      - type: RequestRedirect
+        requestRedirect:
+          scheme: {{ $rule.requestRedirect.scheme | default "https" }}
+          {{- if $rule.requestRedirect.port }}
+          port: {{ $rule.requestRedirect.port }}
+          {{- end }}
+          statusCode: {{ $rule.requestRedirect.statusCode | default 301 }}
+          {{- if $rule.requestRedirect.hostname }}
+          hostname: {{ $rule.requestRedirect.hostname }}
+          {{- end }}
+          {{- if $rule.requestRedirect.path }}
+          path:
+            {{- toYaml $rule.requestRedirect.path | nindent 12 }}
+          {{- end }}
+  {{- else }}
+  {{- /* Rule tipo http: backendRef para o service da app */}}
+  - matches:
+    {{- if $rule.matches }}
+    {{- toYaml $rule.matches | nindent 4 }}
+    {{- else }}
+    - path:
+        type: PathPrefix
+        value: /
+    {{- end }}
+    {{- if $rule.filters }}
+    filters:
+      {{- toYaml $rule.filters | nindent 6 }}
+    {{- end }}
+    backendRefs:
+      - group: ""
+        kind: Service
+        name: {{ (($rule.backendRef | default dict).name | default $appFullname) }}
+        port: {{ (($rule.backendRef | default dict).port | default $appServicePort) }}
+        {{- if $rule.backendRef.weight }}
+        weight: {{ $rule.backendRef.weight }}
+        {{- end }}
+  {{- end }}
+  {{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

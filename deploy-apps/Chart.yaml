@@ -2,8 +2,8 @@ apiVersion: v2
 name: deploy-apps
 description: Helm chart flexível para deploy de múltiplas aplicações (Deployment, StatefulSet, CronJob, Job) com suporte a External Secrets
 type: application
-version: 0.1.6
-appVersion: "0.1.6"
+version: 0.1.7
+appVersion: "0.1.7"
 kubeVersion: ">= 1.27.0-0"
 home: https://cloudscript.com.br
 icon: https://charts.cloudscript.com.br/helm-charts/deploy-apps/cloudscript-logo.png
@@ -35,6 +35,8 @@ annotations:
       description: Comprehensive probe configuration (liveness, readiness, startup)
     - kind: added
       description: Ingress and Service configuration per application
+    - kind: added
+      description: Gateway API configuration per application
   artifacthub.io/displayName: "Deploy Apps"
   artifacthub.io/license: "Apache-2.0"
   artifacthub.io/provider: "Cloudscript"

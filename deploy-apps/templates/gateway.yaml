@@ -1,0 +1,63 @@
+{{/*
+Gateway API - Gateway resource.
+Criado por app quando gatewayApi.enabled. Com mergeGateways no EnvoyProxy,
+todos os Gateways com a mesma GatewayClass são mesclados no mesmo NLB.
+*/}}
+{{- range $app := .Values.apps }}
+{{- if and $app.enabled $app.gatewayApi }}
+{{- if and $app.gatewayApi.enabled $app.gatewayApi.gateway }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: {{ $app.gatewayApi.gateway.name | default (include "deploy-apps.app.fullname" (dict "root" $ "app" $app)) }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "deploy-apps.app.labels" (dict "root" $ "app" $app) | nindent 4 }}
+    {{- with $app.gatewayApi.gateway.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- if or $app.gatewayApi.clusterIssuer $.Values.gatewayApi.clusterIssuer }}
+  annotations:
+    cert-manager.io/cluster-issuer: {{ $app.gatewayApi.clusterIssuer | default $.Values.gatewayApi.clusterIssuer | default "letsencrypt-prod" | quote }}
+  {{- end }}
+spec:
+  gatewayClassName: {{ $app.gatewayApi.gatewayClassName | default $.Values.gatewayApi.gatewayClassName | default "eg" }}
+  listeners:
+  {{- range $app.gatewayApi.gateway.listeners }}
+  {{- if .secretName }}
+  {{- /* Listener HTTPS + HTTP (para redirect): igual ao valsec */}}
+  - name: {{ .name | replace "https-" "http-" }}
+    hostname: {{ .hostname }}
+    port: 80
+    protocol: HTTP
+    allowedRoutes:
+      namespaces:
+        from: Same
+  - name: {{ .name }}
+    hostname: {{ .hostname }}
+    port: 443
+    protocol: HTTPS
+    tls:
+      mode: Terminate
+      certificateRefs:
+        - group: ""
+          kind: Secret
+          name: {{ .secretName }}
+    allowedRoutes:
+      namespaces:
+        from: Same
+  {{- else }}
+  {{- /* Listener apenas HTTP (sem TLS) */}}
+  - name: {{ .name }}
+    hostname: {{ .hostname }}
+    port: {{ .port | default 80 }}
+    protocol: HTTP
+    allowedRoutes:
+      namespaces:
+        from: Same
+  {{- end }}
+  {{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
