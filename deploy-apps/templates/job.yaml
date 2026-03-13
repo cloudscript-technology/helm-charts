@@ -9,16 +9,16 @@ metadata:
   labels:
     {{- include "deploy-apps.app.labels" (dict "root" $ "app" $app) | nindent 4 }}
 spec:
-  {{- if $app.backoffLimit }}
+  {{- if hasKey $app "backoffLimit" }}
   backoffLimit: {{ $app.backoffLimit }}
   {{- end }}
-  {{- if $app.ttlSecondsAfterFinished }}
+  {{- if hasKey $app "ttlSecondsAfterFinished" }}
   ttlSecondsAfterFinished: {{ $app.ttlSecondsAfterFinished }}
   {{- end }}
-  {{- if $app.completions }}
+  {{- if hasKey $app "completions" }}
   completions: {{ $app.completions }}
   {{- end }}
-  {{- if $app.parallelism }}
+  {{- if hasKey $app "parallelism" }}
   parallelism: {{ $app.parallelism }}
   {{- end }}
   template:
