@@ -9,6 +9,9 @@ metadata:
   labels:
     {{- include "deploy-apps.app.labels" (dict "root" $ "app" $app) | nindent 4 }}
 spec:
+  {{- if not $app.schedule }}
+  {{- fail (printf "schedule is required for cronjob '%s'" $app.name) }}
+  {{- end }}
   schedule: {{ $app.schedule | quote }}
   successfulJobsHistoryLimit: {{ $app.successfulJobsHistoryLimit | default 3 }}
   failedJobsHistoryLimit: {{ $app.failedJobsHistoryLimit | default 1 }}

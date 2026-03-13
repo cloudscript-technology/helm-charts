@@ -109,6 +109,78 @@
               }
             }
           },
+          "kedaScaling": {
+            "type": "object",
+            "description": "KEDA ScaledObject configuration for event-driven autoscaling",
+            "properties": {
+              "enabled": { "type": "boolean" },
+              "minReplicas": { "type": "integer", "minimum": 0 },
+              "maxReplicas": { "type": "integer", "minimum": 1 },
+              "pollingInterval": { "type": "integer", "minimum": 1 },
+              "cooldownPeriod": { "type": "integer", "minimum": 0 },
+              "idleReplicaCount": { "type": "integer", "minimum": 0 },
+              "fallback": { "type": "object" },
+              "advanced": {
+                "type": "object",
+                "properties": {
+                  "restoreToOriginalReplicaCount": { "type": "boolean" },
+                  "horizontalPodAutoscalerConfig": { "type": "object" }
+                }
+              },
+              "triggerAuthentication": {
+                "type": "object",
+                "description": "TriggerAuthentication for secure access to triggers",
+                "properties": {
+                  "enabled": { "type": "boolean" },
+                  "podIdentity": {
+                    "type": "object",
+                    "properties": {
+                      "provider": { "type": "string", "enum": ["aws", "azure", "gcp", "aws-eks", "azure-workload", "none"] },
+                      "identityAuthorityHost": { "type": "string" },
+                      "identityId": { "type": "string" }
+                    }
+                  },
+                  "secretTargetRef": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "parameter": { "type": "string" },
+                        "name": { "type": "string" },
+                        "key": { "type": "string" }
+                      },
+                      "required": ["parameter", "name", "key"]
+                    }
+                  },
+                  "env": { "type": "array" },
+                  "hashiCorpVault": { "type": "object" },
+                  "azureKeyVault": { "type": "object" },
+                  "awsSecretManager": { "type": "object" },
+                  "gcpSecretManager": { "type": "object" }
+                }
+              },
+              "triggers": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["type", "metadata"],
+                  "properties": {
+                    "type": { "type": "string" },
+                    "metricType": { "type": "string", "enum": ["AverageValue", "Value", "Utilization"] },
+                    "metadata": { "type": "object" },
+                    "useAuth": { "type": "boolean", "description": "Auto-inject authenticationRef from triggerAuthentication" },
+                    "authenticationRef": {
+                      "type": "object",
+                      "properties": {
+                        "name": { "type": "string" },
+                        "kind": { "type": "string", "enum": ["TriggerAuthentication", "ClusterTriggerAuthentication"] }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
           "gatewayApi": {
             "type": "object",
             "description": "Gateway API (Envoy) configuration",

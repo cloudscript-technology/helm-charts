@@ -15,7 +15,7 @@ rules com tipos: redirect (HTTP->HTTPS) ou http (backendRef para o service da ap
 {{- end }}
 {{- $appFullname := include "deploy-apps.app.fullname" (dict "root" $ "app" $app) }}
 {{- $appServicePort := 80 }}
-{{- if $app.service }}
+{{- if and $app.service $app.service.ports }}
 {{- $svcPort := first $app.service.ports }}
 {{- if $svcPort }}
 {{- $appServicePort = $svcPort.port | int }}
@@ -66,17 +66,18 @@ spec:
     filters:
       - type: RequestRedirect
         requestRedirect:
-          scheme: {{ $rule.requestRedirect.scheme | default "https" }}
-          {{- if $rule.requestRedirect.port }}
-          port: {{ $rule.requestRedirect.port }}
+          {{- $redirect := $rule.requestRedirect | default dict }}
+          scheme: {{ $redirect.scheme | default "https" }}
+          {{- if $redirect.port }}
+          port: {{ $redirect.port }}
           {{- end }}
-          statusCode: {{ $rule.requestRedirect.statusCode | default 301 }}
-          {{- if $rule.requestRedirect.hostname }}
-          hostname: {{ $rule.requestRedirect.hostname }}
+          statusCode: {{ $redirect.statusCode | default 301 }}
+          {{- if $redirect.hostname }}
+          hostname: {{ $redirect.hostname }}
           {{- end }}
-          {{- if $rule.requestRedirect.path }}
+          {{- if $redirect.path }}
           path:
-            {{- toYaml $rule.requestRedirect.path | nindent 12 }}
+            {{- toYaml $redirect.path | nindent 12 }}
           {{- end }}
   {{- else }}
   {{- /* Rule tipo http: backendRef para o service da app */}}
@@ -95,10 +96,11 @@ spec:
     backendRefs:
       - group: ""
         kind: Service
-        name: {{ (($rule.backendRef | default dict).name | default $appFullname) }}
-        port: {{ (($rule.backendRef | default dict).port | default $appServicePort) }}
-        {{- if $rule.backendRef.weight }}
-        weight: {{ $rule.backendRef.weight }}
+        {{- $backend := $rule.backendRef | default dict }}
+        name: {{ $backend.name | default $appFullname }}
+        port: {{ $backend.port | default $appServicePort }}
+        {{- if $backend.weight }}
+        weight: {{ $backend.weight }}
         {{- end }}
   {{- end }}
   {{- end }}

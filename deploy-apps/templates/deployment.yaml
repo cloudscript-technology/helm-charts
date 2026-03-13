@@ -9,7 +9,7 @@ metadata:
   labels:
     {{- include "deploy-apps.app.labels" (dict "root" $ "app" $app) | nindent 4 }}
 spec:
-  {{- if not (and $app.autoscaling $app.autoscaling.enabled) }}
+  {{- if not (or (and $app.autoscaling $app.autoscaling.enabled) (and $app.kedaScaling $app.kedaScaling.enabled)) }}
   replicas: {{ $app.replicaCount | default 1 }}
   {{- end }}
   {{- with $app.strategy }}

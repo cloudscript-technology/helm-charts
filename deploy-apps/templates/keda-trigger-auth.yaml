@@ -1,0 +1,51 @@
+{{- range $app := .Values.apps }}
+{{- if and $app.enabled $app.kedaScaling }}
+{{- if and $app.kedaScaling.enabled $app.kedaScaling.triggerAuthentication }}
+{{- if $app.kedaScaling.triggerAuthentication.enabled }}
+---
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: {{ include "deploy-apps.app.fullname" (dict "root" $ "app" $app) }}-keda-trigger-auth
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "deploy-apps.app.labels" (dict "root" $ "app" $app) | nindent 4 }}
+spec:
+  {{- with $app.kedaScaling.triggerAuthentication.podIdentity }}
+  podIdentity:
+    provider: {{ .provider }}
+    {{- with .identityAuthorityHost }}
+    identityAuthorityHost: {{ . }}
+    {{- end }}
+    {{- with .identityId }}
+    identityId: {{ . }}
+    {{- end }}
+  {{- end }}
+  {{- with $app.kedaScaling.triggerAuthentication.secretTargetRef }}
+  secretTargetRef:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $app.kedaScaling.triggerAuthentication.env }}
+  env:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $app.kedaScaling.triggerAuthentication.hashiCorpVault }}
+  hashiCorpVault:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $app.kedaScaling.triggerAuthentication.azureKeyVault }}
+  azureKeyVault:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $app.kedaScaling.triggerAuthentication.awsSecretManager }}
+  awsSecretManager:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $app.kedaScaling.triggerAuthentication.gcpSecretManager }}
+  gcpSecretManager:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

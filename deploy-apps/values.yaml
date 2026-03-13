@@ -393,6 +393,111 @@ apps: []
 #      #     periodSeconds: 15
 #      #   selectPolicy: Max
 #
+#    # KEDA ScaledObject (only for deployment/statefulset)
+#    # Use this instead of autoscaling for event-driven scaling (SQS, Redis, Kafka, etc.)
+#    kedaScaling:
+#      enabled: false
+#      minReplicas: 1
+#      maxReplicas: 10
+#      pollingInterval: 30      # How often KEDA checks triggers (seconds)
+#      cooldownPeriod: 300      # Wait time before scaling down (seconds)
+#      # idleReplicaCount: 0    # Scale to 0 when idle (optional)
+#      #
+#      # TriggerAuthentication for secure access to triggers (SQS, Redis, etc.)
+#      triggerAuthentication:
+#        enabled: false
+#        # AWS Pod Identity (EKS IRSA)
+#        podIdentity:
+#          provider: aws
+#        # Reference secrets for trigger auth (e.g., Redis credentials)
+#        secretTargetRef: []
+#        # - parameter: host
+#        #   name: my-secret
+#        #   key: REDIS_HOST
+#        # - parameter: port
+#        #   name: my-secret
+#        #   key: REDIS_PORT
+#        # - parameter: password
+#        #   name: my-secret
+#        #   key: REDIS_PASSWORD
+#        #
+#        # Environment variables for trigger auth
+#        # env: []
+#        # - name: ENV_VAR
+#        #   parameter: parameterName
+#        #   containerName: my-container
+#      #
+#      # Advanced KEDA settings (optional)
+#      # advanced:
+#      #   restoreToOriginalReplicaCount: true
+#      #   horizontalPodAutoscalerConfig:
+#      #     behavior:
+#      #       scaleDown:
+#      #         stabilizationWindowSeconds: 300
+#      #
+#      # Triggers array - supports any KEDA scaler
+#      triggers: []
+#      # CPU/Memory triggers:
+#      # - type: cpu
+#      #   metricType: AverageValue
+#      #   metadata:
+#      #     value: "800m"
+#      # - type: memory
+#      #   metricType: AverageValue
+#      #   metadata:
+#      #     value: "800Mi"
+#      #
+#      # AWS SQS trigger (useAuth: true auto-injects triggerAuthentication ref):
+#      # - type: aws-sqs-queue
+#      #   useAuth: true
+#      #   metadata:
+#      #     queueURL: https://sqs.us-east-1.amazonaws.com/123456789/my-queue
+#      #     queueLength: "50"
+#      #     awsRegion: us-east-1
+#      #     identityOwner: operator
+#      #
+#      # Redis trigger:
+#      # - type: redis
+#      #   useAuth: true
+#      #   metadata:
+#      #     listName: my-queue
+#      #     listLength: "50"
+#      #     enableTLS: "false"
+#      #     databaseIndex: "0"
+#      #
+#      # Kafka trigger:
+#      # - type: kafka
+#      #   useAuth: true
+#      #   metadata:
+#      #     bootstrapServers: kafka:9092
+#      #     consumerGroup: my-group
+#      #     topic: my-topic
+#      #     lagThreshold: "100"
+#      #
+#      # RabbitMQ trigger:
+#      # - type: rabbitmq
+#      #   useAuth: true
+#      #   metadata:
+#      #     queueName: my-queue
+#      #     queueLength: "50"
+#      #     host: amqp://user:pass@rabbitmq:5672
+#      #
+#      # Prometheus trigger:
+#      # - type: prometheus
+#      #   metadata:
+#      #     serverAddress: http://prometheus:9090
+#      #     metricName: http_requests_total
+#      #     query: sum(rate(http_requests_total[2m]))
+#      #     threshold: "100"
+#      #
+#      # Custom authenticationRef (overrides useAuth, for ClusterTriggerAuthentication etc.):
+#      # - type: redis
+#      #   metadata:
+#      #     listName: my-queue
+#      #   authenticationRef:
+#      #     name: my-custom-auth
+#      #     kind: ClusterTriggerAuthentication
+#
 #    # Labels applied to ALL resources of this app (Deployment, Service, Ingress, etc.)
 #    labels: {}
 #    # team: platform

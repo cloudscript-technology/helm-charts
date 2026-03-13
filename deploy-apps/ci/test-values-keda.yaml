@@ -1,0 +1,107 @@
+image:
+  repository: nginx
+  tag: "1.21"
+
+serviceAccount:
+  create: true
+  annotations:
+    eks.amazonaws.com/role-arn: "arn:aws:iam::123456789:role/my-role"
+
+apps:
+  - name: api
+    enabled: true
+    type: deployment
+    replicaCount: 2
+    ports:
+      - name: http
+        containerPort: 8080
+        protocol: TCP
+    service:
+      enabled: true
+      type: ClusterIP
+      ports:
+        - name: http
+          port: 80
+          targetPort: http
+          protocol: TCP
+    resources:
+      limits:
+        cpu: 1
+        memory: 1Gi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+    # KEDA with Redis + SQS + CPU triggers and TriggerAuthentication
+    kedaScaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 16
+      pollingInterval: 60
+      cooldownPeriod: 300
+      triggerAuthentication:
+        enabled: true
+        podIdentity:
+          provider: aws
+        secretTargetRef:
+          - parameter: host
+            name: my-app-secret
+            key: REDIS_HOST
+          - parameter: port
+            name: my-app-secret
+            key: REDIS_PORT
+          - parameter: password
+            name: my-app-secret
+            key: REDIS_PASSWORD
+      triggers:
+        - type: cpu
+          metricType: AverageValue
+          metadata:
+            value: "800m"
+        - type: memory
+          metricType: AverageValue
+          metadata:
+            value: "800Mi"
+        - type: redis
+          useAuth: true
+          metadata:
+            listName: my-queue
+            listLength: "50"
+            enableTLS: "false"
+            databaseIndex: "0"
+        - type: aws-sqs-queue
+          useAuth: true
+          metadata:
+            queueURL: https://sqs.us-east-1.amazonaws.com/123456789/my-queue
+            queueLength: "50"
+            awsRegion: us-east-1
+            identityOwner: operator
+
+  - name: worker
+    enabled: true
+    type: deployment
+    replicaCount: 1
+    command: ["python", "worker.py"]
+    service:
+      enabled: false
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 50m
+        memory: 128Mi
+    # KEDA with only SQS trigger (no trigger auth)
+    kedaScaling:
+      enabled: true
+      minReplicas: 1
+      maxReplicas: 8
+      pollingInterval: 30
+      cooldownPeriod: 120
+      idleReplicaCount: 0
+      triggers:
+        - type: aws-sqs-queue
+          metadata:
+            queueURL: https://sqs.us-east-1.amazonaws.com/123456789/worker-queue
+            queueLength: "20"
+            awsRegion: us-east-1
+            identityOwner: operator

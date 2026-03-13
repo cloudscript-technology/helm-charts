@@ -1,6 +1,6 @@
 # deploy-apps
 
-Helm chart flexível para deploy de múltiplas aplicações (Deployment, StatefulSet, CronJob, Job) com suporte a External Secrets Operator.
+Helm chart flexível para deploy de múltiplas aplicações (Deployment, StatefulSet, CronJob, Job) com suporte a External Secrets Operator e KEDA.
 
 ## Características
 
@@ -13,12 +13,14 @@ Helm chart flexível para deploy de múltiplas aplicações (Deployment, Statefu
 - **Networking**: Service, Ingress e Gateway API (Envoy) configuráveis por aplicação
 - **Persistence**: Suporte a PersistentVolumeClaims e volumeClaimTemplates
 - **Autoscaling**: HorizontalPodAutoscaler para Deployments e StatefulSets
+- **KEDA**: Autoscaling event-driven com suporte a SQS, Redis, Kafka, RabbitMQ, Prometheus e mais
 
 ## Pré-requisitos
 
 - Kubernetes >= 1.27
 - Helm 3.x
 - External Secrets Operator (opcional, apenas se usar external secrets)
+- KEDA (opcional, apenas se usar kedaScaling)
 
 ## Instalação
 
@@ -423,6 +425,218 @@ apps:
         memory: 512Mi
 ```
 
+### Exemplo 5: KEDA - Autoscaling Event-Driven
+
+O chart suporta KEDA ScaledObject para autoscaling baseado em eventos (filas SQS, Redis, Kafka, etc.).
+
+#### KEDA com Redis + SQS + CPU
+
+```yaml
+serviceAccount:
+  create: true
+  annotations:
+    eks.amazonaws.com/role-arn: "arn:aws:iam::123456789:role/my-role"
+
+apps:
+  - name: api
+    enabled: true
+    type: deployment
+    # NÃO definir replicaCount - KEDA gerencia automaticamente
+
+    image:
+      repository: mycompany/api
+      tag: v1.0.0
+
+    ports:
+      - name: http
+        containerPort: 8080
+
+    service:
+      enabled: true
+      ports:
+        - name: http
+          port: 80
+          targetPort: http
+
+    resources:
+      limits:
+        cpu: 1
+        memory: 1Gi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+
+    kedaScaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 16
+      pollingInterval: 60
+      cooldownPeriod: 300
+
+      # TriggerAuthentication - cria automaticamente o recurso
+      triggerAuthentication:
+        enabled: true
+        podIdentity:
+          provider: aws
+        secretTargetRef:
+          - parameter: host
+            name: my-app-secret
+            key: REDIS_HOST
+          - parameter: port
+            name: my-app-secret
+            key: REDIS_PORT
+          - parameter: password
+            name: my-app-secret
+            key: REDIS_PASSWORD
+
+      triggers:
+        # CPU e Memory
+        - type: cpu
+          metricType: AverageValue
+          metadata:
+            value: "800m"
+        - type: memory
+          metricType: AverageValue
+          metadata:
+            value: "800Mi"
+
+        # Redis - useAuth injeta o authenticationRef automaticamente
+        - type: redis
+          useAuth: true
+          metadata:
+            listName: my-queue
+            listLength: "50"
+            enableTLS: "false"
+            databaseIndex: "0"
+
+        # AWS SQS
+        - type: aws-sqs-queue
+          useAuth: true
+          metadata:
+            queueURL: https://sqs.us-east-1.amazonaws.com/123456789/my-queue
+            queueLength: "50"
+            awsRegion: us-east-1
+            identityOwner: operator
+```
+
+#### KEDA com Scale to Zero (Workers)
+
+```yaml
+apps:
+  - name: worker
+    enabled: true
+    type: deployment
+    command: ["python", "worker.py"]
+
+    service:
+      enabled: false
+
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 50m
+        memory: 128Mi
+
+    kedaScaling:
+      enabled: true
+      minReplicas: 1
+      maxReplicas: 8
+      pollingInterval: 30
+      cooldownPeriod: 120
+      idleReplicaCount: 0  # Scale to zero quando idle
+
+      triggers:
+        - type: aws-sqs-queue
+          metadata:
+            queueURL: https://sqs.us-east-1.amazonaws.com/123456789/worker-queue
+            queueLength: "20"
+            awsRegion: us-east-1
+            identityOwner: operator
+```
+
+#### KEDA com Kafka
+
+```yaml
+apps:
+  - name: consumer
+    enabled: true
+    type: deployment
+
+    kedaScaling:
+      enabled: true
+      minReplicas: 1
+      maxReplicas: 20
+      pollingInterval: 15
+
+      triggerAuthentication:
+        enabled: true
+        secretTargetRef:
+          - parameter: sasl
+            name: kafka-credentials
+            key: SASL_PASSWORD
+
+      triggers:
+        - type: kafka
+          useAuth: true
+          metadata:
+            bootstrapServers: kafka-broker:9092
+            consumerGroup: my-consumer-group
+            topic: my-topic
+            lagThreshold: "100"
+```
+
+#### Como funciona o `useAuth`
+
+Quando `triggerAuthentication.enabled: true`, o chart cria um recurso `TriggerAuthentication` automaticamente com o nome `{release}-{chart}-{app-name}-keda-trigger-auth`.
+
+Ao invés de referenciar esse nome manualmente em cada trigger, basta usar `useAuth: true`:
+
+```yaml
+# Sem useAuth (manual - funciona, mas verboso):
+triggers:
+  - type: redis
+    metadata:
+      listName: my-queue
+    authenticationRef:
+      name: my-release-deploy-apps-api-keda-trigger-auth
+
+# Com useAuth (automático - recomendado):
+triggers:
+  - type: redis
+    useAuth: true
+    metadata:
+      listName: my-queue
+```
+
+Para usar `ClusterTriggerAuthentication` ou um auth externo, use `authenticationRef` explícito:
+
+```yaml
+triggers:
+  - type: redis
+    metadata:
+      listName: my-queue
+    authenticationRef:
+      name: my-custom-cluster-auth
+      kind: ClusterTriggerAuthentication
+```
+
+### KEDA vs HPA
+
+| Recurso | HPA (`autoscaling`) | KEDA (`kedaScaling`) |
+|---------|---------------------|----------------------|
+| CPU/Memory | Sim | Sim |
+| AWS SQS | Não | Sim |
+| Redis | Não | Sim |
+| Kafka | Não | Sim |
+| RabbitMQ | Não | Sim |
+| Prometheus | Não | Sim |
+| Scale to Zero | Não | Sim |
+| TriggerAuthentication | N/A | Sim |
+
+Use `autoscaling` para scaling simples baseado em CPU/Memory. Use `kedaScaling` para scaling baseado em eventos ou quando precisar de scale to zero.
+
 ## Configuração de Secrets
 
 ### External Secrets Operator
@@ -597,9 +811,9 @@ apps:
 
 ## Autoscaling
 
-O chart suporta HorizontalPodAutoscaler (HPA) para Deployments e StatefulSets.
+O chart suporta HorizontalPodAutoscaler (HPA) e KEDA ScaledObject para Deployments e StatefulSets.
 
-### Autoscaling Básico
+### Autoscaling Básico (HPA)
 
 ```yaml
 apps:
@@ -694,10 +908,11 @@ apps:
 
 ### Importante sobre Autoscaling
 
-1. **Desabilite replicaCount fixo**: Quando `autoscaling.enabled: true`, o HPA gerencia as réplicas automaticamente
+1. **Não defina replicaCount**: Quando `autoscaling.enabled` ou `kedaScaling.enabled` é `true`, o chart omite `replicas` do Deployment automaticamente
 2. **Métricas necessárias**: Para usar CPU/Memory metrics, é necessário ter Metrics Server instalado no cluster
 3. **Apenas para Deployment/StatefulSet**: CronJob e Job não suportam autoscaling
 4. **Custom Metrics**: Requer adaptadores de métricas (ex: Prometheus Adapter, Datadog, etc.)
+5. **KEDA**: Requer o operador KEDA instalado no cluster
 
 ## Valores Configuráveis
 
@@ -726,11 +941,21 @@ apps:
 | `apps[].service.enabled` | Criar Service | Não (auto para deployment/statefulset) |
 | `apps[].ingress.enabled` | Criar Ingress | Não (padrão: false) |
 | `apps[].autoscaling.enabled` | Habilitar HPA | Não (padrão: false) |
-| `apps[].autoscaling.minReplicas` | Réplicas mínimas | Não (padrão: 1) |
-| `apps[].autoscaling.maxReplicas` | Réplicas máximas | Não (padrão: 10) |
+| `apps[].autoscaling.minReplicas` | Réplicas mínimas (HPA) | Não (padrão: 1) |
+| `apps[].autoscaling.maxReplicas` | Réplicas máximas (HPA) | Não (padrão: 10) |
 | `apps[].autoscaling.targetCPUUtilizationPercentage` | Target CPU % | Não |
 | `apps[].autoscaling.targetMemoryUtilizationPercentage` | Target Memory % | Não |
 | `apps[].autoscaling.behavior` | Políticas de scaling | Não |
+| `apps[].kedaScaling.enabled` | Habilitar KEDA ScaledObject | Não (padrão: false) |
+| `apps[].kedaScaling.minReplicas` | Réplicas mínimas (KEDA) | Não (padrão: 1) |
+| `apps[].kedaScaling.maxReplicas` | Réplicas máximas (KEDA) | Não (padrão: 10) |
+| `apps[].kedaScaling.pollingInterval` | Intervalo de polling (segundos) | Não |
+| `apps[].kedaScaling.cooldownPeriod` | Cooldown antes de scale down (segundos) | Não |
+| `apps[].kedaScaling.idleReplicaCount` | Réplicas quando idle (0 para scale to zero) | Não |
+| `apps[].kedaScaling.triggerAuthentication.enabled` | Criar TriggerAuthentication | Não (padrão: false) |
+| `apps[].kedaScaling.triggerAuthentication.podIdentity` | Pod Identity config (aws, azure, gcp) | Não |
+| `apps[].kedaScaling.triggerAuthentication.secretTargetRef` | Refs a secrets para autenticação | Não |
+| `apps[].kedaScaling.triggers` | Array de triggers KEDA | Não |
 | `apps[].labels` | Labels em todos os recursos | Não |
 | `apps[].podLabels` | Labels apenas nos pods | Não |
 
@@ -763,6 +988,14 @@ kubectl get externalsecrets
 kubectl describe externalsecret my-apps-myapp-credentials
 ```
 
+### Verificar KEDA ScaledObjects
+
+```bash
+kubectl get scaledobjects
+kubectl describe scaledobject my-apps-myapp
+kubectl get triggerauthentications
+```
+
 ### Debug do template
 
 ```bash
@@ -785,3 +1018,4 @@ Apache-2.0
 
 - [Cloudscript](https://cloudscript.com.br)
 - [External Secrets Operator](https://external-secrets.io)
+- [KEDA](https://keda.sh)

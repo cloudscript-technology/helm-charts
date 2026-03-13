@@ -1,0 +1,65 @@
+{{- range $app := .Values.apps }}
+{{- if and $app.enabled $app.kedaScaling }}
+{{- if and $app.kedaScaling.enabled (or (eq $app.type "deployment") (eq $app.type "statefulset")) }}
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ include "deploy-apps.app.fullname" (dict "root" $ "app" $app) }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "deploy-apps.app.labels" (dict "root" $ "app" $app) | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: {{ if eq $app.type "deployment" }}Deployment{{ else }}StatefulSet{{ end }}
+    name: {{ include "deploy-apps.app.fullname" (dict "root" $ "app" $app) }}
+  minReplicaCount: {{ $app.kedaScaling.minReplicas | default 1 }}
+  maxReplicaCount: {{ $app.kedaScaling.maxReplicas | default 10 }}
+  {{- with $app.kedaScaling.pollingInterval }}
+  pollingInterval: {{ . }}
+  {{- end }}
+  {{- with $app.kedaScaling.cooldownPeriod }}
+  cooldownPeriod: {{ . }}
+  {{- end }}
+  {{- with $app.kedaScaling.idleReplicaCount }}
+  idleReplicaCount: {{ . }}
+  {{- end }}
+  {{- with $app.kedaScaling.fallback }}
+  fallback:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- if $app.kedaScaling.advanced }}
+  advanced:
+    {{- with $app.kedaScaling.advanced.restoreToOriginalReplicaCount }}
+    restoreToOriginalReplicaCount: {{ . }}
+    {{- end }}
+    {{- with $app.kedaScaling.advanced.horizontalPodAutoscalerConfig }}
+    horizontalPodAutoscalerConfig:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+  {{- end }}
+  triggers:
+    {{- range $trigger := $app.kedaScaling.triggers }}
+    - type: {{ $trigger.type }}
+      {{- with $trigger.metricType }}
+      metricType: {{ . }}
+      {{- end }}
+      metadata:
+        {{- toYaml $trigger.metadata | nindent 8 }}
+      {{- if $trigger.authenticationRef }}
+      authenticationRef:
+        name: {{ $trigger.authenticationRef.name }}
+        {{- with $trigger.authenticationRef.kind }}
+        kind: {{ . }}
+        {{- end }}
+      {{- else if and $trigger.useAuth $app.kedaScaling.triggerAuthentication }}
+      {{- if $app.kedaScaling.triggerAuthentication.enabled }}
+      authenticationRef:
+        name: {{ include "deploy-apps.app.fullname" (dict "root" $ "app" $app) }}-keda-trigger-auth
+      {{- end }}
+      {{- end }}
+    {{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

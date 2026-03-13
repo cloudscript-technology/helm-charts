@@ -1,9 +1,9 @@
 apiVersion: v2
 name: deploy-apps
-description: Helm chart flexível para deploy de múltiplas aplicações (Deployment, StatefulSet, CronJob, Job) com suporte a External Secrets
+description: Helm chart flexível para deploy de múltiplas aplicações (Deployment, StatefulSet, CronJob, Job) com suporte a External Secrets e KEDA
 type: application
-version: 0.1.7
-appVersion: "0.1.7"
+version: 0.1.8
+appVersion: "0.1.8"
 kubeVersion: ">= 1.27.0-0"
 home: https://cloudscript.com.br
 icon: https://charts.cloudscript.com.br/helm-charts/deploy-apps/cloudscript-logo.png
@@ -16,6 +16,8 @@ keywords:
   - cronjob
   - job
   - external-secrets
+  - keda
+  - autoscaling
   - cloudscript
 maintainers:
   - name: Jonathan Schmitt
@@ -37,6 +39,8 @@ annotations:
       description: Ingress and Service configuration per application
     - kind: added
       description: Gateway API configuration per application
+    - kind: added
+      description: KEDA ScaledObject and TriggerAuthentication support for event-driven autoscaling
   artifacthub.io/displayName: "Deploy Apps"
   artifacthub.io/license: "Apache-2.0"
   artifacthub.io/provider: "Cloudscript"
