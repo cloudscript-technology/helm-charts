@@ -8,6 +8,10 @@ metadata:
   namespace: {{ $.Release.Namespace }}
   labels:
     {{- include "deploy-apps.app.labels" (dict "root" $ "app" $app) | nindent 4 }}
+  {{- with $app.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   serviceName: {{ $app.serviceName | default (include "deploy-apps.app.fullname" (dict "root" $ "app" $app)) }}
   replicas: {{ $app.replicaCount | default 1 }}

@@ -59,6 +59,11 @@
             "type": "string",
             "enum": ["deployment", "statefulset", "cronjob", "job"]
           },
+          "annotations": {
+            "type": "object",
+            "description": "Annotations to add to the resource metadata (e.g. ArgoCD hooks for Jobs)",
+            "additionalProperties": { "type": "string" }
+          },
           "strategy": {
             "type": "object",
             "properties": {

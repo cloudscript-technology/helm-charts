@@ -8,6 +8,10 @@ metadata:
   namespace: {{ $.Release.Namespace }}
   labels:
     {{- include "deploy-apps.app.labels" (dict "root" $ "app" $app) | nindent 4 }}
+  {{- with $app.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   {{- if not (or (and $app.autoscaling $app.autoscaling.enabled) (and $app.kedaScaling $app.kedaScaling.enabled)) }}
   replicas: {{ $app.replicaCount | default 1 }}

@@ -193,7 +193,36 @@ gatewayApi:
   httpRoutes: [...]
 ```
 
-### Exemplo 2: CronJob com External Secrets
+### Exemplo 2: Job com ArgoCD Hooks
+
+Jobs do Kubernetes são deletados após a execução (via `ttlSecondsAfterFinished`), o que faz o ArgoCD marcá-los como "Missing". Para resolver, use annotations de hook:
+
+```yaml
+apps:
+  - name: db-migrate
+    enabled: true
+    type: job
+    annotations:
+      argocd.argoproj.io/hook: PreSync
+      argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    image:
+      repository: mycompany/api
+      tag: v1.0.0
+    command: ["dotnet", "MyApp.dll", "--db-setup"]
+    backoffLimit: 0
+    ttlSecondsAfterFinished: 300
+    env:
+      - name: ConnectionStrings__Default
+        valueFrom:
+          secretKeyRef:
+            name: my-secret
+            key: ConnectionStrings__Default
+```
+
+- `PreSync`: o Job roda antes do deploy principal
+- `BeforeHookCreation`: o ArgoCD deleta o Job anterior antes de criar um novo no próximo sync
+
+### Exemplo 3: CronJob com External Secrets
 
 ```yaml
 apps:
@@ -250,7 +279,7 @@ apps:
         memory: 512Mi
 ```
 
-### Exemplo 3: StatefulSet com Persistence
+### Exemplo 4: StatefulSet com Persistence
 
 ```yaml
 apps:
@@ -342,7 +371,7 @@ apps:
         memory: 2Gi
 ```
 
-### Exemplo 4: Multi-App (Deployment + CronJob)
+### Exemplo 5: Multi-App (Deployment + CronJob)
 
 ```yaml
 apps:
@@ -425,7 +454,7 @@ apps:
         memory: 512Mi
 ```
 
-### Exemplo 5: KEDA - Autoscaling Event-Driven
+### Exemplo 6: KEDA - Autoscaling Event-Driven
 
 O chart suporta KEDA ScaledObject para autoscaling baseado em eventos (filas SQS, Redis, Kafka, etc.).
 
@@ -956,6 +985,7 @@ apps:
 | `apps[].kedaScaling.triggerAuthentication.podIdentity` | Pod Identity config (aws, azure, gcp) | Não |
 | `apps[].kedaScaling.triggerAuthentication.secretTargetRef` | Refs a secrets para autenticação | Não |
 | `apps[].kedaScaling.triggers` | Array de triggers KEDA | Não |
+| `apps[].annotations` | Annotations no metadata do recurso (ex: ArgoCD hooks) | Não |
 | `apps[].labels` | Labels em todos os recursos | Não |
 | `apps[].podLabels` | Labels apenas nos pods | Não |
 
