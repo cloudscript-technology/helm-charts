@@ -38,9 +38,16 @@ spec:
   parentRefs:
     - group: gateway.networking.k8s.io
       kind: Gateway
+      {{- if $route.gatewayRef }}
+      name: {{ $route.gatewayRef.name }}
+      {{- if $route.gatewayRef.namespace }}
+      namespace: {{ $route.gatewayRef.namespace }}
+      {{- end }}
+      {{- else }}
       name: {{ $gatewayName }}
       {{- if and $app.gatewayApi.gatewayRef $app.gatewayApi.gatewayRef.namespace }}
       namespace: {{ $app.gatewayApi.gatewayRef.namespace }}
+      {{- end }}
       {{- end }}
       {{- if $route.listenerName }}
       sectionName: {{ $route.listenerName }}
