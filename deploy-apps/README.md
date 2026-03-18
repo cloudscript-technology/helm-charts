@@ -193,6 +193,40 @@ gatewayApi:
   httpRoutes: [...]
 ```
 
+Para rotas individuais que precisam apontar para um gateway diferente (ex: gateway compartilhado para domínio externo):
+
+```yaml
+gatewayApi:
+  enabled: true
+  gateway:
+    name: my-app-gateway
+    listeners:
+      - name: https-main
+        hostname: myapp.internal.com
+        secretName: myapp-tls
+  httpRoutes:
+    # Rota que usa o gateway da própria app
+    - name: main
+      listenerName: https-main
+      hostnames:
+        - myapp.internal.com
+      rules:
+        - type: http
+          backendRef:
+            port: 80
+    # Rota que usa um gateway compartilhado externo
+    - name: external
+      listenerName: https-external
+      gatewayRef:
+        name: shared-external-gateway
+      hostnames:
+        - myapp.external.com
+      rules:
+        - type: http
+          backendRef:
+            port: 80
+```
+
 ### Exemplo 2: Job com ArgoCD Hooks
 
 Jobs do Kubernetes são deletados após a execução (via `ttlSecondsAfterFinished`), o que faz o ArgoCD marcá-los como "Missing". Para resolver, use annotations de hook:
@@ -985,6 +1019,7 @@ apps:
 | `apps[].kedaScaling.triggerAuthentication.podIdentity` | Pod Identity config (aws, azure, gcp) | Não |
 | `apps[].kedaScaling.triggerAuthentication.secretTargetRef` | Refs a secrets para autenticação | Não |
 | `apps[].kedaScaling.triggers` | Array de triggers KEDA | Não |
+| `apps[].gatewayApi.httpRoutes[].gatewayRef` | Per-route override para referenciar outro Gateway | Não |
 | `apps[].annotations` | Annotations no metadata do recurso (ex: ArgoCD hooks) | Não |
 | `apps[].labels` | Labels em todos os recursos | Não |
 | `apps[].podLabels` | Labels apenas nos pods | Não |

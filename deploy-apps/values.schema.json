@@ -226,6 +226,15 @@
                   "properties": {
                     "name": { "type": "string" },
                     "listenerName": { "type": "string" },
+                    "gatewayRef": {
+                      "type": "object",
+                      "description": "Per-route override to reference a different Gateway",
+                      "properties": {
+                        "name": { "type": "string" },
+                        "namespace": { "type": "string" }
+                      },
+                      "required": ["name"]
+                    },
                     "hostnames": { "type": "array", "items": { "type": "string" } },
                     "rules": { "type": "array" }
                   }
