@@ -1,8 +1,8 @@
 apiVersion: v2
 name: dumpscript
-description: The DumpScript is a unified system for backup and restore of MySQL and PostgreSQL databases to Amazon S3.
+description: The DumpScript is a unified system for backup and restore of MySQL and PostgreSQL databases to Amazon S3 and S3-compatible storage.
 type: application
-version: 1.5.2
+version: 1.6.0
 appVersion: "v0.0.36-alpine-3-21"
 kubeVersion: ">= 1.27.0-0"
 home: https://cloudscript.com.br
@@ -26,7 +26,7 @@ dependencies: []
 annotations:
   artifacthub.io/changes: |
     - kind: added
-      description: Add alpine 3.20 and 3.21 images and fix mongodb dump
+      description: Add S3-compatible endpoint URL support for Azure Blob Storage, MinIO, DigitalOcean Spaces and other providers
   artifacthub.io/containsSecurityUpdates: "true"
   artifacthub.io/images: |
     - name: dumpscript alpine3.21

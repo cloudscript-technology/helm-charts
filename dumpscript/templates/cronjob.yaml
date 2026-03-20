@@ -130,6 +130,10 @@ spec:
               value: {{ $database.aws.bucket | quote }}
             - name: S3_PREFIX
               value: {{ $database.aws.bucketPrefix | quote }}
+            {{- if $database.aws.endpointUrl }}
+            - name: AWS_S3_ENDPOINT_URL
+              value: {{ $database.aws.endpointUrl | quote }}
+            {{- end }}
             - name: PERIODICITY
               value: {{ $period.type | quote }}
             {{- if $period.retentionDays }}

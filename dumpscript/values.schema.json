@@ -316,7 +316,7 @@
         },
         "helm-values.databases.aws": {
             "type": "object",
-            "description": "AWS settings for the backup",
+            "description": "AWS/S3-compatible storage settings for the backup",
             "additionalProperties": false,
             "properties": {
                 "region": {
@@ -334,6 +334,11 @@
                 "secretName": {
                     "type": "string",
                     "description": "Name of the secret containing the AWS credentials"
+                },
+                "endpointUrl": {
+                    "type": "string",
+                    "description": "Custom S3 endpoint URL for S3-compatible storage (e.g. Azure Blob Storage, MinIO, DigitalOcean Spaces)",
+                    "default": ""
                 }
             }
         },

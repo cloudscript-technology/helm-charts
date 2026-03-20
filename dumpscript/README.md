@@ -1,6 +1,6 @@
 # Dumpscript Helm Chart
 
-A Helm Chart for automating PostgreSQL, MySQL/MariaDB and MongoDB database backups on Kubernetes, with automatic upload to Amazon S3.
+A Helm Chart for automating PostgreSQL, MySQL/MariaDB and MongoDB database backups on Kubernetes, with automatic upload to Amazon S3 and S3-compatible storage (Azure Blob Storage, MinIO, DigitalOcean Spaces, etc.).
 
 ## Description
 
@@ -12,7 +12,7 @@ A Helm Chart for automating PostgreSQL, MySQL/MariaDB and MongoDB database backu
 - ✅ **Runtime configurable client versions**: No need to rebuild images
 - ✅ **Multiple backup schedules**: Support for daily, weekly, monthly, and yearly backups per database
 - ✅ **Independent jobs**: Each database runs in a separate CronJob
-- ✅ **S3 storage**: Automatic upload to Amazon S3
+- ✅ **S3 storage**: Automatic upload to Amazon S3 and S3-compatible storage (Azure, MinIO, DigitalOcean Spaces)
 - ✅ **Flexible authentication**: Support for Kubernetes secrets or direct values
 - ✅ **Custom scheduling**: Individual cron expressions per backup type
 - ✅ **Custom arguments**: Database-specific dump options
@@ -517,6 +517,7 @@ If you encounter storage-related failures:
 | `databases[].aws.bucket` | S3 bucket | ✅* |
 | `databases[].aws.bucketPrefix` | Bucket prefix | ❌ |
 | `databases[].aws.secretName` | AWS secret name | ✅** |
+| `databases[].aws.endpointUrl` | Custom S3 endpoint URL for S3-compatible storage | ❌ |
 | `databases[].extraArgs` | Extra arguments for dump | ❌ |
 
 *\* Required when `secretName` is not provided*  
@@ -898,6 +899,96 @@ Below is an example of a minimal IAM policy for S3 access:
 ```
 
 Replace `your-bucket-name` with the actual name of your S3 bucket. Granting only these permissions ensures the tool can perform all backup, restore, and cleanup operations securely.
+
+## S3-Compatible Storage (Azure, MinIO, DigitalOcean Spaces)
+
+DumpScript supports any S3-compatible storage provider via the `aws.endpointUrl` parameter. This allows you to upload backups to Azure Blob Storage, MinIO, DigitalOcean Spaces, Backblaze B2, and other providers that implement the S3 API.
+
+### Azure Blob Storage
+
+Azure Blob Storage offers S3-compatible API access. Use the storage account name as the access key ID and the storage account key as the secret access key.
+
+```yaml
+databases:
+  - type: postgresql
+    version: "17"
+    periodicity:
+      - type: daily
+        retentionDays: 7
+        schedule: "0 2 * * *"
+    connectionInfo:
+      secretName: "db-credentials"
+    aws:
+      region: "eastus"
+      bucket: "my-container"
+      bucketPrefix: "backups/postgres"
+      secretName: "azure-s3-credentials"
+      endpointUrl: "https://<storage-account>.blob.core.windows.net"
+```
+
+Create the secret with Azure credentials:
+
+```bash
+kubectl create secret generic azure-s3-credentials \
+  --from-literal=accessKeyId=<storage-account-name> \
+  --from-literal=secretAccessKey=<storage-account-key>
+```
+
+### MinIO
+
+```yaml
+databases:
+  - type: postgresql
+    version: "17"
+    periodicity:
+      - type: daily
+        retentionDays: 7
+        schedule: "0 2 * * *"
+    connectionInfo:
+      secretName: "db-credentials"
+    aws:
+      region: "us-east-1"
+      bucket: "backups"
+      bucketPrefix: "postgres"
+      secretName: "minio-credentials"
+      endpointUrl: "https://minio.example.com"
+```
+
+Create the secret with MinIO credentials:
+
+```bash
+kubectl create secret generic minio-credentials \
+  --from-literal=accessKeyId=<minio-access-key> \
+  --from-literal=secretAccessKey=<minio-secret-key>
+```
+
+### DigitalOcean Spaces
+
+```yaml
+databases:
+  - type: postgresql
+    version: "17"
+    periodicity:
+      - type: daily
+        retentionDays: 7
+        schedule: "0 2 * * *"
+    connectionInfo:
+      secretName: "db-credentials"
+    aws:
+      region: "nyc3"
+      bucket: "my-space"
+      bucketPrefix: "backups/postgres"
+      secretName: "do-spaces-credentials"
+      endpointUrl: "https://nyc3.digitaloceanspaces.com"
+```
+
+Create the secret with DigitalOcean Spaces credentials:
+
+```bash
+kubectl create secret generic do-spaces-credentials \
+  --from-literal=accessKeyId=<spaces-access-key> \
+  --from-literal=secretAccessKey=<spaces-secret-key>
+```
 
 Generate new digest:
 ```bash

@@ -61,6 +61,9 @@ databases:
       bucketPrefix: ""
       # Name of the secret containing the AWS credentials
       secretName: ""
+      # Custom S3 endpoint URL for S3-compatible storage (e.g. Azure Blob Storage, MinIO, DigitalOcean Spaces)
+      # Example: https://<storage-account>.blob.core.windows.net
+      endpointUrl: ""
     # Extra arguments for the database dump (e.g. --encoding=utf8, --no-owner)
     extraArgs: ""
     # IMPORTANT: We recommend using a ephemeral volume to store the database dump if the database is too large
@@ -128,6 +131,9 @@ databases:
       bucketPrefix: ""
       # Name of the secret containing the AWS credentials
       secretName: ""
+      # Custom S3 endpoint URL for S3-compatible storage (e.g. Azure Blob Storage, MinIO, DigitalOcean Spaces)
+      # Example: https://<storage-account>.blob.core.windows.net
+      endpointUrl: ""
     # Extra arguments for the database dump (e.g. --single-transaction, --routines)
     extraArgs: ""
     # IMPORTANT: We recommend using a ephemeral volume to store the database dump if the database is too large
