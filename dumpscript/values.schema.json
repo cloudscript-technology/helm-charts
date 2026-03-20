@@ -76,8 +76,8 @@
                     "connectionInfo": {
                         "$ref": "#/$defs/helm-values.databases.connectionInfo"
                     },
-                    "aws": {
-                        "$ref": "#/$defs/helm-values.databases.aws"
+                    "s3": {
+                        "$ref": "#/$defs/helm-values.databases.s3"
                     },
                     "schedule": {
                         "$ref": "#/$defs/helm-values.databases.schedule"
@@ -314,18 +314,18 @@
                 }
             }
         },
-        "helm-values.databases.aws": {
+        "helm-values.databases.s3": {
             "type": "object",
-            "description": "AWS/S3-compatible storage settings for the backup",
+            "description": "S3-compatible storage settings for the backup",
             "additionalProperties": false,
             "properties": {
                 "region": {
                     "type": "string",
-                    "description": "AWS region for the S3 bucket"
+                    "description": "Region for the S3 bucket (e.g. us-west-2, eastus)"
                 },
                 "bucket": {
                     "type": "string",
-                    "description": "AWS bucket to store the database dump"
+                    "description": "S3 bucket name (or container name for Azure Blob Storage)"
                 },
                 "bucketPrefix": {
                     "type": "string",
@@ -333,7 +333,7 @@
                 },
                 "secretName": {
                     "type": "string",
-                    "description": "Name of the secret containing the AWS credentials"
+                    "description": "Name of the Kubernetes secret containing the S3 credentials (keys: accessKeyId, secretAccessKey)"
                 },
                 "endpointUrl": {
                     "type": "string",

@@ -112,27 +112,27 @@ spec:
             - name: DB_PORT
               value: {{ $database.connectionInfo.port | quote }}
             {{- end }}
-            {{- if $database.aws.secretName }}
+            {{- if $database.s3.secretName }}
             - name: AWS_ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
-                  name: {{ $database.aws.secretName }}
+                  name: {{ $database.s3.secretName }}
                   key: accessKeyId
             - name: AWS_SECRET_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ $database.aws.secretName }}
+                  name: {{ $database.s3.secretName }}
                   key: secretAccessKey
             {{- end }}
             - name: AWS_REGION
-              value: {{ $database.aws.region | quote }}
+              value: {{ $database.s3.region | quote }}
             - name: S3_BUCKET
-              value: {{ $database.aws.bucket | quote }}
+              value: {{ $database.s3.bucket | quote }}
             - name: S3_PREFIX
-              value: {{ $database.aws.bucketPrefix | quote }}
-            {{- if $database.aws.endpointUrl }}
+              value: {{ $database.s3.bucketPrefix | quote }}
+            {{- if $database.s3.endpointUrl }}
             - name: AWS_S3_ENDPOINT_URL
-              value: {{ $database.aws.endpointUrl | quote }}
+              value: {{ $database.s3.endpointUrl | quote }}
             {{- end }}
             - name: PERIODICITY
               value: {{ $period.type | quote }}

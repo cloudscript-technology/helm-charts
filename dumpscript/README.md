@@ -4,7 +4,7 @@ A Helm Chart for automating PostgreSQL, MySQL/MariaDB and MongoDB database backu
 
 ## Description
 
-**Dumpscript** is a complete solution for automated database backups in Kubernetes environments. It creates independent CronJobs for each configured database, performing regular dumps and uploading them to AWS S3 buckets.
+**Dumpscript** is a complete solution for automated database backups in Kubernetes environments. It creates independent CronJobs for each configured database, performing regular dumps and uploading them to S3-compatible storage.
 
 ## Features
 
@@ -27,7 +27,7 @@ A Helm Chart for automating PostgreSQL, MySQL/MariaDB and MongoDB database backu
 
 - Kubernetes 1.16+
 - Helm 3.0+
-- Access to AWS S3 buckets
+- Access to S3 or S3-compatible storage
 
 ### Install the Chart
 
@@ -72,7 +72,7 @@ databases:
       password: "secret_password"
       database: "app_db"
       port: 5432
-    aws:
+    s3:
       region: "us-west-2"
       bucket: "my-company-backups"
       bucketPrefix: "postgres-dumps/"
@@ -99,8 +99,8 @@ databases:
         schedule: "0 2 * * 0"  # Every Sunday at 2:00 AM
     connectionInfo:
       secretName: "mariadb-credentials"
-    aws:
-      secretName: "aws-credentials"
+    s3:
+      secretName: "s3-credentials"
     extraArgs: "--opt --single-transaction"
     # Volume configuration for temporary storage
     extraVolumes:
@@ -168,7 +168,7 @@ databases:
       password: "secure_password"
       database: "app_db"
       port: 27017
-    aws:
+    s3:
       region: "us-east-1"
       bucket: "my-db-backups"
       bucketPrefix: "mongodb/app"
@@ -264,13 +264,13 @@ data:
   port: NTQzMg==                              # 5432
 ```
 
-### Secret for AWS Credentials
+### Secret for S3 Credentials
 
 ```yaml
 apiVersion: v1
 kind: Secret
 metadata:
-  name: aws-credentials
+  name: s3-credentials
   namespace: default
 type: Opaque
 data:
@@ -282,13 +282,13 @@ data:
   # secretAccessKey: d0phbExyWGVOdC9LN21ESVkvYk1FeFJZSEs0WUs1TUVRc1pKVHU=
 ```
 
-### Secret for Production with AWS Role
+### Secret for Production with IAM Role
 
 ```yaml
 apiVersion: v1
 kind: Secret
 metadata:
-  name: production-aws-credentials
+  name: production-s3-credentials
   namespace: default
 type: Opaque
 data:
@@ -324,14 +324,14 @@ kubectl create secret generic postgres-credentials \
   --from-literal=database=app_db \
   --from-literal=port=5432
 
-# Secret for AWS (using IAM Role)
-kubectl create secret generic aws-credentials \
+# Secret for S3 (using IAM Role)
+kubectl create secret generic s3-credentials \
   --from-literal=region=us-west-2 \
   --from-literal=bucket=my-company-backups \
   --from-literal=bucketPrefix=database-dumps/
 
-# Secret for AWS (using Access Keys - not recommended)
-kubectl create secret generic aws-credentials-keys \
+# Secret for S3 (using Access Keys - not recommended)
+kubectl create secret generic s3-credentials-keys \
   --from-literal=region=us-west-2 \
   --from-literal=bucket=my-company-backups \
   --from-literal=bucketPrefix=database-dumps/ \
@@ -513,11 +513,11 @@ If you encounter storage-related failures:
 | `databases[].connectionInfo.database` | Database name | ✅* |
 | `databases[].connectionInfo.port` | Database port | ✅* |
 | `databases[].connectionInfo.secretName` | Secret name with credentials | ✅** |
-| `databases[].aws.region` | AWS region | ✅* |
-| `databases[].aws.bucket` | S3 bucket | ✅* |
-| `databases[].aws.bucketPrefix` | Bucket prefix | ❌ |
-| `databases[].aws.secretName` | AWS secret name | ✅** |
-| `databases[].aws.endpointUrl` | Custom S3 endpoint URL for S3-compatible storage | ❌ |
+| `databases[].s3.region` | S3 region (e.g. us-west-2, eastus) | ✅* |
+| `databases[].s3.bucket` | S3 bucket name (or container for Azure) | ✅* |
+| `databases[].s3.bucketPrefix` | Bucket prefix | ❌ |
+| `databases[].s3.secretName` | S3 credentials secret name | ✅** |
+| `databases[].s3.endpointUrl` | Custom S3 endpoint URL for S3-compatible storage | ❌ |
 | `databases[].extraArgs` | Extra arguments for dump | ❌ |
 
 *\* Required when `secretName` is not provided*  
@@ -584,7 +584,7 @@ databases:
       password: "backup_password"
       database: "myapp"
       port: 5432
-    aws:
+    s3:
       region: "us-west-2"
       bucket: "myapp-backups"
       bucketPrefix: "postgres/"
@@ -600,7 +600,7 @@ databases:
         readOnly: false
 ```
 
-### Backup with AWS IAM Role and Slack Notifications
+### Backup with IAM Role and Slack Notifications
 
 ```yaml
 databases:
@@ -615,7 +615,7 @@ databases:
         schedule: "0 4 1 * *"  # Monthly on 1st at 4:00 AM
     connectionInfo:
       secretName: "db-credentials"
-    aws:
+    s3:
       region: "us-west-2"
       bucket: "secure-backups"
       bucketPrefix: "production/postgres/"
@@ -649,8 +649,8 @@ databases:
         schedule: "0 1 * * *"  # Daily at 1:00 AM
     connectionInfo:
       secretName: "prod-postgres-creds"
-    aws:
-      secretName: "prod-aws-creds"
+    s3:
+      secretName: "prod-s3-creds"
       region: "us-west-2"
       bucket: "secure-backups"
       bucketPrefix: "production/postgres/"
@@ -691,8 +691,8 @@ databases:
         schedule: "0 4 1 * *"  # Monthly on 1st at 4:00 AM
     connectionInfo:
       secretName: "prod-postgres-creds"
-    aws:
-      secretName: "prod-aws-creds"
+    s3:
+      secretName: "prod-s3-creds"
       region: "us-west-2"
       bucket: "secure-backups"
       bucketPrefix: "production/postgres/"
@@ -710,8 +710,8 @@ databases:
         schedule: "0 3 * * 0"  # Weekly on Sunday at 3:00 AM
     connectionInfo:
       secretName: "dev-mariadb-creds"
-    aws:
-      secretName: "dev-aws-creds"
+    s3:
+      secretName: "dev-s3-creds"
       region: "us-west-2"
       bucket: "secure-backups"
       bucketPrefix: "develop/mariadb/"
@@ -726,8 +726,8 @@ databases:
         schedule: "0 0 * * 0"  # Weekly on Sunday at midnight
     connectionInfo:
       secretName: "test-postgres-creds"
-    aws:
-      secretName: "test-aws-creds"
+    s3:
+      secretName: "test-s3-creds"
       region: "us-west-2"
       bucket: "secure-backups"
       bucketPrefix: "test/postgres/"
@@ -809,7 +809,7 @@ kubectl get secret mysql-credentials -o yaml
 kubectl run debug --image=postgres:13 --rm -it -- psql -h postgres.example.com -U backup_user -d app_db
 ```
 
-**2. AWS authentication error**
+**2. S3 authentication error**
 ```bash
 # Check if service account has correct annotations
 kubectl get serviceaccount dumpscript -o yaml
@@ -902,7 +902,7 @@ Replace `your-bucket-name` with the actual name of your S3 bucket. Granting only
 
 ## S3-Compatible Storage (Azure, MinIO, DigitalOcean Spaces)
 
-DumpScript supports any S3-compatible storage provider via the `aws.endpointUrl` parameter. This allows you to upload backups to Azure Blob Storage, MinIO, DigitalOcean Spaces, Backblaze B2, and other providers that implement the S3 API.
+DumpScript supports any S3-compatible storage provider via the `s3.endpointUrl` parameter. This allows you to upload backups to Azure Blob Storage, MinIO, DigitalOcean Spaces, Backblaze B2, and other providers that implement the S3 API.
 
 ### Azure Blob Storage
 
@@ -918,7 +918,7 @@ databases:
         schedule: "0 2 * * *"
     connectionInfo:
       secretName: "db-credentials"
-    aws:
+    s3:
       region: "eastus"
       bucket: "my-container"
       bucketPrefix: "backups/postgres"
@@ -946,7 +946,7 @@ databases:
         schedule: "0 2 * * *"
     connectionInfo:
       secretName: "db-credentials"
-    aws:
+    s3:
       region: "us-east-1"
       bucket: "backups"
       bucketPrefix: "postgres"
@@ -974,7 +974,7 @@ databases:
         schedule: "0 2 * * *"
     connectionInfo:
       secretName: "db-credentials"
-    aws:
+    s3:
       region: "nyc3"
       bucket: "my-space"
       bucketPrefix: "backups/postgres"

@@ -52,14 +52,14 @@ databases:
       port: 5432
       # Name of the secret containing the connection information for the database
       secretName: ""
-    aws:
-      # AWS region for the S3 bucket
+    s3:
+      # Region for the S3 bucket (e.g. us-west-2, eastus)
       region: ""
-      # AWS bucket to store the database dump
+      # S3 bucket name (or container name for Azure Blob Storage)
       bucket: ""
       # Prefix for the database dump in the S3 bucket
       bucketPrefix: ""
-      # Name of the secret containing the AWS credentials
+      # Name of the Kubernetes secret containing the S3 credentials (keys: accessKeyId, secretAccessKey)
       secretName: ""
       # Custom S3 endpoint URL for S3-compatible storage (e.g. Azure Blob Storage, MinIO, DigitalOcean Spaces)
       # Example: https://<storage-account>.blob.core.windows.net
@@ -122,14 +122,14 @@ databases:
       port: 3306
       # Name of the secret containing the connection information for the database
       secretName: ""
-    aws:
-      # AWS region for the S3 bucket
+    s3:
+      # Region for the S3 bucket (e.g. us-west-2, eastus)
       region: ""
-      # AWS bucket to store the database dump
+      # S3 bucket name (or container name for Azure Blob Storage)
       bucket: ""
       # Prefix for the database dump in the S3 bucket
       bucketPrefix: ""
-      # Name of the secret containing the AWS credentials
+      # Name of the Kubernetes secret containing the S3 credentials (keys: accessKeyId, secretAccessKey)
       secretName: ""
       # Custom S3 endpoint URL for S3-compatible storage (e.g. Azure Blob Storage, MinIO, DigitalOcean Spaces)
       # Example: https://<storage-account>.blob.core.windows.net
