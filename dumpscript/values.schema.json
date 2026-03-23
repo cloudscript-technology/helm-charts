@@ -76,8 +76,8 @@
                     "connectionInfo": {
                         "$ref": "#/$defs/helm-values.databases.connectionInfo"
                     },
-                    "s3": {
-                        "$ref": "#/$defs/helm-values.databases.s3"
+                    "objectStorage": {
+                        "$ref": "#/$defs/helm-values.databases.objectStorage"
                     },
                     "schedule": {
                         "$ref": "#/$defs/helm-values.databases.schedule"
@@ -314,30 +314,30 @@
                 }
             }
         },
-        "helm-values.databases.s3": {
+        "helm-values.databases.objectStorage": {
             "type": "object",
             "description": "S3-compatible storage settings for the backup",
             "additionalProperties": false,
             "properties": {
                 "region": {
                     "type": "string",
-                    "description": "Region for the S3 bucket (e.g. us-west-2, eastus)"
+                    "description": "Region for the Object Storage bucket (e.g. us-west-2, eastus)"
                 },
                 "bucket": {
                     "type": "string",
-                    "description": "S3 bucket name (or container name for Azure Blob Storage)"
+                    "description": "Object Storage bucket name (or container name for Azure Blob Storage)"
                 },
                 "bucketPrefix": {
                     "type": "string",
-                    "description": "Prefix for the database dump in the S3 bucket"
+                    "description": "Prefix for the database dump in the Object Storage bucket"
                 },
                 "secretName": {
                     "type": "string",
-                    "description": "Name of the Kubernetes secret containing the S3 credentials (keys: accessKeyId, secretAccessKey)"
+                    "description": "Name of the Kubernetes secret containing the Object Storage credentials (keys: accessKeyId, secretAccessKey)"
                 },
                 "endpointUrl": {
                     "type": "string",
-                    "description": "Custom S3 endpoint URL for S3-compatible storage (e.g. Azure Blob Storage, MinIO, DigitalOcean Spaces)",
+                    "description": "Custom Object Storage endpoint URL for S3-compatible storage (e.g. Azure Blob Storage, MinIO, DigitalOcean Spaces)",
                     "default": ""
                 }
             }

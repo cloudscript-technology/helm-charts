@@ -52,16 +52,16 @@ databases:
       port: 5432
       # Name of the secret containing the connection information for the database
       secretName: ""
-    s3:
-      # Region for the S3 bucket (e.g. us-west-2, eastus)
+    objectStorage:
+      # Region for the Object Storage (e.g. us-west-2, eastus)
       region: ""
-      # S3 bucket name (or container name for Azure Blob Storage)
+      # Object Storage bucket name (or container name for Azure Blob Storage)
       bucket: ""
-      # Prefix for the database dump in the S3 bucket
+      # Prefix for the database dump in the Object Storage bucket
       bucketPrefix: ""
-      # Name of the Kubernetes secret containing the S3 credentials (keys: accessKeyId, secretAccessKey)
+      # Name of the Kubernetes secret containing the Object Storage credentials (keys: accessKeyId, secretAccessKey)
       secretName: ""
-      # Custom S3 endpoint URL for S3-compatible storage (e.g. Azure Blob Storage, MinIO, DigitalOcean Spaces)
+      # Custom Object Storage endpoint URL for S3-compatible storage (e.g. Azure Blob Storage, MinIO, DigitalOcean Spaces)
       # Example: https://<storage-account>.blob.core.windows.net
       endpointUrl: ""
     # Extra arguments for the database dump (e.g. --encoding=utf8, --no-owner)
@@ -122,16 +122,16 @@ databases:
       port: 3306
       # Name of the secret containing the connection information for the database
       secretName: ""
-    s3:
-      # Region for the S3 bucket (e.g. us-west-2, eastus)
+    objectStorage:
+      # Region for the Object Storage bucket (e.g. us-west-2, eastus)
       region: ""
-      # S3 bucket name (or container name for Azure Blob Storage)
+      # Object Storage bucket name (or container name for Azure Blob Storage)
       bucket: ""
-      # Prefix for the database dump in the S3 bucket
+      # Prefix for the database dump in the Object Storage bucket
       bucketPrefix: ""
-      # Name of the Kubernetes secret containing the S3 credentials (keys: accessKeyId, secretAccessKey)
+      # Name of the Kubernetes secret containing the Object Storage credentials (keys: accessKeyId, secretAccessKey)
       secretName: ""
-      # Custom S3 endpoint URL for S3-compatible storage (e.g. Azure Blob Storage, MinIO, DigitalOcean Spaces)
+      # Custom Object Storage endpoint URL for S3-compatible storage (e.g. Azure Blob Storage, MinIO, DigitalOcean Spaces)
       # Example: https://<storage-account>.blob.core.windows.net
       endpointUrl: ""
     # Extra arguments for the database dump (e.g. --single-transaction, --routines)

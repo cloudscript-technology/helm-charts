@@ -12,7 +12,7 @@ A Helm Chart for automating PostgreSQL, MySQL/MariaDB and MongoDB database backu
 - ✅ **Runtime configurable client versions**: No need to rebuild images
 - ✅ **Multiple backup schedules**: Support for daily, weekly, monthly, and yearly backups per database
 - ✅ **Independent jobs**: Each database runs in a separate CronJob
-- ✅ **S3 storage**: Automatic upload to Amazon S3 and S3-compatible storage (Azure, MinIO, DigitalOcean Spaces)
+- ✅ **Object Storage**: Automatic upload to Object Storage (AWS S3, Azure, MinIO, DigitalOcean Spaces)
 - ✅ **Flexible authentication**: Support for Kubernetes secrets or direct values
 - ✅ **Custom scheduling**: Individual cron expressions per backup type
 - ✅ **Custom arguments**: Database-specific dump options
@@ -27,7 +27,7 @@ A Helm Chart for automating PostgreSQL, MySQL/MariaDB and MongoDB database backu
 
 - Kubernetes 1.16+
 - Helm 3.0+
-- Access to S3 or S3-compatible storage
+- Access to Object Storage
 
 ### Install the Chart
 
@@ -72,7 +72,7 @@ databases:
       password: "secret_password"
       database: "app_db"
       port: 5432
-    s3:
+    objectStorage:
       region: "us-west-2"
       bucket: "my-company-backups"
       bucketPrefix: "postgres-dumps/"
@@ -99,7 +99,7 @@ databases:
         schedule: "0 2 * * 0"  # Every Sunday at 2:00 AM
     connectionInfo:
       secretName: "mariadb-credentials"
-    s3:
+    objectStorage:
       secretName: "s3-credentials"
     extraArgs: "--opt --single-transaction"
     # Volume configuration for temporary storage
@@ -168,7 +168,7 @@ databases:
       password: "secure_password"
       database: "app_db"
       port: 27017
-    s3:
+    objectStorage:
       region: "us-east-1"
       bucket: "my-db-backups"
       bucketPrefix: "mongodb/app"
@@ -264,7 +264,7 @@ data:
   port: NTQzMg==                              # 5432
 ```
 
-### Secret for S3 Credentials
+### Secret for Object Storage Credentials
 
 ```yaml
 apiVersion: v1
@@ -324,13 +324,13 @@ kubectl create secret generic postgres-credentials \
   --from-literal=database=app_db \
   --from-literal=port=5432
 
-# Secret for S3 (using IAM Role)
+# Secret for Object Storage (using IAM Role)
 kubectl create secret generic s3-credentials \
   --from-literal=region=us-west-2 \
   --from-literal=bucket=my-company-backups \
   --from-literal=bucketPrefix=database-dumps/
 
-# Secret for S3 (using Access Keys - not recommended)
+# Secret for Object Storage (using Access Keys - not recommended)
 kubectl create secret generic s3-credentials-keys \
   --from-literal=region=us-west-2 \
   --from-literal=bucket=my-company-backups \
@@ -343,11 +343,11 @@ kubectl create secret generic s3-credentials-keys \
 
 ### ⚠️ Critical: Storage Requirements
 
-The DumpScript container uses the `/dumpscript` directory as its working directory and **temporary storage** for database dumps before uploading to S3. It is **critical** to ensure this directory has sufficient storage space to accommodate the full size of your database dump.
+The DumpScript container uses the `/dumpscript` directory as its working directory and **temporary storage** for database dumps before uploading to Object Storage. It is **critical** to ensure this directory has sufficient storage space to accommodate the full size of your database dump.
 
 #### Why Storage Space Matters
 
-- **Temporary Storage**: Database dumps are created locally in `/dumpscript` before being compressed and uploaded to S3
+- **Temporary Storage**: Database dumps are created locally in `/dumpscript` before being compressed and uploaded to Object Storage
 - **Compression Process**: The dump is compressed using gzip, which requires additional temporary space during compression
 - **No Streaming**: The current implementation creates the complete dump file locally before uploading (not streaming)
 - **Failure Risk**: Insufficient space will cause the backup process to fail with "No space left on device" errors
@@ -513,11 +513,11 @@ If you encounter storage-related failures:
 | `databases[].connectionInfo.database` | Database name | ✅* |
 | `databases[].connectionInfo.port` | Database port | ✅* |
 | `databases[].connectionInfo.secretName` | Secret name with credentials | ✅** |
-| `databases[].s3.region` | S3 region (e.g. us-west-2, eastus) | ✅* |
-| `databases[].s3.bucket` | S3 bucket name (or container for Azure) | ✅* |
+| `databases[].s3.region` | Object Storage region (e.g. us-west-2, eastus) | ✅* |
+| `databases[].s3.bucket` | Object Storage bucket name (or container for Azure) | ✅* |
 | `databases[].s3.bucketPrefix` | Bucket prefix | ❌ |
-| `databases[].s3.secretName` | S3 credentials secret name | ✅** |
-| `databases[].s3.endpointUrl` | Custom S3 endpoint URL for S3-compatible storage | ❌ |
+| `databases[].s3.secretName` | Object Storage credentials secret name | ✅** |
+| `databases[].s3.endpointUrl` | Custom Object Storage endpoint URL for S3-compatible storage | ❌ |
 | `databases[].extraArgs` | Extra arguments for dump | ❌ |
 
 *\* Required when `secretName` is not provided*  
@@ -584,7 +584,7 @@ databases:
       password: "backup_password"
       database: "myapp"
       port: 5432
-    s3:
+    objectStorage:
       region: "us-west-2"
       bucket: "myapp-backups"
       bucketPrefix: "postgres/"
@@ -615,7 +615,7 @@ databases:
         schedule: "0 4 1 * *"  # Monthly on 1st at 4:00 AM
     connectionInfo:
       secretName: "db-credentials"
-    s3:
+    objectStorage:
       region: "us-west-2"
       bucket: "secure-backups"
       bucketPrefix: "production/postgres/"
@@ -649,7 +649,7 @@ databases:
         schedule: "0 1 * * *"  # Daily at 1:00 AM
     connectionInfo:
       secretName: "prod-postgres-creds"
-    s3:
+    objectStorage:
       secretName: "prod-s3-creds"
       region: "us-west-2"
       bucket: "secure-backups"
@@ -691,7 +691,7 @@ databases:
         schedule: "0 4 1 * *"  # Monthly on 1st at 4:00 AM
     connectionInfo:
       secretName: "prod-postgres-creds"
-    s3:
+    objectStorage:
       secretName: "prod-s3-creds"
       region: "us-west-2"
       bucket: "secure-backups"
@@ -710,7 +710,7 @@ databases:
         schedule: "0 3 * * 0"  # Weekly on Sunday at 3:00 AM
     connectionInfo:
       secretName: "dev-mariadb-creds"
-    s3:
+    objectStorage:
       secretName: "dev-s3-creds"
       region: "us-west-2"
       bucket: "secure-backups"
@@ -726,7 +726,7 @@ databases:
         schedule: "0 0 * * 0"  # Weekly on Sunday at midnight
     connectionInfo:
       secretName: "test-postgres-creds"
-    s3:
+    objectStorage:
       secretName: "test-s3-creds"
       region: "us-west-2"
       bucket: "secure-backups"
@@ -809,7 +809,7 @@ kubectl get secret mysql-credentials -o yaml
 kubectl run debug --image=postgres:13 --rm -it -- psql -h postgres.example.com -U backup_user -d app_db
 ```
 
-**2. S3 authentication error**
+**2. Object Storage authentication error**
 ```bash
 # Check if service account has correct annotations
 kubectl get serviceaccount dumpscript -o yaml
@@ -818,7 +818,7 @@ kubectl get serviceaccount dumpscript -o yaml
 aws iam get-role --role-name BackupRole
 ```
 
-**3. S3 permissions error**
+**3. Object Storage permissions error**
 ```bash
 # Check bucket permissions
 aws s3 ls s3://my-company-backups/database-dumps/
@@ -918,7 +918,7 @@ databases:
         schedule: "0 2 * * *"
     connectionInfo:
       secretName: "db-credentials"
-    s3:
+    objectStorage:
       region: "eastus"
       bucket: "my-container"
       bucketPrefix: "backups/postgres"
@@ -946,7 +946,7 @@ databases:
         schedule: "0 2 * * *"
     connectionInfo:
       secretName: "db-credentials"
-    s3:
+    objectStorage:
       region: "us-east-1"
       bucket: "backups"
       bucketPrefix: "postgres"
@@ -974,7 +974,7 @@ databases:
         schedule: "0 2 * * *"
     connectionInfo:
       secretName: "db-credentials"
-    s3:
+    objectStorage:
       region: "nyc3"
       bucket: "my-space"
       bucketPrefix: "backups/postgres"
@@ -1002,7 +1002,7 @@ shasum -a 256 dumpscript-<version>.tgz
 3. Version verification: Installation is verified and the client version is logged.
 4. Database operations: Dump/restore scripts run with the correct client for each engine.
 5. Multiple schedules: Each database supports independent schedules with distinct retention policies.
-6. S3 path structure: Dumps are uploaded to `s3://$S3_BUCKET/$S3_PREFIX/$PERIODICITY/$YEAR/$MONTH/$DAY/$DUMP_FILE_GZ`.
+6. Object Storage path structure: Dumps are uploaded to `s3://$S3_BUCKET/$S3_PREFIX/$PERIODICITY/$YEAR/$MONTH/$DAY/$DUMP_FILE_GZ`.
 7. Notifications: Optional Slack notifications for backup status.
 
 ## Full Instance Dump/Restore
