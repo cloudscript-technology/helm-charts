@@ -112,6 +112,48 @@ spec:
             - name: DB_PORT
               value: {{ $database.connectionInfo.port | quote }}
             {{- end }}
+            - name: STORAGE_BACKEND
+              value: {{ $database.objectStorage.backend | default "s3" | quote }}
+            {{- if eq ($database.objectStorage.backend | default "s3") "azure" }}
+            {{- /* Azure Blob Storage backend */}}
+            {{- if $database.objectStorage.azure.secretName }}
+            - name: AZURE_STORAGE_ACCOUNT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $database.objectStorage.azure.secretName }}
+                  key: storageAccount
+            - name: AZURE_STORAGE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $database.objectStorage.azure.secretName }}
+                  key: storageKey
+                  optional: true
+            {{- if not $database.objectStorage.azure.storageKey }}
+            - name: AZURE_STORAGE_SAS_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $database.objectStorage.azure.secretName }}
+                  key: sasToken
+                  optional: true
+            {{- end }}
+            {{- else }}
+            - name: AZURE_STORAGE_ACCOUNT
+              value: {{ $database.objectStorage.azure.storageAccount | quote }}
+            {{- if $database.objectStorage.azure.storageKey }}
+            - name: AZURE_STORAGE_KEY
+              value: {{ $database.objectStorage.azure.storageKey | quote }}
+            {{- end }}
+            {{- if $database.objectStorage.azure.sasToken }}
+            - name: AZURE_STORAGE_SAS_TOKEN
+              value: {{ $database.objectStorage.azure.sasToken | quote }}
+            {{- end }}
+            {{- end }}
+            - name: AZURE_STORAGE_CONTAINER
+              value: {{ $database.objectStorage.azure.container | quote }}
+            - name: AZURE_STORAGE_PREFIX
+              value: {{ $database.objectStorage.azure.prefix | quote }}
+            {{- else }}
+            {{- /* S3 backend (default) */}}
             {{- if $database.objectStorage.secretName }}
             - name: AWS_ACCESS_KEY_ID
               valueFrom:
@@ -133,6 +175,7 @@ spec:
             {{- if $database.objectStorage.endpointUrl }}
             - name: AWS_S3_ENDPOINT_URL
               value: {{ $database.objectStorage.endpointUrl | quote }}
+            {{- end }}
             {{- end }}
             - name: PERIODICITY
               value: {{ $period.type | quote }}

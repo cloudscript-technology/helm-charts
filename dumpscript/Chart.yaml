@@ -1,9 +1,9 @@
 apiVersion: v2
 name: dumpscript
-description: The DumpScript is a unified system for backup and restore of MySQL and PostgreSQL databases to Amazon S3 and S3-compatible storage.
+description: The DumpScript is a unified system for backup and restore of MySQL, PostgreSQL and MongoDB databases to S3-compatible storage and Azure Blob Storage.
 type: application
-version: 1.6.3
-appVersion: "v0.0.36-alpine-3-21"
+version: 1.7.0
+appVersion: "v0.0.38-alpine-3-21"
 kubeVersion: ">= 1.27.0-0"
 home: https://cloudscript.com.br
 icon: https://charts.cloudscript.com.br/helm-charts/dumpscript/cloudscript-logo.png
@@ -16,7 +16,10 @@ keywords:
   - restore
   - mysql
   - postgresql
+  - mongodb
   - s3
+  - azure
+  - blob-storage
 maintainers:
   - name: Jonathan Schmitt
     email: jonathan.schmitt@cloudscript.com.br
@@ -26,13 +29,17 @@ dependencies: []
 annotations:
   artifacthub.io/changes: |
     - kind: added
-      description: Add S3-compatible endpoint URL support for Azure Blob Storage, MinIO, DigitalOcean Spaces and other providers
+      description: Add native Azure Blob Storage support via rclone (STORAGE_BACKEND=azure)
+    - kind: added
+      description: Add storage backend selection (s3 or azure) per database
+    - kind: added
+      description: Add Azure credentials support (storage account key, SAS token, Kubernetes secrets)
   artifacthub.io/containsSecurityUpdates: "true"
   artifacthub.io/images: |
     - name: dumpscript alpine3.21
-      image: ghcr.io/cloudscript-technology/dumpscript:v0.0.36-alpine-3-21
+      image: ghcr.io/cloudscript-technology/dumpscript:v0.0.38-alpine-3-21
     - name: dumpscript alpine3.20
-      image: ghcr.io/cloudscript-technology/dumpscript:v0.0.36-alpine-3-20
+      image: ghcr.io/cloudscript-technology/dumpscript:v0.0.38-alpine-3-20
   artifacthub.io/displayName: "Dump Script"
   artifacthub.io/license: "MIT"
   artifacthub.io/provider: "Cloudscript"
@@ -41,4 +48,4 @@ annotations:
       url: https://cloudscript.com.br
     - name: Source
       url: https://github.com/cloudscript-technology/helm-charts
-  artifacthub.io/valuesSchema: "https://charts.cloudscript.com.br/dumpscript/1.6.3/values-schema.json"
+  artifacthub.io/valuesSchema: "https://charts.cloudscript.com.br/dumpscript/1.7.0/values-schema.json"

@@ -1,10 +1,10 @@
 # Dumpscript Helm Chart
 
-A Helm Chart for automating PostgreSQL, MySQL/MariaDB and MongoDB database backups on Kubernetes, with automatic upload to Amazon S3 and S3-compatible storage (Azure Blob Storage, MinIO, DigitalOcean Spaces, etc.).
+A Helm Chart for automating PostgreSQL, MySQL/MariaDB and MongoDB database backups on Kubernetes, with automatic upload to S3-compatible storage (AWS S3, MinIO, DigitalOcean Spaces) or Azure Blob Storage.
 
 ## Description
 
-**Dumpscript** is a complete solution for automated database backups in Kubernetes environments. It creates independent CronJobs for each configured database, performing regular dumps and uploading them to S3-compatible storage.
+**Dumpscript** is a complete solution for automated database backups in Kubernetes environments. It creates independent CronJobs for each configured database, performing regular dumps and uploading them to S3-compatible storage or Azure Blob Storage.
 
 ## Features
 
@@ -12,7 +12,7 @@ A Helm Chart for automating PostgreSQL, MySQL/MariaDB and MongoDB database backu
 - ✅ **Runtime configurable client versions**: No need to rebuild images
 - ✅ **Multiple backup schedules**: Support for daily, weekly, monthly, and yearly backups per database
 - ✅ **Independent jobs**: Each database runs in a separate CronJob
-- ✅ **Object Storage**: Automatic upload to Object Storage (AWS S3, Azure, MinIO, DigitalOcean Spaces)
+- ✅ **Multiple storage backends**: Native support for S3-compatible storage (AWS S3, MinIO, DigitalOcean Spaces) and Azure Blob Storage
 - ✅ **Flexible authentication**: Support for Kubernetes secrets or direct values
 - ✅ **Custom scheduling**: Individual cron expressions per backup type
 - ✅ **Custom arguments**: Database-specific dump options
@@ -87,7 +87,7 @@ databases:
         mountPath: /dumpscript
         readOnly: false
 
-  # MariaDB with secrets
+  # MariaDB with secrets (S3 backend)
   - type: mariadb
     version: "11.4"  # MariaDB client version
     periodicity:
@@ -111,6 +111,28 @@ databases:
       - name: temp-data
         mountPath: /dumpscript
         readOnly: false
+
+  # MySQL with Azure Blob Storage backend
+  - type: mysql
+    version: "8.0"
+    periodicity:
+      - type: daily
+        retentionDays: 7
+        schedule: "0 3 * * *"  # Every day at 3:00 AM
+    connectionInfo:
+      host: "mysql.example.com"
+      username: "backup_user"
+      password: "secret_password"
+      database: "app_db"
+      port: 3306
+    objectStorage:
+      backend: "azure"
+      azure:
+        storageAccount: "mystorageaccount"
+        storageKey: "mybase64encodedkey..."
+        container: "db-backups"
+        prefix: "mysql/production"
+    extraArgs: "--single-transaction --routines"
 
 # Slack notifications
 notifications:
@@ -337,6 +359,16 @@ kubectl create secret generic s3-credentials-keys \
   --from-literal=bucketPrefix=database-dumps/ \
   --from-literal=accessKeyId=AKIAIOSFODNN7EXAMPLE \
   --from-literal=secretAccessKey=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+
+# Secret for Azure Blob Storage (using storage account key)
+kubectl create secret generic azure-storage-credentials \
+  --from-literal=storageAccount=mystorageaccount \
+  --from-literal=storageKey=mybase64encodedstoragekey...
+
+# Secret for Azure Blob Storage (using SAS token)
+kubectl create secret generic azure-storage-credentials-sas \
+  --from-literal=storageAccount=mystorageaccount \
+  --from-literal=sasToken="sv=2021-06-08&ss=b&srt=sco&sp=rwdlac&se=2026-01-01T00:00:00Z&sig=..."
 ```
 
 ## Storage and Volumes
@@ -513,15 +545,26 @@ If you encounter storage-related failures:
 | `databases[].connectionInfo.database` | Database name | ✅* |
 | `databases[].connectionInfo.port` | Database port | ✅* |
 | `databases[].connectionInfo.secretName` | Secret name with credentials | ✅** |
-| `databases[].s3.region` | Object Storage region (e.g. us-west-2, eastus) | ✅* |
-| `databases[].s3.bucket` | Object Storage bucket name (or container for Azure) | ✅* |
-| `databases[].s3.bucketPrefix` | Bucket prefix | ❌ |
-| `databases[].s3.secretName` | Object Storage credentials secret name | ✅** |
-| `databases[].s3.endpointUrl` | Custom Object Storage endpoint URL for S3-compatible storage | ❌ |
+| `databases[].objectStorage.backend` | Storage backend (`s3` or `azure`) | ❌ (default: `s3`) |
+| **S3 backend** | | |
+| `databases[].objectStorage.region` | S3 region (e.g. us-west-2) | ✅* |
+| `databases[].objectStorage.bucket` | S3 bucket name | ✅* |
+| `databases[].objectStorage.bucketPrefix` | S3 key prefix | ❌ |
+| `databases[].objectStorage.secretName` | Secret with S3 credentials (keys: `accessKeyId`, `secretAccessKey`) | ✅** |
+| `databases[].objectStorage.endpointUrl` | Custom S3 endpoint URL (MinIO, DigitalOcean Spaces) | ❌ |
+| **Azure backend** | | |
+| `databases[].objectStorage.azure.storageAccount` | Azure storage account name | ✅* |
+| `databases[].objectStorage.azure.storageKey` | Azure storage account access key | ✅*** |
+| `databases[].objectStorage.azure.sasToken` | Azure SAS token (alternative to storageKey) | ✅*** |
+| `databases[].objectStorage.azure.container` | Azure Blob container name | ✅* |
+| `databases[].objectStorage.azure.prefix` | Blob key prefix | ❌ |
+| `databases[].objectStorage.azure.secretName` | Secret with Azure credentials (keys: `storageAccount`, `storageKey` or `sasToken`) | ✅** |
+| **General** | | |
 | `databases[].extraArgs` | Extra arguments for dump | ❌ |
 
-*\* Required when `secretName` is not provided*  
+*\* Required when `secretName` is not provided*
 *\*\* Required when direct values are not provided*
+*\*\*\* One of `storageKey` or `sasToken` is required for Azure backend*
 
 ### Slack Notifications
 
@@ -900,13 +943,13 @@ Below is an example of a minimal IAM policy for S3 access:
 
 Replace `your-bucket-name` with the actual name of your S3 bucket. Granting only these permissions ensures the tool can perform all backup, restore, and cleanup operations securely.
 
-## S3-Compatible Storage (Azure, MinIO, DigitalOcean Spaces)
+## Storage Backends
 
-DumpScript supports any S3-compatible storage provider via the `s3.endpointUrl` parameter. This allows you to upload backups to Azure Blob Storage, MinIO, DigitalOcean Spaces, Backblaze B2, and other providers that implement the S3 API.
+DumpScript supports two storage backends, configured per database via `objectStorage.backend`.
 
-### Azure Blob Storage
+### Azure Blob Storage (native)
 
-Azure Blob Storage offers S3-compatible API access. Use the storage account name as the access key ID and the storage account key as the secret access key.
+Use `backend: "azure"` for native Azure Blob Storage support. This does not require S3-compatible API access.
 
 ```yaml
 databases:
@@ -919,20 +962,66 @@ databases:
     connectionInfo:
       secretName: "db-credentials"
     objectStorage:
-      region: "eastus"
-      bucket: "my-container"
-      bucketPrefix: "backups/postgres"
-      secretName: "azure-s3-credentials"
-      endpointUrl: "https://<storage-account>.blob.core.windows.net"
+      backend: "azure"
+      azure:
+        storageAccount: "mystorageaccount"
+        storageKey: "mybase64encodedkey..."
+        container: "db-backups"
+        prefix: "postgres/production"
 ```
 
-Create the secret with Azure credentials:
+#### Azure Credentials via Kubernetes Secret
 
 ```bash
-kubectl create secret generic azure-s3-credentials \
-  --from-literal=accessKeyId=<storage-account-name> \
-  --from-literal=secretAccessKey=<storage-account-key>
+kubectl create secret generic azure-storage-credentials \
+  --from-literal=storageAccount=mystorageaccount \
+  --from-literal=storageKey=mybase64encodedkey...
 ```
+
+```yaml
+objectStorage:
+  backend: "azure"
+  azure:
+    container: "db-backups"
+    prefix: "postgres/production"
+    secretName: "azure-storage-credentials"
+```
+
+#### Azure with SAS Token
+
+```yaml
+objectStorage:
+  backend: "azure"
+  azure:
+    storageAccount: "mystorageaccount"
+    sasToken: "sv=2021-06-08&ss=b&srt=sco&sp=rwdlac&se=2026-01-01T00:00:00Z&sig=..."
+    container: "db-backups"
+    prefix: "postgres/production"
+```
+
+#### Azure RBAC Requirements
+
+Assign the **Storage Blob Data Contributor** role to the identity:
+
+```bash
+az role assignment create \
+  --assignee "<principal-id>" \
+  --role "Storage Blob Data Contributor" \
+  --scope "/subscriptions/<sub-id>/resourceGroups/<rg>/providers/Microsoft.Storage/storageAccounts/<account>"
+```
+
+For Kubernetes with Azure Workload Identity:
+
+```yaml
+serviceAccount:
+  create: true
+  annotations:
+    azure.workload.identity/client-id: "<azure-client-id>"
+```
+
+### S3-Compatible Storage (MinIO, DigitalOcean Spaces)
+
+DumpScript supports any S3-compatible storage provider via the `objectStorage.endpointUrl` parameter.
 
 ### MinIO
 
@@ -1002,8 +1091,9 @@ shasum -a 256 dumpscript-<version>.tgz
 3. Version verification: Installation is verified and the client version is logged.
 4. Database operations: Dump/restore scripts run with the correct client for each engine.
 5. Multiple schedules: Each database supports independent schedules with distinct retention policies.
-6. Object Storage path structure: Dumps are uploaded to `s3://$S3_BUCKET/$S3_PREFIX/$PERIODICITY/$YEAR/$MONTH/$DAY/$DUMP_FILE_GZ`.
-7. Notifications: Optional Slack notifications for backup status.
+6. Storage upload: Dumps are uploaded using [rclone](https://rclone.org/) to the configured storage backend (S3 or Azure Blob Storage), with automatic multipart upload, retries, and chunked transfers.
+7. Path structure: `<prefix>/<periodicity>/<year>/<month>/<day>/<dump_file>` — identical for both backends.
+8. Notifications: Optional Slack notifications for backup status.
 
 ## Full Instance Dump/Restore
 

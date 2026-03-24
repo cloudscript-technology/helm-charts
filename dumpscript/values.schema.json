@@ -316,29 +316,72 @@
         },
         "helm-values.databases.objectStorage": {
             "type": "object",
-            "description": "S3-compatible storage settings for the backup",
+            "description": "Storage backend settings for the backup (S3 or Azure Blob Storage)",
             "additionalProperties": false,
             "properties": {
+                "backend": {
+                    "type": "string",
+                    "description": "Storage backend: 's3' (default) or 'azure'",
+                    "enum": ["s3", "azure"],
+                    "default": "s3"
+                },
                 "region": {
                     "type": "string",
-                    "description": "Region for the Object Storage bucket (e.g. us-west-2, eastus)"
+                    "description": "Region for the S3 bucket (e.g. us-west-2). Used with S3 backend only."
                 },
                 "bucket": {
                     "type": "string",
-                    "description": "Object Storage bucket name (or container name for Azure Blob Storage)"
+                    "description": "S3 bucket name. Used with S3 backend only."
                 },
                 "bucketPrefix": {
                     "type": "string",
-                    "description": "Prefix for the database dump in the Object Storage bucket"
+                    "description": "Prefix for the database dump in the S3 bucket. Used with S3 backend only."
                 },
                 "secretName": {
                     "type": "string",
-                    "description": "Name of the Kubernetes secret containing the Object Storage credentials (keys: accessKeyId, secretAccessKey)"
+                    "description": "Name of the Kubernetes secret containing S3 credentials (keys: accessKeyId, secretAccessKey). Used with S3 backend only."
                 },
                 "endpointUrl": {
                     "type": "string",
-                    "description": "Custom Object Storage endpoint URL for S3-compatible storage (e.g. Azure Blob Storage, MinIO, DigitalOcean Spaces)",
+                    "description": "Custom S3 endpoint URL for S3-compatible storage (e.g. MinIO, DigitalOcean Spaces). Used with S3 backend only.",
                     "default": ""
+                },
+                "azure": {
+                    "type": "object",
+                    "description": "Azure Blob Storage settings. Used with azure backend only.",
+                    "additionalProperties": false,
+                    "properties": {
+                        "storageAccount": {
+                            "type": "string",
+                            "description": "Azure storage account name",
+                            "default": ""
+                        },
+                        "storageKey": {
+                            "type": "string",
+                            "description": "Azure storage account access key (alternative to sasToken)",
+                            "default": ""
+                        },
+                        "sasToken": {
+                            "type": "string",
+                            "description": "Azure SAS token (alternative to storageKey)",
+                            "default": ""
+                        },
+                        "container": {
+                            "type": "string",
+                            "description": "Azure Blob container name",
+                            "default": ""
+                        },
+                        "prefix": {
+                            "type": "string",
+                            "description": "Prefix for the database dump in the Azure container",
+                            "default": ""
+                        },
+                        "secretName": {
+                            "type": "string",
+                            "description": "Name of the Kubernetes secret containing Azure credentials (keys: storageAccount, storageKey or sasToken)",
+                            "default": ""
+                        }
+                    }
                 }
             }
         },
