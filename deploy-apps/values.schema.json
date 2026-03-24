@@ -114,6 +114,55 @@
               }
             }
           },
+          "service": {
+            "type": "object",
+            "description": "Service configuration. Auto-created for Deployment/StatefulSet when ports are defined. Skipped if no ports (container or service) are available.",
+            "properties": {
+              "enabled": {
+                "type": "boolean",
+                "description": "Explicitly enable or disable Service creation. When omitted, auto-enabled for Deployment/StatefulSet if ports are defined."
+              },
+              "type": {
+                "type": "string",
+                "enum": ["ClusterIP", "NodePort", "LoadBalancer", "ExternalName"]
+              },
+              "clusterIP": { "type": "string" },
+              "sessionAffinity": { "type": "string" },
+              "externalTrafficPolicy": { "type": "string" },
+              "loadBalancerIP": { "type": "string" },
+              "loadBalancerSourceRanges": {
+                "type": "array",
+                "items": { "type": "string" }
+              },
+              "ports": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": { "type": "string" },
+                    "port": { "type": "integer" },
+                    "targetPort": {
+                      "oneOf": [
+                        { "type": "string" },
+                        { "type": "integer" }
+                      ]
+                    },
+                    "protocol": { "type": "string", "enum": ["TCP", "UDP", "SCTP"] },
+                    "nodePort": { "type": "integer" }
+                  },
+                  "required": ["port"]
+                }
+              },
+              "annotations": {
+                "type": "object",
+                "additionalProperties": { "type": "string" }
+              },
+              "labels": {
+                "type": "object",
+                "additionalProperties": { "type": "string" }
+              }
+            }
+          },
           "kedaScaling": {
             "type": "object",
             "description": "KEDA ScaledObject configuration for event-driven autoscaling",

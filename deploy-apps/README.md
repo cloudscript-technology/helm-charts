@@ -1001,7 +1001,7 @@ apps:
 | `apps[].replicaCount` | Número de réplicas | Não (padrão: 1) |
 | `apps[].ports` | Portas do container | Não |
 | `apps[].env` | Variáveis de ambiente | Não |
-| `apps[].service.enabled` | Criar Service | Não (auto para deployment/statefulset) |
+| `apps[].service.enabled` | Criar Service. Auto-habilitado para deployment/statefulset quando `ports` estão definidas. Se não houver `ports` nem `service.ports`, o Service não é criado (evita erro de spec.ports obrigatório) | Não |
 | `apps[].ingress.enabled` | Criar Ingress | Não (padrão: false) |
 | `apps[].autoscaling.enabled` | Habilitar HPA | Não (padrão: false) |
 | `apps[].autoscaling.minReplicas` | Réplicas mínimas (HPA) | Não (padrão: 1) |

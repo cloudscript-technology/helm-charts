@@ -2,8 +2,8 @@ apiVersion: v2
 name: deploy-apps
 description: Helm chart flexível para deploy de múltiplas aplicações (Deployment, StatefulSet, CronJob, Job) com suporte a External Secrets e KEDA
 type: application
-version: 0.1.11
-appVersion: "0.1.11"
+version: 0.1.12
+appVersion: "0.1.12"
 kubeVersion: ">= 1.27.0-0"
 home: https://cloudscript.com.br
 icon: https://charts.cloudscript.com.br/helm-charts/deploy-apps/cloudscript-logo.png
@@ -25,8 +25,8 @@ maintainers:
 dependencies: []
 annotations:
   artifacthub.io/changes: |
-    - kind: added
-      description: Support per-route gatewayRef override in HTTPRoute (allows routing to external gateways)
+    - kind: fixed
+      description: Skip Service creation for Deployments/StatefulSets without ports defined (prevents invalid spec.ports error)
   artifacthub.io/displayName: "Deploy Apps"
   artifacthub.io/license: "Apache-2.0"
   artifacthub.io/provider: "Cloudscript"

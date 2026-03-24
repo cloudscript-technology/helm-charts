@@ -263,6 +263,17 @@ Returns: "true" or "false" as string
 {{- $shouldHave = .app.service.enabled -}}
 {{- end -}}
 {{- end -}}
+{{- if $shouldHave -}}
+{{- $hasPorts := false -}}
+{{- if and .app.service .app.service.ports -}}
+{{- $hasPorts = true -}}
+{{- else if .app.ports -}}
+{{- $hasPorts = true -}}
+{{- end -}}
+{{- if not $hasPorts -}}
+{{- $shouldHave = false -}}
+{{- end -}}
+{{- end -}}
 {{- $shouldHave -}}
 {{- end }}
 
