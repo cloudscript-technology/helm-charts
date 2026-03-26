@@ -19,8 +19,8 @@ metadata:
 spec:
   accessModes:
     {{- toYaml ($pvc.accessModes | default (list "ReadWriteOnce")) | nindent 4 }}
-  {{- if $pvc.storageClass }}
-  storageClassName: {{ $pvc.storageClass }}
+  {{- if hasKey $pvc "storageClass" }}
+  storageClassName: {{ $pvc.storageClass | quote }}
   {{- end }}
   resources:
     requests:
