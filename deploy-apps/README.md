@@ -11,7 +11,7 @@ Helm chart flexível para deploy de múltiplas aplicações (Deployment, Statefu
 - **RBAC Flexível**: ServiceAccount e RBAC global ou per-app
 - **Probes**: Configuração completa de liveness, readiness e startup probes
 - **Networking**: Service, Ingress e Gateway API (Envoy) configuráveis por aplicação
-- **Persistence**: Suporte a PersistentVolumeClaims e volumeClaimTemplates
+- **Persistence**: Suporte a PersistentVolumes, PersistentVolumeClaims e volumeClaimTemplates
 - **Autoscaling**: HorizontalPodAutoscaler para Deployments e StatefulSets
 - **KEDA**: Autoscaling event-driven com suporte a SQS, Redis, Kafka, RabbitMQ, Prometheus e mais
 
@@ -313,7 +313,52 @@ apps:
         memory: 512Mi
 ```
 
-### Exemplo 4: StatefulSet com Persistence
+### Exemplo 4: Deployment com PersistentVolume (S3 CSI)
+
+```yaml
+apps:
+  - name: api
+    enabled: true
+    type: deployment
+    replicaCount: 2
+
+    image:
+      repository: mycompany/api
+      tag: v1.0.0
+
+    persistentVolumes:
+      enabled: true
+      items:
+        - name: s3-data-pv
+          spec:
+            capacity:
+              storage: 2Gi
+            accessModes:
+              - ReadWriteMany
+            mountOptions:
+              - allow-delete
+              - region us-east-2
+              - prefix myapp/
+            csi:
+              driver: s3.csi.aws.com
+              volumeHandle: myapp-s3-volume
+              volumeAttributes:
+                bucketName: my-bucket
+                authenticationSource: pod
+
+    persistence:
+      enabled: true
+      items:
+        - name: s3-data
+          size: 2Gi
+          accessModes:
+            - ReadWriteMany
+          storageClass: ""
+          volumeName: mycompany-api-api-s3-data-pv
+          mountPath: /data/s3
+```
+
+### Exemplo 5: StatefulSet com Persistence
 
 ```yaml
 apps:
@@ -405,7 +450,7 @@ apps:
         memory: 2Gi
 ```
 
-### Exemplo 5: Multi-App (Deployment + CronJob)
+### Exemplo 6: Multi-App (Deployment + CronJob)
 
 ```yaml
 apps:
@@ -488,7 +533,7 @@ apps:
         memory: 512Mi
 ```
 
-### Exemplo 6: KEDA - Autoscaling Event-Driven
+### Exemplo 7: KEDA - Autoscaling Event-Driven
 
 O chart suporta KEDA ScaledObject para autoscaling baseado em eventos (filas SQS, Redis, Kafka, etc.).
 
@@ -1020,6 +1065,13 @@ apps:
 | `apps[].kedaScaling.triggerAuthentication.secretTargetRef` | Refs a secrets para autenticação | Não |
 | `apps[].kedaScaling.triggers` | Array de triggers KEDA | Não |
 | `apps[].gatewayApi.httpRoutes[].gatewayRef` | Per-route override para referenciar outro Gateway | Não |
+| `apps[].persistentVolumes.enabled` | Habilitar criação de PersistentVolumes | Não (padrão: false) |
+| `apps[].persistentVolumes.items` | Array de PVs a criar | Não |
+| `apps[].persistentVolumes.items[].name` | Nome do PV (sufixo, prefixado com app fullname) | Sim |
+| `apps[].persistentVolumes.items[].spec` | Spec completo do PV (capacity, accessModes, csi, etc.) | Sim |
+| `apps[].persistentVolumes.items[].annotations` | Annotations do PV | Não |
+| `apps[].persistence.enabled` | Habilitar criação de PVCs | Não (padrão: false) |
+| `apps[].persistence.items` | Array de PVCs a criar | Não |
 | `apps[].annotations` | Annotations no metadata do recurso (ex: ArgoCD hooks) | Não |
 | `apps[].labels` | Labels em todos os recursos | Não |
 | `apps[].podLabels` | Labels apenas nos pods | Não |

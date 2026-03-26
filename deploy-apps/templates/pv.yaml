@@ -1,0 +1,21 @@
+{{- range $app := .Values.apps }}
+{{- if and $app.enabled $app.persistentVolumes }}
+{{- if $app.persistentVolumes.enabled }}
+{{- range $pv := $app.persistentVolumes.items }}
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ include "deploy-apps.app.pvName" (dict "root" $ "app" $app "pv" $pv) }}
+  labels:
+    {{- include "deploy-apps.app.labels" (dict "root" $ "app" $app) | nindent 4 }}
+  {{- with $pv.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- toYaml $pv.spec | nindent 2 }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

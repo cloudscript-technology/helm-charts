@@ -219,6 +219,24 @@ apps: []
 #    # - name: cache
 #    #   mountPath: /tmp/cache
 #
+#    # Persistent Volumes
+#    persistentVolumes:
+#      enabled: false
+#      items: []
+#      # - name: data-pv
+#      #   annotations: {}
+#      #   spec:
+#      #     capacity:
+#      #       storage: 10Gi
+#      #     accessModes:
+#      #       - ReadWriteOnce
+#      #     storageClassName: ""
+#      #     csi:
+#      #       driver: s3.csi.aws.com
+#      #       volumeHandle: my-volume
+#      #       volumeAttributes:
+#      #         bucketName: my-bucket
+#
 #    # Persistent Volume Claims (for Deployment/StatefulSet)
 #    persistence:
 #      enabled: false

@@ -317,6 +317,15 @@ Usage: {{ include "deploy-apps.app.configMapName" (dict "root" $ "app" $app "cm"
 {{- end }}
 
 {{/*
+Create PV name
+Usage: {{ include "deploy-apps.app.pvName" (dict "root" $ "app" $app "pv" $pvItem) }}
+*/}}
+{{- define "deploy-apps.app.pvName" -}}
+{{- $appFullname := include "deploy-apps.app.fullname" (dict "root" .root "app" .app) -}}
+{{- printf "%s-%s" $appFullname .pv.name | trunc 63 | trimSuffix "-" -}}
+{{- end }}
+
+{{/*
 Create PVC name
 Usage: {{ include "deploy-apps.app.pvcName" (dict "root" $ "app" $app "pvc" $pvcItem) }}
 */}}

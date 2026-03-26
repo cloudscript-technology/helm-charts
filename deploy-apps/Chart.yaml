@@ -2,8 +2,8 @@ apiVersion: v2
 name: deploy-apps
 description: Helm chart flexível para deploy de múltiplas aplicações (Deployment, StatefulSet, CronJob, Job) com suporte a External Secrets e KEDA
 type: application
-version: 0.1.12
-appVersion: "0.1.12"
+version: 0.1.13
+appVersion: "0.1.13"
 kubeVersion: ">= 1.27.0-0"
 home: https://cloudscript.com.br
 icon: https://charts.cloudscript.com.br/helm-charts/deploy-apps/cloudscript-logo.png
@@ -25,8 +25,8 @@ maintainers:
 dependencies: []
 annotations:
   artifacthub.io/changes: |
-    - kind: fixed
-      description: Skip Service creation for Deployments/StatefulSets without ports defined (prevents invalid spec.ports error)
+    - kind: added
+      description: Add PersistentVolume support via apps[].persistentVolumes for standalone PV creation from values
   artifacthub.io/displayName: "Deploy Apps"
   artifacthub.io/license: "Apache-2.0"
   artifacthub.io/provider: "Cloudscript"

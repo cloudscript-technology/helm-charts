@@ -235,6 +235,59 @@
               }
             }
           },
+          "persistentVolumes": {
+            "type": "object",
+            "description": "PersistentVolume resources for the app",
+            "properties": {
+              "enabled": { "type": "boolean" },
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["name", "spec"],
+                  "properties": {
+                    "name": { "type": "string" },
+                    "annotations": {
+                      "type": "object",
+                      "additionalProperties": { "type": "string" }
+                    },
+                    "spec": { "type": "object" }
+                  }
+                }
+              }
+            }
+          },
+          "persistence": {
+            "type": "object",
+            "description": "PersistentVolumeClaim resources for the app",
+            "properties": {
+              "enabled": { "type": "boolean" },
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": { "type": "string" },
+                    "existingClaim": { "type": "string" },
+                    "size": { "type": "string" },
+                    "storageClass": { "type": "string" },
+                    "accessModes": {
+                      "type": "array",
+                      "items": { "type": "string" }
+                    },
+                    "mountPath": { "type": "string" },
+                    "subPath": { "type": "string" },
+                    "annotations": {
+                      "type": "object",
+                      "additionalProperties": { "type": "string" }
+                    },
+                    "selector": { "type": "object" },
+                    "volumeName": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
           "gatewayApi": {
             "type": "object",
             "description": "Gateway API (Envoy) configuration",
