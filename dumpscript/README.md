@@ -210,12 +210,14 @@ MongoDB backup notes:
 - **15**: PostgreSQL 15.x
 - **16**: PostgreSQL 16.x (default)
 - **17**: PostgreSQL 17.x
+- **18**: PostgreSQL 18.x
 
 **Version Availability by Alpine Base Image:**
 - **Alpine 3.20**: PostgreSQL versions `14`, `15`, `16`
 - **Alpine 3.21**: PostgreSQL versions `15`, `16`, `17`
+- **Alpine edge** (pinned digest): PostgreSQL versions `16`, `17`, `18`
 
-> **Note**: PostgreSQL versions 14 and below are only available on Alpine 3.20, and PostgreSQL 17 is only available on Alpine 3.21. The container will automatically use the appropriate Alpine version based on the requested PostgreSQL version.
+> **Note**: To use PostgreSQL 18, set `image.tag` to a `*-alpine-edge` tag (e.g. `v0.0.39-alpine-edge`). The client version should match your PostgreSQL server version to avoid compatibility issues.
 
 ### MySQL/MariaDB Versions
 - **5.7**: MySQL 5.7
