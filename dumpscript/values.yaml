@@ -29,7 +29,7 @@ databases:
     # Version of the PostgreSQL client (13, 14, 15, 16, 17, 18)
     # Use alpine-edge image tag for PostgreSQL 18
     # This version should match your PostgreSQL server version to avoid compatibility issues
-    version: "17"
+    version: "18"
     # Backup periodicity: daily, weekly, monthly, yearly
     periodicity:
     - type: daily
