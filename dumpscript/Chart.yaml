@@ -2,7 +2,7 @@ apiVersion: v2
 name: dumpscript
 description: The DumpScript is a unified system for backup and restore of MySQL, PostgreSQL and MongoDB databases to S3-compatible storage and Azure Blob Storage.
 type: application
-version: 1.7.0
+version: 1.8.0
 appVersion: "v0.0.38-alpine-3-21"
 kubeVersion: ">= 1.27.0-0"
 home: https://cloudscript.com.br
@@ -52,4 +52,4 @@ annotations:
       url: https://cloudscript.com.br
     - name: Source
       url: https://github.com/cloudscript-technology/helm-charts
-  artifacthub.io/valuesSchema: "https://charts.cloudscript.com.br/dumpscript/1.7.0/values-schema.json"
+  artifacthub.io/valuesSchema: "https://charts.cloudscript.com.br/dumpscript/1.8.0/values-schema.json"
