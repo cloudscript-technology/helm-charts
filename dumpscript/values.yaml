@@ -25,7 +25,7 @@ databases:
       # repository: ghcr.io/cloudscript-technology/dumpscript
       # pullPolicy: IfNotPresent
       # tag: "xyz-alpine-3.21"         # PostgreSQL 15, 16, 17
-      # tag: "xyz-alpine-edge"         # PostgreSQL 16, 17, 18
+      # tag: "xyz-alpine-edge"         # PostgreSQL 16, 17, 18 (required for 18)
     # Version of the PostgreSQL client (13, 14, 15, 16, 17, 18)
     # Use alpine-edge image tag for PostgreSQL 18
     # This version should match your PostgreSQL server version to avoid compatibility issues
