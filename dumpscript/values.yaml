@@ -34,13 +34,13 @@ databases:
     periodicity:
     - type: daily
       retentionDays: 7
-      schedule: "0 1 * * *" # Every day at 1am
+      schedule: "0 1 * * *"  # Every day at 1am
     - type: weekly
       retentionDays: 30
-      schedule: "0 2 * * *" # Every day at 2am
+      schedule: "0 2 * * *"  # Every day at 2am
     - type: monthly
       retentionDays: 365
-      schedule: "0 3 * * *" # Every day at 3am
+      schedule: "0 3 * * *"  # Every day at 3am
     # Database connection information
     connectionInfo:
       # Database host (if secretName is not provided)
@@ -122,13 +122,13 @@ databases:
     periodicity:
     - type: daily
       retentionDays: 7
-      schedule: "0 1 * * *" # Every day at 1am
+      schedule: "0 1 * * *"  # Every day at 1am
     - type: weekly
       retentionDays: 30
-      schedule: "0 2 * * *" # Every day at 2am
+      schedule: "0 2 * * *"  # Every day at 2am
     - type: monthly
       retentionDays: 365
-      schedule: "0 3 * * *" # Every day at 3am
+      schedule: "0 3 * * *"  # Every day at 3am
     # Database connection information
     connectionInfo:
       # Database host (if secretName is not provided)
@@ -198,7 +198,7 @@ serviceAccount:
   # Name of the service account
   name: ""
   # Namespace for the service account. Required if create=true
-  namespace: "" 
+  namespace: ""
 
 # Annotations for the pod
 podAnnotations: {}
