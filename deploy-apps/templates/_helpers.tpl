@@ -317,6 +317,46 @@ Usage: {{ include "deploy-apps.app.configMapName" (dict "root" $ "app" $app "cm"
 {{- end }}
 
 {{/*
+Generate Dapr sidecar annotations from app.dapr config
+Usage: {{ include "deploy-apps.app.daprAnnotations" (dict "root" $ "app" $app) }}
+*/}}
+{{- define "deploy-apps.app.daprAnnotations" -}}
+{{- $dapr := .app.dapr | default dict -}}
+{{- if $dapr.enabled -}}
+dapr.io/enabled: "true"
+dapr.io/app-id: {{ $dapr.appId | default .app.name | quote }}
+{{- if $dapr.appPort }}
+dapr.io/app-port: {{ $dapr.appPort | toString | quote }}
+{{- else if .app.ports }}
+dapr.io/app-port: {{ (first .app.ports).containerPort | toString | quote }}
+{{- end }}
+{{- if $dapr.appProtocol }}
+dapr.io/app-protocol: {{ $dapr.appProtocol | quote }}
+{{- end }}
+{{- if $dapr.enableApiLogging }}
+dapr.io/enable-api-logging: {{ $dapr.enableApiLogging | toString | quote }}
+{{- end }}
+{{- if $dapr.config }}
+dapr.io/config: {{ $dapr.config | quote }}
+{{- end }}
+{{- with $dapr.sidecar }}
+{{- if .cpuRequest }}
+dapr.io/sidecar-cpu-request: {{ .cpuRequest | quote }}
+{{- end }}
+{{- if .memoryRequest }}
+dapr.io/sidecar-memory-request: {{ .memoryRequest | quote }}
+{{- end }}
+{{- if .cpuLimit }}
+dapr.io/sidecar-cpu-limit: {{ .cpuLimit | quote }}
+{{- end }}
+{{- if .memoryLimit }}
+dapr.io/sidecar-memory-limit: {{ .memoryLimit | quote }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{/*
 Create PV name
 Usage: {{ include "deploy-apps.app.pvName" (dict "root" $ "app" $app "pv" $pvItem) }}
 */}}

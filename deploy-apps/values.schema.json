@@ -163,6 +163,27 @@
               }
             }
           },
+          "dapr": {
+            "type": "object",
+            "description": "Dapr sidecar injection configuration",
+            "properties": {
+              "enabled": { "type": "boolean" },
+              "appId": { "type": "string" },
+              "appPort": { "type": "integer", "minimum": 0 },
+              "appProtocol": { "type": "string", "enum": ["http", "grpc", "https", "h2c"] },
+              "enableApiLogging": { "type": "boolean" },
+              "config": { "type": "string" },
+              "sidecar": {
+                "type": "object",
+                "properties": {
+                  "cpuRequest": { "type": "string" },
+                  "memoryRequest": { "type": "string" },
+                  "cpuLimit": { "type": "string" },
+                  "memoryLimit": { "type": "string" }
+                }
+              }
+            }
+          },
           "kedaScaling": {
             "type": "object",
             "description": "KEDA ScaledObject configuration for event-driven autoscaling",

@@ -357,6 +357,26 @@ apps: []
 #      #   name: shared-gateway
 #      #   namespace: networking
 #
+#    # Dapr sidecar injection
+#    dapr:
+#      enabled: false
+#      # App ID used by Dapr for service discovery and pub/sub (defaults to app name)
+#      appId: ""
+#      # Port the app listens on (defaults to first containerPort)
+#      appPort: 0
+#      # Protocol: http | grpc | https | h2c
+#      appProtocol: http
+#      # Enable Dapr API request/response logging
+#      enableApiLogging: false
+#      # Name of a Dapr Configuration CR to apply
+#      config: ""
+#      # Dapr sidecar resource overrides
+#      sidecar:
+#        cpuRequest: 100m
+#        memoryRequest: 128Mi
+#        cpuLimit: 500m
+#        memoryLimit: 256Mi
+#
 #    # Per-app ServiceAccount (overrides global)
 #    serviceAccount:
 #      # Create per-app service account
