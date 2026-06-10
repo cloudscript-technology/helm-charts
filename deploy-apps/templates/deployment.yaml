@@ -30,6 +30,7 @@ spec:
         {{- if $annotations }}
         {{- $annotations | nindent 8 }}
         {{- end }}
+        {{- include "deploy-apps.app.daprAnnotations" (dict "root" $ "app" $app) | nindent 8 }}
       labels:
         {{- include "deploy-apps.app.podLabels" (dict "root" $ "app" $app) | nindent 8 }}
     spec:
