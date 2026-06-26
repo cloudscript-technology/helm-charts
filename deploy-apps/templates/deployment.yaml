@@ -50,6 +50,10 @@ spec:
       securityContext:
         {{- $podSecurityContext | nindent 8 }}
       {{- end }}
+      {{- with $app.initContainers }}
+      initContainers:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: {{ $app.name }}
           {{- $securityContext := include "deploy-apps.app.securityContext" (dict "root" $ "app" $app) }}
