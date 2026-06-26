@@ -48,3 +48,20 @@ apps:
       requests:
         cpu: 50m
         memory: 64Mi
+
+    persistence:
+      enabled: true
+      items:
+        # Default naming: <appFullname>-<name>
+        - name: data
+          size: 1Gi
+          accessModes:
+            - ReadWriteOnce
+          mountPath: /data
+        # Literal PVC name via fullnameOverride
+        - name: shared
+          fullnameOverride: legacy-shared-pvc
+          size: 1Gi
+          accessModes:
+            - ReadWriteMany
+          mountPath: /shared
