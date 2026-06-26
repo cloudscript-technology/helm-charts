@@ -328,10 +328,17 @@ Usage: {{ include "deploy-apps.app.pvName" (dict "root" $ "app" $app "pv" $pvIte
 {{/*
 Create PVC name
 Usage: {{ include "deploy-apps.app.pvcName" (dict "root" $ "app" $app "pvc" $pvcItem) }}
+Resolution order:
+  1. existingClaim     -> use the existing claim name as-is (no PVC is rendered)
+  2. fullnameOverride  -> use this literal name (bypasses the <appFullname>-<name> pattern;
+                          useful to adopt pre-existing PVCs by their exact name)
+  3. default           -> <appFullname>-<pvc.name>
 */}}
 {{- define "deploy-apps.app.pvcName" -}}
 {{- if .pvc.existingClaim -}}
 {{- .pvc.existingClaim -}}
+{{- else if .pvc.fullnameOverride -}}
+{{- .pvc.fullnameOverride | trunc 63 | trimSuffix "-" -}}
 {{- else -}}
 {{- $appFullname := include "deploy-apps.app.fullname" (dict "root" .root "app" .app) -}}
 {{- printf "%s-%s" $appFullname .pvc.name | trunc 63 | trimSuffix "-" -}}

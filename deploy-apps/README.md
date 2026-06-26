@@ -1072,6 +1072,9 @@ apps:
 | `apps[].persistentVolumes.items[].annotations` | Annotations do PV | Não |
 | `apps[].persistence.enabled` | Habilitar criação de PVCs | Não (padrão: false) |
 | `apps[].persistence.items` | Array de PVCs a criar | Não |
+| `apps[].persistence.items[].name` | Nome lógico do volume (compõe o nome do PVC e o volumeMount) | Sim |
+| `apps[].persistence.items[].fullnameOverride` | Nome literal do PVC, ignorando o padrão `<appFullname>-<name>`. Útil para adotar um PVC pré-existente pelo nome exato. Ignorado se `existingClaim` estiver definido | Não |
+| `apps[].persistence.items[].existingClaim` | Usa um PVC existente (nenhum PVC é renderizado) | Não |
 | `apps[].annotations` | Annotations no metadata do recurso (ex: ArgoCD hooks) | Não |
 | `apps[].labels` | Labels em todos os recursos | Não |
 | `apps[].podLabels` | Labels apenas nos pods | Não |

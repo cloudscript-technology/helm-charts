@@ -242,8 +242,12 @@ apps: []
 #      enabled: false
 #      items: []
 #      # - name: data
-#      #   # Use existing claim
+#      #   # Use existing claim (no PVC is rendered; claim is mounted as-is)
 #      #   existingClaim: ""
+#      #   # Force a literal PVC name instead of the default <appFullname>-<name>.
+#      #   # Useful to render+manage a PVC matching a pre-existing one so ArgoCD
+#      #   # adopts it in place (e.g. legacy volumes). Ignored if existingClaim is set.
+#      #   fullnameOverride: ""
 #      #   # Size for new PVC
 #      #   size: 10Gi
 #      #   # Storage class

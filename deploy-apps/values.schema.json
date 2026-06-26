@@ -268,6 +268,7 @@
                   "type": "object",
                   "properties": {
                     "name": { "type": "string" },
+                    "fullnameOverride": { "type": "string" },
                     "existingClaim": { "type": "string" },
                     "size": { "type": "string" },
                     "storageClass": { "type": "string" },
