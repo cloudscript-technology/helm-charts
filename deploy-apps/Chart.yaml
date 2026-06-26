@@ -2,8 +2,8 @@ apiVersion: v2
 name: deploy-apps
 description: Helm chart flexível para deploy de múltiplas aplicações (Deployment, StatefulSet, CronJob, Job) com suporte a External Secrets e KEDA
 type: application
-version: 0.2.0
-appVersion: "0.2.0"
+version: 0.2.1
+appVersion: "0.2.1"
 kubeVersion: ">= 1.27.0-0"
 home: https://cloudscript.com.br
 icon: https://charts.cloudscript.com.br/helm-charts/deploy-apps/cloudscript-logo.png
@@ -26,7 +26,7 @@ dependencies: []
 annotations:
   artifacthub.io/changes: |
     - kind: added
-      description: Add apps[].persistence.items[].fullnameOverride to set a literal PVC name (adopt pre-existing PVCs by exact name)
+      description: Add apps[].initContainers passthrough for Deployment and StatefulSet (e.g. fix ownership of mounted RWX/NFS volumes for non-root apps)
   artifacthub.io/displayName: "Deploy Apps"
   artifacthub.io/license: "Apache-2.0"
   artifacthub.io/provider: "Cloudscript"
