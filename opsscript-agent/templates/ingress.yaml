@@ -1,0 +1,31 @@
+{{- if and .Values.webhooksServer.enabled .Values.webhooksServer.ingress.enabled -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "opsscript-agent.fullname" . }}
+  labels:
+    {{- include "opsscript-agent.labels" . | nindent 4 }}
+  {{- with .Values.webhooksServer.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- with .Values.webhooksServer.ingress.className }}
+  ingressClassName: {{ . }}
+  {{- end }}
+  rules:
+    - host: {{ required "webhooksServer.ingress.hostname is required when the ingress is enabled" .Values.webhooksServer.ingress.hostname | quote }}
+      http:
+        paths:
+          - path: {{ .Values.webhooksServer.ingress.path }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "opsscript-agent.fullname" . }}
+                port:
+                  number: {{ .Values.webhooksServer.service.port }}
+  {{- with .Values.webhooksServer.ingress.tls }}
+  tls:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}

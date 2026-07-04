@@ -1,0 +1,10 @@
+# Values used by chart-testing (ct lint) in CI — dummy credentials only.
+config:
+  agentId: ci-test-agent
+credentials:
+  agentToken: ci-test-token
+webhooksServer:
+  enabled: true
+  ingress:
+    enabled: true
+    hostname: alerts.ci.example.com

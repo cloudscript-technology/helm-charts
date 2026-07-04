@@ -1,0 +1,24 @@
+OpsScript Kubernetes Agent installed as release {{ .Release.Name }} in namespace {{ .Release.Namespace }}.
+
+1. Credentials
+{{- if .Values.credentials.existingSecret }}
+   Using existing Secret "{{ .Values.credentials.existingSecret }}" (keys AGENT_TOKEN and, optionally, AGENT_ID).
+{{- else }}
+   The chart created Secret "{{ include "opsscript-agent.credentialsSecretName" . }}" from credentials.agentToken.
+   For GitOps setups, prefer creating the Secret out-of-band and setting credentials.existingSecret:
+     kubectl -n {{ .Release.Namespace }} create secret generic opsscript-agent-credentials \
+       --from-literal=AGENT_ID=<id> --from-literal=AGENT_TOKEN=<token>
+{{- end }}
+
+2. Check the agent
+     kubectl -n {{ .Release.Namespace }} rollout status deploy/{{ include "opsscript-agent.fullname" . }}
+     kubectl -n {{ .Release.Namespace }} logs deploy/{{ include "opsscript-agent.fullname" . }}
+   Within ~30s the agent should appear as ONLINE in OpsScript > Integrations > Kubernetes Agent.
+
+3. Integrations
+   Collections (Elasticsearch, Kubernetes) are configured in the OpsScript UI — the agent
+   hot-reloads its configuration every {{ .Values.config.reloadIntervalSeconds }}s, no restart needed.
+{{- if .Values.webhooksServer.enabled }}
+
+4. Webhook server enabled on port {{ .Values.webhooksServer.port }} (Alertmanager path: {{ .Values.webhooksServer.alertmanagerPath }}).
+{{- end }}

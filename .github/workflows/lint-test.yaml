@@ -7,6 +7,7 @@ on:
       - 'deploy-apps/**'
       - 'dumpscript/**'
       - 'k8s-monitoring-app/**'
+      - 'opsscript-agent/**'
   push:
     branches:
       - main
@@ -15,6 +16,7 @@ on:
       - 'deploy-apps/**'
       - 'dumpscript/**'
       - 'k8s-monitoring-app/**'
+      - 'opsscript-agent/**'
 
 jobs:
   lint-test:
@@ -53,4 +55,6 @@ jobs:
 
       - name: Run chart-testing (install)
         if: steps.list-changed.outputs.changed == 'true'
-        run: ct install --target-branch ${{ github.event.repository.default_branch }} --chart-dirs .
+        # agent charts are excluded: the agent crash-loops by design when the
+        # OpsScript agent server is unreachable, and kind has no server.
+        run: ct install --target-branch ${{ github.event.repository.default_branch }} --chart-dirs . --excluded-charts "agent-script,opsscript-agent"

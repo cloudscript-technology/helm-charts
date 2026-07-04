@@ -1,0 +1,44 @@
+{{- if .Values.rbac.create -}}
+# Least-privilege, read-only access for the Kubernetes collector.
+# Deliberately NO access to Secret contents anywhere in the cluster.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "opsscript-agent.clusterRoleName" . }}
+  labels:
+    {{- include "opsscript-agent.labels" . | nindent 4 }}
+rules:
+  # Cluster inventory: node count/versions and cloud-provider detection
+  # (labels/providerID on nodes)
+  - apiGroups: [""]
+    resources: [nodes]
+    verbs: [get, list]
+  # Workload inventory
+  - apiGroups: [""]
+    resources: [pods]
+    verbs: [get, list]
+  # Cluster identification (EKS aws-auth / cluster-info); restricted by
+  # name — grants no read on any other ConfigMap
+  - apiGroups: [""]
+    resources: [configmaps]
+    resourceNames: [aws-auth, cluster-info]
+    verbs: [get]
+  {{- with .Values.rbac.extraRules }}
+  {{- toYaml . | nindent 2 }}
+  {{- end }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "opsscript-agent.clusterRoleName" . }}
+  labels:
+    {{- include "opsscript-agent.labels" . | nindent 4 }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "opsscript-agent.serviceAccountName" . }}
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: ClusterRole
+  name: {{ include "opsscript-agent.clusterRoleName" . }}
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}

@@ -1,0 +1,114 @@
+{{- include "opsscript-agent.validateCredentials" . -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "opsscript-agent.fullname" . }}
+  labels:
+    {{- include "opsscript-agent.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  # Recreate: the agent is a singleton with server-side collection
+  # checkpoints; two pods during a rolling update would collect twice.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "opsscript-agent.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        {{- if not .Values.credentials.existingSecret }}
+        checksum/credentials: {{ .Values.credentials.agentToken | sha256sum }}
+        {{- end }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "opsscript-agent.labels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "opsscript-agent.serviceAccountName" . }}
+      {{- with .Values.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: health
+              containerPort: {{ .Values.health.port }}
+              protocol: TCP
+            {{- if .Values.webhooksServer.enabled }}
+            - name: webhooks
+              containerPort: {{ .Values.webhooksServer.port }}
+              protocol: TCP
+            {{- end }}
+          {{- with .Values.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          env:
+            - name: ENV
+              value: "production"
+            - name: AGENT_SERVER_URL
+              value: {{ required "config.agentServerUrl is required" .Values.config.agentServerUrl | quote }}
+            {{- with .Values.config.agentId }}
+            - name: AGENT_ID
+              value: {{ . | quote }}
+            {{- end }}
+            - name: LOG_LEVEL
+              value: {{ .Values.config.logLevel | quote }}
+            - name: AGENT_SEARCH_INTERVAL
+              value: {{ .Values.config.searchInterval | quote }}
+            - name: AGENT_RELOAD_INTERVAL_SECONDS
+              value: {{ .Values.config.reloadIntervalSeconds | quote }}
+            - name: HEALTH_PORT
+              value: {{ .Values.health.port | quote }}
+            {{- if .Values.webhooksServer.enabled }}
+            - name: WEBHOOKS_SERVER_ENABLED
+              value: "true"
+            - name: WEBHOOKS_SERVER_PORT
+              value: {{ .Values.webhooksServer.port | quote }}
+            - name: WEBHOOKS_ALERTMANAGER_PATH
+              value: {{ .Values.webhooksServer.alertmanagerPath | quote }}
+            {{- end }}
+            {{- with .Values.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          envFrom:
+            - secretRef:
+                name: {{ include "opsscript-agent.credentialsSecretName" . }}
+            {{- with .Values.extraEnvFrom }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

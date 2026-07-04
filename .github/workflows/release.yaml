@@ -9,6 +9,7 @@ on:
       - "deploy-apps/**"
       - "dumpscript/**"
       - "k8s-monitoring-app/**"
+      - "opsscript-agent/**"
 
 permissions:
   contents: write

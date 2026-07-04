@@ -1,0 +1,40 @@
+apiVersion: v2
+name: opsscript-agent
+description: The OpsScript Kubernetes Agent runs inside the client's Kubernetes cluster, collects data from configured integrations (Elasticsearch, Kubernetes, Alertmanager webhooks) and ships it to the OpsScript platform, where alerts and tickets are created automatically.
+type: application
+version: 1.0.0
+appVersion: "v1.0.0"
+kubeVersion: ">= 1.27.0-0"
+home: https://opsscript.io
+icon: https://charts.cloudscript.com.br/helm-charts/opsscript-agent/opsscript-logo.png
+keywords:
+  - kubernetes
+  - helm
+  - agent
+  - cloudscript
+  - opsscript
+  - monitoring
+  - alerting
+maintainers:
+  - name: Jonathan Schmitt
+    email: jonathan.schmitt@cloudscript.com.br
+  - name: Helias Rodrigues
+    email: helias.rodrigues@cloudscript.com.br
+dependencies: []
+annotations:
+  artifacthub.io/changes: |
+    - kind: added
+      description: First release
+  artifacthub.io/containsSecurityUpdates: "false"
+  artifacthub.io/images: |
+    - name: opsscript-agent
+      image: public.ecr.aws/a3g9d1z6/opsscript-agent:v0.0.54
+  artifacthub.io/displayName: "OpsScript Kubernetes Agent"
+  artifacthub.io/license: "Apache-2.0"
+  artifacthub.io/provider: "Cloudscript"
+  artifacthub.io/links: |
+    - name: OpsScript
+      url: https://opsscript.io
+    - name: Source
+      url: https://github.com/cloudscript-technology/helm-charts
+  artifacthub.io/valuesSchema: "https://charts.cloudscript.com.br/helm-charts/opsscript-agent/1.0.0/values.schema.json"

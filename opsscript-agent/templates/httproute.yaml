@@ -1,0 +1,27 @@
+{{- if and .Values.webhooksServer.enabled .Values.webhooksServer.httpRoute.enabled -}}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ include "opsscript-agent.fullname" . }}
+  labels:
+    {{- include "opsscript-agent.labels" . | nindent 4 }}
+  {{- with .Values.webhooksServer.httpRoute.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  parentRefs:
+    {{- toYaml (required "webhooksServer.httpRoute.parentRefs is required when the httpRoute is enabled" .Values.webhooksServer.httpRoute.parentRefs) | nindent 4 }}
+  {{- with .Values.webhooksServer.httpRoute.hostnames }}
+  hostnames:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: {{ .Values.webhooksServer.httpRoute.path }}
+      backendRefs:
+        - name: {{ include "opsscript-agent.fullname" . }}
+          port: {{ .Values.webhooksServer.service.port }}
+{{- end }}

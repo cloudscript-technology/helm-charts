@@ -1,0 +1,187 @@
+# Default values for opsscript-agent
+
+# The agent is a stateful singleton: collection checkpoints and cron
+# schedules assume a single running instance. Running more than one
+# replica duplicates collections and races the checkpoint cursor.
+# Do not change unless you know what you are doing.
+replicaCount: 1
+
+image:
+  # Image repository
+  repository: public.ecr.aws/a3g9d1z6/opsscript-agent
+  # Image pull policy
+  pullPolicy: IfNotPresent
+  # Image tag. Default is the chart appVersion
+  tag: ""
+
+# Image pull secrets (not needed for the default public registry)
+imagePullSecrets: []
+
+# Override the name of the chart
+nameOverride: ""
+
+# Override the full name of the chart
+fullnameOverride: ""
+
+config:
+  # URL of the OpsScript agent server
+  agentServerUrl: "https://agent.opsscript.io"
+  # ID of the agent, generated when the agent is created in OpsScript
+  # (Integrations > Kubernetes Agent). Not required when the AGENT_ID key
+  # is provided via credentials.existingSecret.
+  agentId: ""
+  # Log level: debug | info | warn | error
+  logLevel: "info"
+  # Initial search window for pull collectors, in seconds (AGENT_SEARCH_INTERVAL)
+  searchInterval: 60
+  # How often the agent re-fetches its integration list from the server,
+  # in seconds. 0 disables hot-reload (AGENT_RELOAD_INTERVAL_SECONDS).
+  reloadIntervalSeconds: 60
+
+credentials:
+  # PREFERRED: name of a pre-existing Secret containing the keys
+  # AGENT_TOKEN (required) and AGENT_ID (optional, overrides config.agentId).
+  # Create it with:
+  #   kubectl create secret generic opsscript-agent-credentials \
+  #     --from-literal=AGENT_ID=<id> --from-literal=AGENT_TOKEN=<token>
+  existingSecret: ""
+  # Alternative: pass the token directly and let the chart create the
+  # Secret. Convenient for a quick start, but the token ends up in your
+  # values/Helm history — avoid in GitOps repositories.
+  agentToken: ""
+
+# Always-on health endpoints (/healthz and /readyz) used by the probes
+health:
+  port: 8081
+
+livenessProbe:
+  httpGet:
+    path: /healthz
+    port: health
+  initialDelaySeconds: 5
+  periodSeconds: 10
+readinessProbe:
+  httpGet:
+    path: /readyz
+    port: health
+  initialDelaySeconds: 5
+  periodSeconds: 10
+
+# Push-based integrations (e.g. Alertmanager webhooks)
+webhooksServer:
+  # Enable the webhook server
+  enabled: false
+  # Port the webhook server listens on
+  port: 8080
+  # Path for the Alertmanager endpoint
+  alertmanagerPath: "/webhooks/alertmanager"
+  service:
+    # Type of service
+    type: ClusterIP
+    # Port for the service
+    port: 8080
+    # Annotations for the service
+    annotations: {}
+  ingress:
+    # Enable ingress for the webhook server
+    enabled: false
+    # Ingress class name
+    className: ""
+    # Annotations for the ingress
+    annotations: {}
+    # Hostname for the ingress
+    hostname: ""
+    # Path for the ingress
+    path: /
+    # TLS configuration, e.g.
+    # tls:
+    #   - hosts: [alerts.example.com]
+    #     secretName: opsscript-agent-tls
+    tls: []
+  # Gateway API alternative to the ingress (requires the HTTPRoute CRDs
+  # and an existing Gateway). Enable one OR the other, not both.
+  httpRoute:
+    # Enable HTTPRoute for the webhook server
+    enabled: false
+    # Annotations for the HTTPRoute
+    annotations: {}
+    # Gateways to attach to, e.g.
+    # parentRefs:
+    #   - name: eg
+    #     namespace: envoy-gateway-system
+    parentRefs: []
+    # Hostnames matched by the route, e.g. [alerts.example.com]
+    hostnames: []
+    # Path prefix routed to the webhook server
+    path: /
+
+# Extra environment variables for the agent container, e.g. ELASTIC_APM_*
+extraEnv: []
+
+# Extra envFrom sources (ConfigMaps/Secrets)
+extraEnvFrom: []
+
+serviceAccount:
+  # Create a service account
+  create: true
+  # Automount service account token (required by the Kubernetes collector)
+  automount: true
+  # Annotations for the service account
+  annotations: {}
+  # Name of the service account. Defaults to the fullname
+  name: ""
+
+rbac:
+  # Create the ClusterRole/ClusterRoleBinding used by the Kubernetes
+  # collector. Least-privilege: read-only, no access to Secret contents.
+  create: true
+  # Additional rules appended to the ClusterRole, e.g. to let future
+  # collectors read more resources:
+  # extraRules:
+  #   - apiGroups: ["apps"]
+  #     resources: [deployments]
+  #     verbs: [get, list]
+  extraRules: []
+
+# Annotations for the pod
+podAnnotations: {}
+
+# Labels for the pod
+podLabels: {}
+
+# Security context for the pod
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65532
+  runAsGroup: 65532
+  fsGroup: 65532
+  seccompProfile:
+    type: RuntimeDefault
+
+# Security context for the container
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: ["ALL"]
+
+# Resource requests and limits for the container.
+# The agent is lightweight; uncomment and adjust to your cluster policy.
+resources: {}
+  # requests:
+  #   cpu: 50m
+  #   memory: 64Mi
+  # limits:
+  #   memory: 128Mi
+
+# Priority class for the pod
+priorityClassName: ""
+
+# Node selector for the pod
+nodeSelector: {}
+
+# Tolerations for the pod
+tolerations: []
+
+# Affinity rules for the pod
+affinity: {}

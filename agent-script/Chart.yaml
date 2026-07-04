@@ -1,8 +1,9 @@
 apiVersion: v2
 name: agent-script
-description: The AgentScript is a tool developed by Cloudscript that acts as an agent within the client's Kubernetes cluster. It collects relevant information to generate personalized alerts and automatically create tickets in the OpsScript platform.
+description: DEPRECATED — replaced by the opsscript-agent chart. The AgentScript is a tool developed by Cloudscript that acts as an agent within the client's Kubernetes cluster. It collects relevant information to generate personalized alerts and automatically create tickets in the OpsScript platform.
 type: application
-version: 0.7.0
+deprecated: true
+version: 0.7.1
 appVersion: "v0.0.31"
 kubeVersion: ">= 1.27.0-0"
 home: https://cloudscript.com.br
@@ -22,8 +23,8 @@ maintainers:
 dependencies: []
 annotations:
   artifacthub.io/changes: |
-    - kind: added
-      description: First release
+    - kind: deprecated
+      description: Deprecated in favor of the opsscript-agent chart
   artifacthub.io/containsSecurityUpdates: "true"
   artifacthub.io/images: |
     - name: agent-script
