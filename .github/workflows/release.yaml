@@ -53,8 +53,10 @@ jobs:
           # Initialize arrays
           changed_charts=()
 
-          # Check each chart for changes
-          for chart_dir in agent-script deploy-apps dumpscript k8s-monitoring-app; do
+          # Check each chart for changes (any top-level dir with a Chart.yaml —
+          # discovery is dynamic so new charts don't need to be listed here)
+          for chart_dir in */; do
+            chart_dir="${chart_dir%/}"
             if [ -d "$chart_dir" ] && [ -f "$chart_dir/Chart.yaml" ]; then
               # Check if chart has changes
               if git diff --name-only $PREV_COMMIT HEAD | grep -q "^${chart_dir}/"; then
@@ -102,9 +104,14 @@ jobs:
             echo "Processing chart: $chart"
             echo "=================================="
 
-            # Lint the chart
+            # Lint the chart (with ci/*-values.yaml when present — charts that
+            # require credentials fail lint on purpose with default values)
             echo "Linting $chart..."
-            helm lint "./$chart"
+            ci_values=()
+            for f in "./$chart"/ci/*-values.yaml; do
+              [ -f "$f" ] && ci_values+=(-f "$f")
+            done
+            helm lint "./$chart" "${ci_values[@]}"
 
             # Package the chart
             echo "Packaging $chart..."
