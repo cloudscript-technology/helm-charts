@@ -41,6 +41,10 @@ helm install opsscript-agent cloudscript/opsscript-agent \
 | `config.logLevel` | `debug`/`info`/`warn`/`error` | `info` |
 | `config.searchInterval` | Initial search window for pull collectors (seconds) | `60` |
 | `config.reloadIntervalSeconds` | Config hot-reload interval (seconds, `0` disables) | `60` |
+| `config.clusterName` | Optional cluster name reported with the heartbeat (`CLUSTER_NAME`); empty omits it | `""` |
+| `terminationGracePeriodSeconds` | Seconds after SIGTERM before SIGKILL; covers the cron drain and shutdown event | `60` |
+| `lifecycle.preStop.enabled` | Pause before SIGTERM (native `sleep` action, requires k8s >= 1.29) | `true` |
+| `lifecycle.preStop.sleepSeconds` | preStop sleep duration; must be `< terminationGracePeriodSeconds` | `10` |
 | `credentials.existingSecret` | **Preferred.** Existing Secret with keys `AGENT_TOKEN` (required) and `AGENT_ID` (optional) | `""` |
 | `credentials.agentToken` | Alternative: chart creates the Secret from this value | `""` |
 | `health.port` | Port of the always-on `/healthz` and `/readyz` endpoints | `8081` |
@@ -64,3 +68,12 @@ helm install opsscript-agent cloudscript/opsscript-agent \
 - RBAC is read-only and least-privilege: `nodes` and `pods` (get/list) plus `configmaps` restricted by name (`aws-auth`, `cluster-info`). The agent has **no access to Secret contents** in your cluster.
 - The container runs as non-root with a read-only root filesystem and all capabilities dropped.
 - One replica only: collections are checkpointed server-side and the deployment uses the `Recreate` strategy to avoid duplicate collection during updates.
+
+## Graceful shutdown
+
+On update, the `Recreate` strategy terminates the old pod before starting the new one. The agent handles `SIGTERM` cleanly: it drains in-flight cron jobs (bounded by `AGENT_CRON_STOP_TIMEOUT_SECONDS`, default 20s) and publishes a shutdown event before exiting. To keep this within the pod grace period:
+
+- `terminationGracePeriodSeconds` defaults to `60`, leaving margin over the cron drain window plus the preStop sleep.
+- `lifecycle.preStop` adds a short pause (default 10s) before `SIGTERM`, using the native `sleep` lifecycle action. This requires **Kubernetes >= 1.29**; the agent image is distroless/static and has no shell for an `exec`-based sleep. On clusters older than 1.29, set `lifecycle.preStop.enabled=false` (the grace period alone already covers the graceful drain).
+
+`POD_NAME`, `POD_NAMESPACE` and `NODE_NAME` are injected via the downward API so the heartbeat can identify the running pod in the OpsScript fleet view; set `config.clusterName` to also report `CLUSTER_NAME`.

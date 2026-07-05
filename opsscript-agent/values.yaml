@@ -37,6 +37,11 @@ config:
   # How often the agent re-fetches its integration list from the server,
   # in seconds. 0 disables hot-reload (AGENT_RELOAD_INTERVAL_SECONDS).
   reloadIntervalSeconds: 60
+  # Optional cluster name reported with the heartbeat (CLUSTER_NAME) so the
+  # agent is easy to identify in the OpsScript fleet view. Leave empty to
+  # omit the variable (POD_NAME/POD_NAMESPACE/NODE_NAME come from the
+  # downward API automatically).
+  clusterName: ""
 
 credentials:
   # PREFERRED: name of a pre-existing Secret containing the keys
@@ -49,6 +54,26 @@ credentials:
   # Secret. Convenient for a quick start, but the token ends up in your
   # values/Helm history — avoid in GitOps repositories.
   agentToken: ""
+
+# Graceful shutdown budget. On update the Recreate strategy terminates the
+# old pod before starting the new one, so this window must comfortably cover
+# the agent's cron drain (AGENT_CRON_STOP_TIMEOUT_SECONDS, default 20s) plus
+# the preStop sleep, leaving room for the graceful-shutdown event POST before
+# Kubernetes sends SIGKILL. Keep it strictly greater than
+# preStop.sleepSeconds + the cron stop timeout.
+terminationGracePeriodSeconds: 60
+
+# preStop hook: a short pause before SIGTERM lets in-flight webhook requests
+# and Service endpoint updates settle, and widens the shutdown budget.
+# Uses the native `sleep` lifecycle action (Kubernetes >= 1.29) because the
+# agent image is distroless/static and has no shell to run `sleep` via exec.
+lifecycle:
+  preStop:
+    # Enable the preStop sleep
+    enabled: true
+    # Seconds to sleep before the container receives SIGTERM. Must be less
+    # than terminationGracePeriodSeconds.
+    sleepSeconds: 10
 
 # Always-on health endpoints (/healthz and /readyz) used by the probes
 health:

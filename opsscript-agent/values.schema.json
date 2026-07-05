@@ -50,7 +50,11 @@
           "default": "info"
         },
         "searchInterval": { "type": "integer", "minimum": 1, "default": 60 },
-        "reloadIntervalSeconds": { "type": "integer", "minimum": 0, "default": 60 }
+        "reloadIntervalSeconds": { "type": "integer", "minimum": 0, "default": 60 },
+        "clusterName": {
+          "type": "string",
+          "description": "Optional cluster name reported with the heartbeat (CLUSTER_NAME); empty omits the variable"
+        }
       }
     },
     "credentials": {
@@ -70,6 +74,29 @@
       "type": "object",
       "properties": {
         "port": { "type": "integer", "minimum": 1, "maximum": 65535, "default": 8081 }
+      }
+    },
+    "terminationGracePeriodSeconds": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Seconds Kubernetes waits after SIGTERM before SIGKILL; must exceed preStop sleep plus the agent cron drain window",
+      "default": 60
+    },
+    "lifecycle": {
+      "type": "object",
+      "properties": {
+        "preStop": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean", "default": true },
+            "sleepSeconds": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Native sleep lifecycle action (k8s >= 1.29); must be less than terminationGracePeriodSeconds",
+              "default": 10
+            }
+          }
+        }
       }
     },
     "livenessProbe": { "type": "object" },
