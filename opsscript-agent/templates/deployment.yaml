@@ -34,6 +34,9 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       serviceAccountName: {{ include "opsscript-agent.serviceAccountName" . }}
+      {{- with .Values.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ . }}
+      {{- end }}
       {{- with .Values.priorityClassName }}
       priorityClassName: {{ . }}
       {{- end }}
@@ -66,9 +69,36 @@ spec:
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
+          {{- if and .Values.lifecycle.preStop.enabled (semverCompare ">=1.29.0-0" .Capabilities.KubeVersion.Version) }}
+          # Native sleep action (k8s >= 1.29): no shell needed, which the
+          # distroless/static agent image does not ship. Gated by cluster
+          # version — on < 1.29 it is omitted (the grace period alone still
+          # drains gracefully), so the chart stays usable on kubeVersion >= 1.27.
+          lifecycle:
+            preStop:
+              sleep:
+                seconds: {{ .Values.lifecycle.preStop.sleepSeconds }}
+          {{- end }}
           env:
             - name: ENV
               value: "production"
+            # Runtime context for the heartbeat / fleet view, via downward API.
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            {{- with .Values.config.clusterName }}
+            - name: CLUSTER_NAME
+              value: {{ . | quote }}
+            {{- end }}
             - name: AGENT_SERVER_URL
               value: {{ required "config.agentServerUrl is required" .Values.config.agentServerUrl | quote }}
             {{- with .Values.config.agentId }}
