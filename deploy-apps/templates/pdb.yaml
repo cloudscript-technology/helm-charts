@@ -1,0 +1,32 @@
+{{- range $app := .Values.apps }}
+{{- if and $app.enabled $app.pdb }}
+{{- if and $app.pdb.enabled (or (eq $app.type "deployment") (eq $app.type "statefulset")) }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "deploy-apps.app.fullname" (dict "root" $ "app" $app) }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "deploy-apps.app.labels" (dict "root" $ "app" $app) | nindent 4 }}
+  {{- with $app.pdb.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if $app.pdb.minAvailable }}
+  minAvailable: {{ $app.pdb.minAvailable }}
+  {{- else if $app.pdb.maxUnavailable }}
+  maxUnavailable: {{ $app.pdb.maxUnavailable }}
+  {{- else }}
+  maxUnavailable: 1
+  {{- end }}
+  {{- with $app.pdb.unhealthyPodEvictionPolicy }}
+  unhealthyPodEvictionPolicy: {{ . }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "deploy-apps.app.selectorLabels" (dict "root" $ "app" $app) | nindent 6 }}
+{{- end }}
+{{- end }}
+{{- end }}

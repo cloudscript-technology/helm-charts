@@ -235,6 +235,33 @@
               }
             }
           },
+          "pdb": {
+            "type": "object",
+            "description": "PodDisruptionBudget configuration (only for deployment/statefulset)",
+            "properties": {
+              "enabled": { "type": "boolean" },
+              "minAvailable": {
+                "oneOf": [
+                  { "type": "integer", "minimum": 0 },
+                  { "type": "string" }
+                ]
+              },
+              "maxUnavailable": {
+                "oneOf": [
+                  { "type": "integer", "minimum": 0 },
+                  { "type": "string" }
+                ]
+              },
+              "unhealthyPodEvictionPolicy": {
+                "type": "string",
+                "enum": ["IfHealthyBudget", "AlwaysAllow"]
+              },
+              "annotations": {
+                "type": "object",
+                "additionalProperties": { "type": "string" }
+              }
+            }
+          },
           "persistentVolumes": {
             "type": "object",
             "description": "PersistentVolume resources for the app",

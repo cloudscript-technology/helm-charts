@@ -520,6 +520,22 @@ apps: []
 #      #     name: my-custom-auth
 #      #     kind: ClusterTriggerAuthentication
 #
+#    # PodDisruptionBudget (only for deployment/statefulset)
+#    # Disabled by default: apps without pdb are rendered exactly as before.
+#    pdb:
+#      enabled: false
+#      # Use minAvailable OR maxUnavailable (mutually exclusive).
+#      # If both are set, minAvailable takes precedence.
+#      # If enabled with neither set, defaults to maxUnavailable: 1.
+#      maxUnavailable: 1
+#      # minAvailable: 1
+#      # Percentages are also accepted (string), e.g. "50%".
+#      # minAvailable: "50%"
+#      # Optional (k8s >= 1.27): IfHealthyBudget (default) or AlwaysAllow
+#      # unhealthyPodEvictionPolicy: IfHealthyBudget
+#      # Extra annotations for the PDB object
+#      annotations: {}
+#
 #    # Labels applied to ALL resources of this app (Deployment, Service, Ingress, etc.)
 #    labels: {}
 #    # team: platform
