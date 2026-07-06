@@ -2,11 +2,11 @@ apiVersion: v2
 name: opsscript-agent
 description: The OpsScript Kubernetes Agent runs inside the client's Kubernetes cluster, collects data from configured integrations (Elasticsearch, Kubernetes, Alertmanager webhooks) and ships it to the OpsScript platform, where alerts and tickets are created automatically.
 type: application
-version: 1.0.3
+version: 1.0.4
 appVersion: "v1.0.3"
 kubeVersion: ">= 1.27.0-0"
 home: https://opsscript.io
-icon: https://charts.cloudscript.com.br/helm-charts/opsscript-agent/opsscript-logo.png
+icon: https://charts.cloudscript.com.br/helm-charts/opsscript-agent/logo.png
 keywords:
   - kubernetes
   - helm
