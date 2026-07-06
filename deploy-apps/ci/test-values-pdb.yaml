@@ -1,0 +1,48 @@
+apps:
+  # App WITH PDB enabled (maxUnavailable)
+  - name: api
+    enabled: true
+    type: deployment
+    replicaCount: 3
+    image:
+      repository: ghcr.io/cloudscript-technology/example
+      tag: "1.0.0"
+    ports:
+      - containerPort: 8080
+    pdb:
+      enabled: true
+      maxUnavailable: 1
+
+  # App WITH PDB enabled (minAvailable as percentage)
+  - name: worker
+    enabled: true
+    type: statefulset
+    replicaCount: 4
+    image:
+      repository: ghcr.io/cloudscript-technology/example
+      tag: "1.0.0"
+    pdb:
+      enabled: true
+      minAvailable: "50%"
+      unhealthyPodEvictionPolicy: AlwaysAllow
+
+  # App WITHOUT pdb block -> must NOT render a PDB
+  - name: legacy
+    enabled: true
+    type: deployment
+    replicaCount: 2
+    image:
+      repository: ghcr.io/cloudscript-technology/example
+      tag: "1.0.0"
+
+  # App with pdb.enabled=false -> must NOT render a PDB
+  - name: disabled
+    enabled: true
+    type: deployment
+    replicaCount: 2
+    image:
+      repository: ghcr.io/cloudscript-technology/example
+      tag: "1.0.0"
+    pdb:
+      enabled: false
+      maxUnavailable: 1

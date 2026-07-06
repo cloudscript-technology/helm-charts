@@ -14,6 +14,7 @@ Helm chart flexível para deploy de múltiplas aplicações (Deployment, Statefu
 - **Persistence**: Suporte a PersistentVolumes, PersistentVolumeClaims e volumeClaimTemplates
 - **Autoscaling**: HorizontalPodAutoscaler para Deployments e StatefulSets
 - **KEDA**: Autoscaling event-driven com suporte a SQS, Redis, Kafka, RabbitMQ, Prometheus e mais
+- **PodDisruptionBudget**: PDB nativo por aplicação (Deployment/StatefulSet), desabilitado por padrão
 
 ## Pré-requisitos
 
@@ -1022,6 +1023,43 @@ apps:
 4. **Custom Metrics**: Requer adaptadores de métricas (ex: Prometheus Adapter, Datadog, etc.)
 5. **KEDA**: Requer o operador KEDA instalado no cluster
 
+## PodDisruptionBudget (PDB)
+
+O chart pode renderizar um `PodDisruptionBudget` (`policy/v1`) por aplicação, garantindo disponibilidade mínima durante disrupções voluntárias (drain de nós, upgrades, rebalanceamento). Suportado apenas para `deployment` e `statefulset`.
+
+Desabilitado por padrão — apps sem o bloco `pdb` continuam renderizados exatamente como antes.
+
+```yaml
+apps:
+  - name: api
+    enabled: true
+    type: deployment
+    replicaCount: 3
+    pdb:
+      enabled: true
+      maxUnavailable: 1
+```
+
+Usando `minAvailable` (aceita inteiro ou porcentagem):
+
+```yaml
+apps:
+  - name: api
+    enabled: true
+    type: deployment
+    replicaCount: 4
+    pdb:
+      enabled: true
+      minAvailable: "50%"
+```
+
+### Notas sobre PDB
+
+1. **`minAvailable` OU `maxUnavailable`**: são mutuamente exclusivos. Se ambos forem definidos, `minAvailable` tem precedência. Se `pdb.enabled: true` sem nenhum dos dois, o padrão é `maxUnavailable: 1`.
+2. **Selector**: o `selector.matchLabels` do PDB reutiliza exatamente o mesmo helper de selector labels do workload, garantindo que o PDB case com os pods corretos.
+3. **Apenas Deployment/StatefulSet**: CronJob e Job não geram PDB.
+4. **`unhealthyPodEvictionPolicy`** (opcional, k8s >= 1.27): `IfHealthyBudget` (padrão) ou `AlwaysAllow`.
+
 ## Valores Configuráveis
 
 | Parâmetro | Descrição | Padrão |
@@ -1064,6 +1102,11 @@ apps:
 | `apps[].kedaScaling.triggerAuthentication.podIdentity` | Pod Identity config (aws, azure, gcp) | Não |
 | `apps[].kedaScaling.triggerAuthentication.secretTargetRef` | Refs a secrets para autenticação | Não |
 | `apps[].kedaScaling.triggers` | Array de triggers KEDA | Não |
+| `apps[].pdb.enabled` | Habilitar PodDisruptionBudget | Não (padrão: false) |
+| `apps[].pdb.minAvailable` | Mínimo de pods disponíveis (int ou %). Precede `maxUnavailable` | Não |
+| `apps[].pdb.maxUnavailable` | Máximo de pods indisponíveis (int ou %). Padrão `1` se `enabled` sem `minAvailable` | Não |
+| `apps[].pdb.unhealthyPodEvictionPolicy` | `IfHealthyBudget` (padrão) ou `AlwaysAllow` (k8s >= 1.27) | Não |
+| `apps[].pdb.annotations` | Annotations no PDB | Não |
 | `apps[].gatewayApi.httpRoutes[].gatewayRef` | Per-route override para referenciar outro Gateway | Não |
 | `apps[].persistentVolumes.enabled` | Habilitar criação de PersistentVolumes | Não (padrão: false) |
 | `apps[].persistentVolumes.items` | Array de PVs a criar | Não |
