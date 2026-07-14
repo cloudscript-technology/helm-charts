@@ -2,8 +2,8 @@ apiVersion: v2
 name: opsscript-agent
 description: The OpsScript Kubernetes Agent runs inside the client's Kubernetes cluster, collects data from configured integrations (Elasticsearch, Kubernetes, Alertmanager webhooks) and ships it to the OpsScript platform, where alerts and tickets are created automatically.
 type: application
-version: 1.0.4
-appVersion: "v1.0.3"
+version: 1.0.5
+appVersion: "v1.0.4"
 kubeVersion: ">= 1.27.0-0"
 home: https://opsscript.io
 icon: https://charts.cloudscript.com.br/helm-charts/opsscript-agent/logo.png
@@ -24,11 +24,13 @@ dependencies: []
 annotations:
   artifacthub.io/changes: |
     - kind: changed
-      description: Graceful shutdown (terminationGracePeriodSeconds 60, preStop sleep, downward API POD_NAME/POD_NAMESPACE/NODE_NAME/CLUSTER_NAME)
-  artifacthub.io/containsSecurityUpdates: "false"
+      description: Agent v1.0.4 honors config.clusterName (CLUSTER_NAME) as the authoritative cluster name in the inventory; autodetection becomes the fallback
+    - kind: security
+      description: Agent binary rebuilt with Go 1.26.5 (stdlib CVE-2026-39822)
+  artifacthub.io/containsSecurityUpdates: "true"
   artifacthub.io/images: |
     - name: opsscript-agent
-      image: public.ecr.aws/a3g9d1z6/opsscript-agent:v1.0.3
+      image: public.ecr.aws/a3g9d1z6/opsscript-agent:v1.0.4
   artifacthub.io/displayName: "OpsScript Kubernetes Agent"
   artifacthub.io/license: "Apache-2.0"
   artifacthub.io/provider: "Cloudscript"
@@ -37,4 +39,4 @@ annotations:
       url: https://opsscript.io
     - name: Source
       url: https://github.com/cloudscript-technology/helm-charts
-  artifacthub.io/valuesSchema: "https://charts.cloudscript.com.br/helm-charts/opsscript-agent/1.0.3/values.schema.json"
+  artifacthub.io/valuesSchema: "https://charts.cloudscript.com.br/helm-charts/opsscript-agent/1.0.5/values.schema.json"
