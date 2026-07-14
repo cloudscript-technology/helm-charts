@@ -41,7 +41,7 @@ helm install opsscript-agent cloudscript/opsscript-agent \
 | `config.logLevel` | `debug`/`info`/`warn`/`error` | `info` |
 | `config.searchInterval` | Initial search window for pull collectors (seconds) | `60` |
 | `config.reloadIntervalSeconds` | Config hot-reload interval (seconds, `0` disables) | `60` |
-| `config.clusterName` | Optional cluster name reported with the heartbeat (`CLUSTER_NAME`); empty omits it | `""` |
+| `config.clusterName` | Cluster name (`CLUSTER_NAME`) used in the heartbeat and as the cluster name in the OpsScript inventory (agent >= v1.0.4); empty falls back to autodetection | `""` |
 | `terminationGracePeriodSeconds` | Seconds after SIGTERM before SIGKILL; covers the cron drain and shutdown event | `60` |
 | `lifecycle.preStop.enabled` | Pause before SIGTERM (native `sleep` action, requires k8s >= 1.29) | `true` |
 | `lifecycle.preStop.sleepSeconds` | preStop sleep duration; must be `< terminationGracePeriodSeconds` | `10` |
@@ -76,4 +76,4 @@ On update, the `Recreate` strategy terminates the old pod before starting the ne
 - `terminationGracePeriodSeconds` defaults to `60`, leaving margin over the cron drain window plus the preStop sleep.
 - `lifecycle.preStop` adds a short pause (default 10s) before `SIGTERM`, using the native `sleep` lifecycle action. This requires **Kubernetes >= 1.29**; the agent image is distroless/static and has no shell for an `exec`-based sleep. On clusters older than 1.29, set `lifecycle.preStop.enabled=false` (the grace period alone already covers the graceful drain).
 
-`POD_NAME`, `POD_NAMESPACE` and `NODE_NAME` are injected via the downward API so the heartbeat can identify the running pod in the OpsScript fleet view; set `config.clusterName` to also report `CLUSTER_NAME`.
+`POD_NAME`, `POD_NAMESPACE` and `NODE_NAME` are injected via the downward API so the heartbeat can identify the running pod in the OpsScript fleet view; set `config.clusterName` to also report `CLUSTER_NAME`. Since agent v1.0.4, `CLUSTER_NAME` is also authoritative for the cluster name shown in the OpsScript inventory — without it the agent autodetects a name from node labels/providerID, which can degrade to an instance-id on spot nodes.

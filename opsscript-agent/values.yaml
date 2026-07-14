@@ -37,10 +37,11 @@ config:
   # How often the agent re-fetches its integration list from the server,
   # in seconds. 0 disables hot-reload (AGENT_RELOAD_INTERVAL_SECONDS).
   reloadIntervalSeconds: 60
-  # Optional cluster name reported with the heartbeat (CLUSTER_NAME) so the
-  # agent is easy to identify in the OpsScript fleet view. Leave empty to
-  # omit the variable (POD_NAME/POD_NAMESPACE/NODE_NAME come from the
-  # downward API automatically).
+  # Cluster name (CLUSTER_NAME) reported with the heartbeat and, since agent
+  # v1.0.4, used as the authoritative cluster name in the OpsScript inventory.
+  # Leave empty to omit the variable and let the agent autodetect a name
+  # (POD_NAME/POD_NAMESPACE/NODE_NAME come from the downward API
+  # automatically).
   clusterName: ""
 
 credentials:
