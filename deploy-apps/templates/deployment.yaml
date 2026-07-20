@@ -14,7 +14,7 @@ metadata:
   {{- end }}
 spec:
   {{- if not (or (and $app.autoscaling $app.autoscaling.enabled) (and $app.kedaScaling $app.kedaScaling.enabled)) }}
-  replicas: {{ $app.replicaCount | default 1 }}
+  replicas: {{ if kindIs "invalid" $app.replicaCount }}1{{ else }}{{ $app.replicaCount }}{{ end }}
   {{- end }}
   {{- with $app.strategy }}
   strategy:

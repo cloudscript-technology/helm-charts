@@ -1,0 +1,35 @@
+apps:
+  # App scaled to zero -> must render replicas: 0 (not fall back to 1)
+  - name: paused
+    enabled: true
+    type: deployment
+    replicaCount: 0
+    image:
+      repository: ghcr.io/cloudscript-technology/example
+      tag: "1.0.0"
+
+  # StatefulSet scaled to zero -> must render replicas: 0
+  - name: paused-sts
+    enabled: true
+    type: statefulset
+    replicaCount: 0
+    image:
+      repository: ghcr.io/cloudscript-technology/example
+      tag: "1.0.0"
+
+  # App WITHOUT replicaCount -> must keep defaulting to 1
+  - name: default-replicas
+    enabled: true
+    type: deployment
+    image:
+      repository: ghcr.io/cloudscript-technology/example
+      tag: "1.0.0"
+
+  # Explicit replicaCount -> rendered as-is
+  - name: fixed
+    enabled: true
+    type: deployment
+    replicaCount: 3
+    image:
+      repository: ghcr.io/cloudscript-technology/example
+      tag: "1.0.0"
