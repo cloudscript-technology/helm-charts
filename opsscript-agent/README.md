@@ -59,6 +59,12 @@ helm install opsscript-agent cloudscript/opsscript-agent \
 | `serviceAccount.*` | ServiceAccount options | created |
 | `rbac.create` | Create read-only ClusterRole/Binding for the Kubernetes collector | `true` |
 | `rbac.extraRules` | Extra ClusterRole rules | `[]` |
+| `alertmanagerIntegration.enabled` | Let the agent manage `PrometheusRule`/`AlertmanagerConfig` objects, confined to `targetNamespace` | `false` |
+| `alertmanagerIntegration.targetNamespace` | Namespace where the agent may create/update/patch/delete `PrometheusRule`/`AlertmanagerConfig` | `monitoring` |
+| `inventory.namespaces` | Allowlist of namespaces the agent may read workloads/PVCs from. Empty disables the inventory collector | `[]` |
+| `inventory.clusterWide` | Opt-in: cluster-wide read instead of per-namespace, ignores `inventory.namespaces` | `false` |
+| `inventory.metricsInterval` | Metrics sampling interval (`AGENT_METRICS_INTERVAL`); floor `1m` | `5m` |
+| `inventory.prometheusUrl` | Override Prometheus URL instead of autodiscovery | `""` |
 | `podSecurityContext` / `securityContext` | Secure defaults: non-root, read-only rootfs, no capabilities | see values.yaml |
 | `resources` | Resource requests/limits | `{}` |
 | `priorityClassName`, `nodeSelector`, `tolerations`, `affinity`, `podAnnotations`, `podLabels` | Scheduling/metadata | — |
@@ -68,6 +74,54 @@ helm install opsscript-agent cloudscript/opsscript-agent \
 - RBAC is read-only and least-privilege: `nodes` and `pods` (get/list) plus `configmaps` restricted by name (`aws-auth`, `cluster-info`). The agent has **no access to Secret contents** in your cluster.
 - The container runs as non-root with a read-only root filesystem and all capabilities dropped.
 - One replica only: collections are checkpointed server-side and the deployment uses the `Recreate` strategy to avoid duplicate collection during updates.
+
+## Alertmanager integration (optional, off by default)
+
+Lets the agent read Prometheus Operator CRs cluster-wide and manage (create/update/patch/delete) `PrometheusRule` and `AlertmanagerConfig` objects — but only inside **one namespace you choose**. This is used by the OpsScript UI to let you review and approve alert rules/routes suggested for your cluster; the agent never applies anything without your approval upstream.
+
+> **Required Alertmanager settings (kube-prometheus-stack):** the managed
+> `AlertmanagerConfig` (the OpsScript delivery route) is only honored if your
+> Alertmanager selects it AND does not scope it to a single namespace:
+>
+> ```yaml
+> alertmanager:
+>   alertmanagerSpec:
+>     alertmanagerConfigSelector:
+>       matchLabels:
+>         app.kubernetes.io/managed-by: opsscript-agent
+>     # Default (OnNamespace) injects a namespace=<target> matcher into the
+>     # route — alerts fired for workloads in OTHER namespaces would never
+>     # reach OpsScript. "None" lets the route receive alerts cluster-wide.
+>     alertmanagerConfigMatcherStrategy:
+>       type: None
+> ```
+
+```yaml
+alertmanagerIntegration:
+  enabled: true
+  targetNamespace: monitoring   # the only namespace the agent may write to
+```
+
+- Enabling it adds `monitoring.coreos.com` `get/list/watch` on `prometheusrules`, `alertmanagerconfigs`, `prometheuses`, `alertmanagers` to the existing cluster-wide `ClusterRole`, plus a `Role`/`RoleBinding` in `targetNamespace` granting `create/update/patch/delete` on `prometheusrules` and `alertmanagerconfigs` only.
+- **The agent never reads or writes the `Secret` backing Alertmanager** (`alertmanager.yaml`), or any other Secret, regardless of this setting.
+- Default is `false`: no extra RBAC is rendered until you opt in.
+
+## Workload/PVC inventory (optional, off by default)
+
+Lets the agent read workload objects (`Deployments`, `StatefulSets`, `DaemonSets`, `ReplicaSets`, `CronJobs`, `Jobs`, `Pods`, `PersistentVolumeClaims`, `HorizontalPodAutoscalers`) beyond the cluster/node inventory the agent always collects. **You control the blast radius**: list only the namespaces you want the agent to see.
+
+```yaml
+inventory:
+  namespaces: ["default", "checkout", "payments"]  # empty = collector disabled
+  clusterWide: false          # opt-in: ignore the allowlist, grant read on the whole cluster
+  metricsInterval: "5m"       # sampling interval; floor is 1m
+  prometheusUrl: ""           # leave empty for autodiscovery
+```
+
+- Non-empty `inventory.namespaces` renders a `Role`/`RoleBinding` **per listed namespace** with `get/list` on the resources above — no cluster-wide grant.
+- `inventory.clusterWide: true` renders a single `ClusterRole`/`ClusterRoleBinding` instead, granting the same `get/list` access across the whole cluster; it **ignores** `inventory.namespaces`. Use only when you explicitly want full-cluster read access.
+- Environment variables `INVENTORY_NAMESPACES` (comma-joined), `AGENT_METRICS_INTERVAL` and `PROMETHEUS_URL` are only set on the container when the corresponding value is non-empty.
+- As with every other collector in this chart, **no Secret is ever read**.
 
 ## Graceful shutdown
 

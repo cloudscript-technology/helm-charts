@@ -169,6 +169,40 @@ rbac:
   #     verbs: [get, list]
   extraRules: []
 
+# Alertmanager integration: lets the agent read Prometheus Operator CRs
+# cluster-wide, and manage (create/update/patch/delete) PrometheusRule and
+# AlertmanagerConfig objects in a single, confined namespace. Disabled by
+# default — preserves the read-only promise until a client opts in.
+# The agent never reads or writes the Secret backing Alertmanager
+# (`alertmanager.yaml`), regardless of this setting.
+alertmanagerIntegration:
+  # Enable the ClusterRole additions (read monitoring.coreos.com
+  # cluster-wide) and the write-scoped Role/RoleBinding below
+  enabled: false
+  # Namespace where the agent is allowed to create/update/patch/delete
+  # PrometheusRule and AlertmanagerConfig objects. This is the only
+  # namespace where the agent can write anything.
+  targetNamespace: monitoring
+
+# Workload/PVC inventory collector. Off by default (empty allowlist): the
+# client decides the blast radius of read access by listing the namespaces
+# the agent is allowed to inspect. No Secret access is ever granted.
+inventory:
+  # Namespaces the agent may read workloads/PVCs from (Role + RoleBinding
+  # per namespace listed). Empty list = inventory collection disabled
+  # (cluster + nodes inventory, as today, is unaffected).
+  namespaces: []
+  # Opt-in: grant a cluster-wide ClusterRole instead of per-namespace Roles,
+  # ignoring the `namespaces` allowlist above. Use only when the client
+  # explicitly wants full-cluster read access.
+  clusterWide: false
+  # Sampling interval for metrics collection (AGENT_METRICS_INTERVAL).
+  # Floor is 1m; lower values are rejected by the agent.
+  metricsInterval: "5m"
+  # Override the Prometheus URL used by the agent instead of relying on
+  # autodiscovery. Leave empty to let the agent autodiscover.
+  prometheusUrl: ""
+
 # Annotations for the pod
 podAnnotations: {}
 

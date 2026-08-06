@@ -121,6 +121,22 @@ spec:
             - name: WEBHOOKS_ALERTMANAGER_PATH
               value: {{ .Values.webhooksServer.alertmanagerPath | quote }}
             {{- end }}
+            {{- if .Values.alertmanagerIntegration.enabled }}
+            - name: ALERTMANAGER_TARGET_NAMESPACE
+              value: {{ .Values.alertmanagerIntegration.targetNamespace | quote }}
+            {{- end }}
+            {{- if .Values.inventory.namespaces }}
+            - name: INVENTORY_NAMESPACES
+              value: {{ join "," .Values.inventory.namespaces | quote }}
+            {{- end }}
+            {{- with .Values.inventory.metricsInterval }}
+            - name: AGENT_METRICS_INTERVAL
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with .Values.inventory.prometheusUrl }}
+            - name: PROMETHEUS_URL
+              value: {{ . | quote }}
+            {{- end }}
             {{- with .Values.extraEnv }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
