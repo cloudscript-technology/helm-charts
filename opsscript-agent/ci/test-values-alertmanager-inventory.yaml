@@ -1,0 +1,17 @@
+# Values used by chart-testing (ct lint) in CI — dummy credentials only.
+# Exercises the alertmanagerIntegration and inventory blocks (both off by
+# default) so lint catches regressions in the conditional RBAC/env
+# templates without needing a real cluster.
+config:
+  agentId: ci-test-agent
+credentials:
+  agentToken: ci-test-token
+alertmanagerIntegration:
+  enabled: true
+  targetNamespace: monitoring
+inventory:
+  namespaces:
+    - default
+    - apps
+  metricsInterval: "1m"
+  prometheusUrl: "http://prometheus.monitoring.svc:9090"

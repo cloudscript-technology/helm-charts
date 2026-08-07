@@ -89,3 +89,28 @@ Fail fast when no credential source is configured.
 {{- fail "opsscript-agent: set credentials.existingSecret (preferred) or credentials.agentToken. Both AGENT_ID and AGENT_TOKEN are generated in OpsScript > Integrations > Kubernetes Agent." }}
 {{- end }}
 {{- end }}
+
+{{/*
+Name for the Alertmanager write-scoped Role/RoleBinding (confined to
+alertmanagerIntegration.targetNamespace).
+*/}}
+{{- define "opsscript-agent.alertmanagerRoleName" -}}
+{{- printf "%s-alertmanager" (include "opsscript-agent.fullname" .) | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{/*
+Name for the per-namespace inventory Role/RoleBinding. Includes the
+release namespace so two releases in different namespaces of the same
+cluster don't collide.
+*/}}
+{{- define "opsscript-agent.inventoryRoleName" -}}
+{{- printf "%s-inventory-%s" (include "opsscript-agent.fullname" .) .Release.Namespace | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{/*
+Name for the cluster-wide inventory ClusterRole/ClusterRoleBinding, used
+when inventory.clusterWide is true.
+*/}}
+{{- define "opsscript-agent.inventoryClusterRoleName" -}}
+{{- printf "%s-inventory-%s" (include "opsscript-agent.fullname" .) .Release.Namespace | trunc 63 | trimSuffix "-" }}
+{{- end }}

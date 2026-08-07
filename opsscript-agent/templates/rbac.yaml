@@ -23,6 +23,14 @@ rules:
     resources: [configmaps]
     resourceNames: [aws-auth, cluster-info]
     verbs: [get]
+  {{- if .Values.alertmanagerIntegration.enabled }}
+  # Alertmanager integration: cluster-wide read of Prometheus Operator CRs
+  # (snapshot for suggestions/coverage). Writes are confined to the
+  # Role/RoleBinding below, scoped to a single namespace.
+  - apiGroups: [monitoring.coreos.com]
+    resources: [prometheusrules, alertmanagerconfigs, prometheuses, alertmanagers]
+    verbs: [get, list, watch]
+  {{- end }}
   {{- with .Values.rbac.extraRules }}
   {{- toYaml . | nindent 2 }}
   {{- end }}
@@ -40,5 +48,122 @@ subjects:
 roleRef:
   kind: ClusterRole
   name: {{ include "opsscript-agent.clusterRoleName" . }}
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}
+{{- if and .Values.rbac.create .Values.alertmanagerIntegration.enabled }}
+---
+# Alertmanager integration: write access confined to a single namespace.
+# Never grants access to Secrets (e.g. the alertmanager.yaml config).
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "opsscript-agent.alertmanagerRoleName" . }}
+  namespace: {{ .Values.alertmanagerIntegration.targetNamespace }}
+  labels:
+    {{- include "opsscript-agent.labels" . | nindent 4 }}
+rules:
+  - apiGroups: [monitoring.coreos.com]
+    resources: [prometheusrules, alertmanagerconfigs]
+    verbs: [create, update, patch, delete]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "opsscript-agent.alertmanagerRoleName" . }}
+  namespace: {{ .Values.alertmanagerIntegration.targetNamespace }}
+  labels:
+    {{- include "opsscript-agent.labels" . | nindent 4 }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "opsscript-agent.serviceAccountName" . }}
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: Role
+  name: {{ include "opsscript-agent.alertmanagerRoleName" . }}
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}
+{{- if and .Values.rbac.create (not .Values.inventory.clusterWide) .Values.inventory.namespaces }}
+{{- $root := . }}
+{{- range .Values.inventory.namespaces }}
+---
+# Workload/PVC inventory: read access confined to namespaces explicitly
+# allowlisted in inventory.namespaces. Never grants access to Secrets.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "opsscript-agent.inventoryRoleName" $root }}
+  namespace: {{ . }}
+  labels:
+    {{- include "opsscript-agent.labels" $root | nindent 4 }}
+rules:
+  - apiGroups: [apps]
+    resources: [deployments, statefulsets, daemonsets, replicasets]
+    verbs: [get, list]
+  - apiGroups: [batch]
+    resources: [cronjobs, jobs]
+    verbs: [get, list]
+  - apiGroups: [""]
+    resources: [pods, persistentvolumeclaims]
+    verbs: [get, list]
+  - apiGroups: [autoscaling]
+    resources: [horizontalpodautoscalers]
+    verbs: [get, list]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "opsscript-agent.inventoryRoleName" $root }}
+  namespace: {{ . }}
+  labels:
+    {{- include "opsscript-agent.labels" $root | nindent 4 }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "opsscript-agent.serviceAccountName" $root }}
+    namespace: {{ $root.Release.Namespace }}
+roleRef:
+  kind: Role
+  name: {{ include "opsscript-agent.inventoryRoleName" $root }}
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}
+{{- end }}
+{{- if and .Values.rbac.create .Values.inventory.clusterWide }}
+---
+# Workload/PVC inventory: cluster-wide read access, equivalent to the
+# per-namespace Role above but ignoring the inventory.namespaces allowlist
+# (inventory.clusterWide opt-in). `pods` is already granted cluster-wide by
+# the base ClusterRole above. Never grants access to Secrets.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "opsscript-agent.inventoryClusterRoleName" . }}
+  labels:
+    {{- include "opsscript-agent.labels" . | nindent 4 }}
+rules:
+  - apiGroups: [apps]
+    resources: [deployments, statefulsets, daemonsets, replicasets]
+    verbs: [get, list]
+  - apiGroups: [batch]
+    resources: [cronjobs, jobs]
+    verbs: [get, list]
+  - apiGroups: [""]
+    resources: [persistentvolumeclaims]
+    verbs: [get, list]
+  - apiGroups: [autoscaling]
+    resources: [horizontalpodautoscalers]
+    verbs: [get, list]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "opsscript-agent.inventoryClusterRoleName" . }}
+  labels:
+    {{- include "opsscript-agent.labels" . | nindent 4 }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "opsscript-agent.serviceAccountName" . }}
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: ClusterRole
+  name: {{ include "opsscript-agent.inventoryClusterRoleName" . }}
   apiGroup: rbac.authorization.k8s.io
 {{- end }}
