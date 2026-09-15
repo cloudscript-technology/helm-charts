@@ -172,6 +172,42 @@
         }
       }
     },
+    "mcp": {
+      "type": "object",
+      "description": "MCP via agent: lets the OpsScript AI reach an MCP server that exists only inside this cluster. Disabled by default.",
+      "properties": {
+        "enabled": { "type": "boolean", "default": false },
+        "secretRefs": {
+          "type": "array",
+          "description": "Secrets holding MCP tokens the agent may read. Grants a Role restricted by resourceNames to exactly these Secrets - the only Secret access the agent ever gets",
+          "items": {
+            "type": "object",
+            "properties": {
+              "namespace": { "type": "string", "description": "Namespace of the Secret; defaults to the release namespace" },
+              "name": { "type": "string", "description": "Secret name" }
+            },
+            "required": ["name"],
+            "additionalProperties": false
+          },
+          "default": []
+        },
+        "waitSeconds": {
+          "type": "integer",
+          "description": "How long the server holds an empty poll open; keep below any idle timeout between agent and platform",
+          "minimum": 1,
+          "maximum": 60,
+          "default": 25
+        },
+        "concurrency": {
+          "type": "integer",
+          "description": "How many commands the agent executes at once",
+          "minimum": 1,
+          "maximum": 32,
+          "default": 4
+        }
+      },
+      "additionalProperties": false
+    },
     "inventory": {
       "type": "object",
       "description": "Workload/PVC inventory collector; the client controls the blast radius of read access.",

@@ -184,6 +184,38 @@ alertmanagerIntegration:
   # namespace where the agent can write anything.
   targetNamespace: monitoring
 
+# MCP via agent: lets the OpsScript AI reach an MCP server that exists only
+# inside this cluster. The platform enqueues the call, this agent executes
+# it locally and returns only the result.
+#
+# Enable this when the MCP server must NOT be exposed to the internet —
+# which is the whole reason the feature exists.
+mcp:
+  # Open the command channel (long-poll against the agent server). Off by
+  # default: an agent that never receives commands should not hold a
+  # connection open. Turning it on is the client's decision, independent
+  # of what is configured on the platform side.
+  enabled: false
+  # Secrets holding the MCP server tokens, which the agent reads at call
+  # time so the credential never leaves this cluster.
+  #
+  # This is the ONLY place the agent is ever granted read access to a
+  # Secret, and it is granted narrowly: a Role (never ClusterRole) in the
+  # named namespace, verb `get`, restricted by resourceNames to exactly
+  # the Secrets listed here. Leave empty when the MCP server needs no
+  # authentication — no Secret permission is created at all.
+  #
+  #   secretRefs:
+  #     - namespace: observability
+  #       name: mcp-token
+  secretRefs: []
+  # How long the agent asks the server to hold an empty poll open, in
+  # seconds. Keep it below any idle timeout between the agent and the
+  # platform (load balancers commonly default to 60s).
+  waitSeconds: 25
+  # How many commands the agent executes at once.
+  concurrency: 4
+
 # Workload/PVC inventory collector. Off by default (empty allowlist): the
 # client decides the blast radius of read access by listing the namespaces
 # the agent is allowed to inspect. No Secret access is ever granted.

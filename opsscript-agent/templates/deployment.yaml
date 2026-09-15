@@ -113,6 +113,16 @@ spec:
               value: {{ .Values.config.reloadIntervalSeconds | quote }}
             - name: HEALTH_PORT
               value: {{ .Values.health.port | quote }}
+            # Command channel (server -> agent). Off unless mcp.enabled:
+            # an agent that receives no commands should not hold a poll open.
+            - name: AGENT_COMMANDS_ENABLED
+              value: {{ .Values.mcp.enabled | quote }}
+            {{- if .Values.mcp.enabled }}
+            - name: AGENT_COMMAND_WAIT_SECONDS
+              value: {{ .Values.mcp.waitSeconds | quote }}
+            - name: AGENT_COMMAND_CONCURRENCY
+              value: {{ .Values.mcp.concurrency | quote }}
+            {{- end }}
             {{- if .Values.webhooksServer.enabled }}
             - name: WEBHOOKS_SERVER_ENABLED
               value: "true"
