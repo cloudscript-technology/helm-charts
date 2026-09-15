@@ -113,11 +113,13 @@ spec:
               value: {{ .Values.config.reloadIntervalSeconds | quote }}
             - name: HEALTH_PORT
               value: {{ .Values.health.port | quote }}
-            # Command channel (server -> agent). Off unless mcp.enabled:
-            # an agent that receives no commands should not hold a poll open.
+            # Canal de comandos (servidor -> agente). Em "auto" o próprio
+            # agente decide quando operar, olhando se a configuração que ele
+            # busca traz algum MCP server — assim não é preciso repetir aqui
+            # o que já foi cadastrado na tela.
             - name: AGENT_COMMANDS_ENABLED
-              value: {{ .Values.mcp.enabled | quote }}
-            {{- if .Values.mcp.enabled }}
+              value: {{ .Values.mcp.enabled | toString | quote }}
+            {{- if ne (toString .Values.mcp.enabled) "false" }}
             - name: AGENT_COMMAND_WAIT_SECONDS
               value: {{ .Values.mcp.waitSeconds | quote }}
             - name: AGENT_COMMAND_CONCURRENCY

@@ -191,11 +191,15 @@ alertmanagerIntegration:
 # Enable this when the MCP server must NOT be exposed to the internet —
 # which is the whole reason the feature exists.
 mcp:
-  # Open the command channel (long-poll against the agent server). Off by
-  # default: an agent that never receives commands should not hold a
-  # connection open. Turning it on is the client's decision, independent
-  # of what is configured on the platform side.
-  enabled: false
+  # Quando o canal de comandos opera:
+  #   "auto" (padrão) — o agente abre o canal sozinho quando a configuração
+  #     que ele busca do OpsScript traz algum MCP server. Cadastrar na tela
+  #     passa a bastar: não há o que ligar aqui, nem deploy por servidor novo.
+  #   "false" — desliga. É a decisão do dono do cluster e vence o que estiver
+  #     configurado na plataforma.
+  #   "true" — mantém o canal aberto mesmo sem MCP configurado (para tipos de
+  #     comando que não dependem de MCP).
+  enabled: "auto"
   # Namespaces where the agent may read MCP tokens, so the credential never
   # leaves this cluster.
   #

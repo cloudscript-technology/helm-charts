@@ -173,7 +173,7 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
 {{- end }}
 
-{{- if and .Values.rbac.create .Values.mcp.enabled }}
+{{- if and .Values.rbac.create (ne (toString .Values.mcp.enabled) "false") }}
 {{- $root := . }}
 {{- $mcpNamespaces := .Values.mcp.secretNamespaces | default (list .Release.Namespace) }}
 {{- range $mcpNamespaces }}

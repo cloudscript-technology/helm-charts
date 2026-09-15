@@ -61,7 +61,7 @@ helm install opsscript-agent cloudscript/opsscript-agent \
 | `rbac.extraRules` | Extra ClusterRole rules | `[]` |
 | `alertmanagerIntegration.enabled` | Let the agent manage `PrometheusRule`/`AlertmanagerConfig` objects, confined to `targetNamespace` | `false` |
 | `alertmanagerIntegration.targetNamespace` | Namespace where the agent may create/update/patch/delete `PrometheusRule`/`AlertmanagerConfig` | `monitoring` |
-| `mcp.enabled` | Open the command channel so the OpsScript AI can reach an MCP server that lives inside this cluster | `false` |
+| `mcp.enabled` | When the command channel operates: `"auto"` (opens itself when the agent's config carries an MCP server), `false` (off), `true` (always on) | `"auto"` |
 | `mcp.secretNamespaces` | Namespaces where the agent may read MCP tokens (`get` only, never `list`/`watch`). Empty = the release namespace | `[]` |
 | `mcp.waitSeconds` | How long the server holds an empty poll open; keep below the idle timeout of anything between agent and platform | `25` |
 | `mcp.concurrency` | How many commands the agent executes at once | `4` |
@@ -119,12 +119,13 @@ Instead of the platform calling the MCP server over the internet, it enqueues th
 
 ```yaml
 mcp:
-  enabled: true
   secretNamespaces:
     - observability      # onde estão os Secrets com os tokens dos MCP
-  waitSeconds: 25
-  concurrency: 4
 ```
+
+**Não há o que ligar.** Em `"auto"` (padrão) o agente abre o canal sozinho quando a configuração que ele busca do OpsScript traz algum MCP server, e o fecha quando não há mais nenhum — sem redeploy. Registrar o servidor na tela basta.
+
+`mcp.enabled: false` desliga de vez: é a decisão do dono do cluster e vence o que estiver configurado na plataforma. `true` mantém o canal aberto mesmo sem MCP, para tipos de comando que não dependem dele.
 
 The MCP server's URL is **not** configured here: it is registered in OpsScript (Integrations > MCP Servers, "Pelo agente") and delivered to the agent as part of its configuration. The agent only ever calls servers present in that configuration, so nothing on the platform side can point it at an arbitrary address inside your network.
 
