@@ -151,7 +151,7 @@ kubectl auth can-i list secrets          -n observability --as=$SA   # no  (cann
 kubectl auth can-i get secrets           -n kube-system   --as=$SA   # no
 ```
 
-With `mcp.enabled: false` no `Role` is rendered at all.
+No `Role` is rendered unless `mcp.secretNamespaces` lists at least one namespace — the grant follows that list, not `mcp.enabled`, so upgrading the chart never widens access on its own.
 
 **Requires agent v1.1.0 or newer** — the version that announces the `command.poll` and `mcp.call` capabilities in its heartbeat. OpsScript checks for the capabilities (not the version string, which is free-form) and refuses to save the MCP server otherwise, naming the agent and the reason.
 

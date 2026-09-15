@@ -209,7 +209,11 @@ mcp:
   # chart deploy for every new MCP — a GitOps PR and a sync to add a
   # credential, which defeats the self-service the UI offers.
   #
-  # Empty (default) means the release namespace. Point it at a namespace
+  # Empty (default) grants NO Secret permission at all: the Role exists only
+  # when this list does, so an upgrade never widens access on its own. An MCP
+  # server that needs no authentication needs nothing here either.
+  #
+  # Point it at a namespace
   # dedicated to MCP tokens: the grant is `get` only (never list or watch, so
   # the agent cannot enumerate what is there), but within a listed namespace
   # it can read any Secret whose name it is told. Do not list a namespace

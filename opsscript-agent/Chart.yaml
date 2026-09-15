@@ -2,7 +2,7 @@ apiVersion: v2
 name: opsscript-agent
 description: The OpsScript Kubernetes Agent runs inside the client's Kubernetes cluster, collects data from configured integrations (Elasticsearch, Kubernetes, Alertmanager webhooks) and ships it to the OpsScript platform, where alerts and tickets are created automatically.
 type: application
-version: 1.2.0
+version: 1.2.1
 appVersion: "v1.1.1"
 kubeVersion: ">= 1.27.0-0"
 home: https://opsscript.io
@@ -23,6 +23,8 @@ maintainers:
 dependencies: []
 annotations:
   artifacthub.io/changes: |
+    - kind: security
+      description: "A permissão de leitura de Secret passa a depender de mcp.secretNamespaces, não de mcp.enabled: em 1.2.0, atualizar concedia get secrets no namespace do release mesmo sem MCP configurado"
     - kind: changed
       description: "appVersion v1.1.1: o MCP via agente exige um agente que anuncie as capabilities command.poll e mcp.call no heartbeat (v1.1.0+), e o modo mcp.enabled=auto exige v1.1.1+ — em v1.1.0 o valor cai em ligado, sem o comportamento ocioso"
     - kind: added
@@ -41,4 +43,4 @@ annotations:
       url: https://opsscript.io
     - name: Source
       url: https://github.com/cloudscript-technology/helm-charts
-  artifacthub.io/valuesSchema: "https://charts.cloudscript.com.br/helm-charts/opsscript-agent/1.2.0/values.schema.json"
+  artifacthub.io/valuesSchema: "https://charts.cloudscript.com.br/helm-charts/opsscript-agent/1.2.1/values.schema.json"

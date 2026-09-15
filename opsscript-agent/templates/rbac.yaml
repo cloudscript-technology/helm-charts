@@ -173,10 +173,9 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
 {{- end }}
 
-{{- if and .Values.rbac.create (ne (toString .Values.mcp.enabled) "false") }}
+{{- if and .Values.rbac.create .Values.mcp.secretNamespaces }}
 {{- $root := . }}
-{{- $mcpNamespaces := .Values.mcp.secretNamespaces | default (list .Release.Namespace) }}
-{{- range $mcpNamespaces }}
+{{- range .Values.mcp.secretNamespaces }}
 ---
 # MCP via agent: read access to the MCP tokens, confined to this namespace.
 #
@@ -184,6 +183,10 @@ roleRef:
 # agent cannot enumerate the Secrets here; it reads exactly the name it was
 # told to read, and uses the value as an auth header for the in-cluster MCP
 # server. The value is never sent to OpsScript.
+#
+# Tied to mcp.secretNamespaces, not to mcp.enabled: enabled defaults to "auto",
+# so tying the grant there would hand every upgrading release a Secret
+# permission it never asked for.
 #
 # resourceNames is deliberately NOT used: one agent serves many MCP servers,
 # each with its own credential, and the set changes as servers are registered
