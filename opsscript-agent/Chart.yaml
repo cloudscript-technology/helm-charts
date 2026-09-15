@@ -3,7 +3,7 @@ name: opsscript-agent
 description: The OpsScript Kubernetes Agent runs inside the client's Kubernetes cluster, collects data from configured integrations (Elasticsearch, Kubernetes, Alertmanager webhooks) and ships it to the OpsScript platform, where alerts and tickets are created automatically.
 type: application
 version: 1.2.0
-appVersion: "v1.0.5"
+appVersion: "v1.1.0"
 kubeVersion: ">= 1.27.0-0"
 home: https://opsscript.io
 icon: https://charts.cloudscript.com.br/helm-charts/opsscript-agent/logo.png
@@ -23,6 +23,8 @@ maintainers:
 dependencies: []
 annotations:
   artifacthub.io/changes: |
+    - kind: changed
+      description: "appVersion v1.1.0: o MCP via agente exige um agente que anuncie as capabilities command.poll e mcp.call no heartbeat; versões anteriores não são aceitas no cadastro"
     - kind: added
       description: Optional mcp toggle (default off) so the OpsScript AI can reach an MCP server that is only reachable from inside the cluster, without exposing it to the internet
     - kind: added
@@ -30,7 +32,7 @@ annotations:
   artifacthub.io/containsSecurityUpdates: "false"
   artifacthub.io/images: |
     - name: opsscript-agent
-      image: public.ecr.aws/a3g9d1z6/opsscript-agent:v1.0.4
+      image: public.ecr.aws/a3g9d1z6/opsscript-agent:v1.1.0
   artifacthub.io/displayName: "OpsScript Kubernetes Agent"
   artifacthub.io/license: "Apache-2.0"
   artifacthub.io/provider: "Cloudscript"

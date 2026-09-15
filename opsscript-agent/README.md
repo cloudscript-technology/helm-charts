@@ -150,7 +150,7 @@ kubectl auth can-i get secrets           -n kube-system   --as=$SA   # no
 
 Leave `mcp.secretRefs` empty when the MCP server needs no authentication — no `Role` is rendered at all.
 
-**Requires** an agent that announces the `command.poll` and `mcp.call` capabilities in its heartbeat (this chart version's `appVersion` or newer). OpsScript checks for them and refuses to save the MCP server otherwise, naming the agent.
+**Requires agent v1.1.0 or newer** — the version that announces the `command.poll` and `mcp.call` capabilities in its heartbeat. OpsScript checks for the capabilities (not the version string, which is free-form) and refuses to save the MCP server otherwise, naming the agent and the reason.
 
 ## Workload/PVC inventory (optional, off by default)
 
