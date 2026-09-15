@@ -177,18 +177,10 @@
       "description": "MCP via agent: lets the OpsScript AI reach an MCP server that exists only inside this cluster. Disabled by default.",
       "properties": {
         "enabled": { "type": "boolean", "default": false },
-        "secretRefs": {
+        "secretNamespaces": {
           "type": "array",
-          "description": "Secrets holding MCP tokens the agent may read. Grants a Role restricted by resourceNames to exactly these Secrets - the only Secret access the agent ever gets",
-          "items": {
-            "type": "object",
-            "properties": {
-              "namespace": { "type": "string", "description": "Namespace of the Secret; defaults to the release namespace" },
-              "name": { "type": "string", "description": "Secret name" }
-            },
-            "required": ["name"],
-            "additionalProperties": false
-          },
+          "description": "Namespaces where the agent may read MCP tokens (get only, never list/watch). Empty = the release namespace. Namespaces instead of Secret names because one agent serves many MCP servers and the set changes as they are registered in OpsScript",
+          "items": { "type": "string" },
           "default": []
         },
         "waitSeconds": {

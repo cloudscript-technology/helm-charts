@@ -62,7 +62,7 @@ helm install opsscript-agent cloudscript/opsscript-agent \
 | `alertmanagerIntegration.enabled` | Let the agent manage `PrometheusRule`/`AlertmanagerConfig` objects, confined to `targetNamespace` | `false` |
 | `alertmanagerIntegration.targetNamespace` | Namespace where the agent may create/update/patch/delete `PrometheusRule`/`AlertmanagerConfig` | `monitoring` |
 | `mcp.enabled` | Open the command channel so the OpsScript AI can reach an MCP server that lives inside this cluster | `false` |
-| `mcp.secretRefs` | Secrets (`namespace`/`name`) holding MCP tokens the agent may read. Grants `get` restricted by `resourceNames` — the only Secret access the agent ever gets | `[]` |
+| `mcp.secretNamespaces` | Namespaces where the agent may read MCP tokens (`get` only, never `list`/`watch`). Empty = the release namespace | `[]` |
 | `mcp.waitSeconds` | How long the server holds an empty poll open; keep below the idle timeout of anything between agent and platform | `25` |
 | `mcp.concurrency` | How many commands the agent executes at once | `4` |
 | `inventory.namespaces` | Allowlist of namespaces the agent may read workloads/PVCs from. Empty disables the inventory collector | `[]` |
@@ -76,7 +76,7 @@ helm install opsscript-agent cloudscript/opsscript-agent \
 ## Security notes
 
 - RBAC is read-only and least-privilege: `nodes` and `pods` (get/list) plus `configmaps` restricted by name (`aws-auth`, `cluster-info`).
-- The agent has **no access to Secret contents**, with one opt-in exception: enabling [MCP via agent](#mcp-via-agent-optional-off-by-default) with `mcp.secretRefs` grants `get` on exactly the Secrets you name, in the namespace you name — never `list` or `watch`, never cluster-wide. Leave `mcp.secretRefs` empty and no Secret permission exists at all.
+- The agent has **no access to Secret contents**, with one opt-in exception: enabling [MCP via agent](#mcp-via-agent-optional-off-by-default) grants `get` on Secrets in the namespaces you list — never `list` or `watch` (so it cannot enumerate them), never cluster-wide. With `mcp.enabled: false` no Secret permission exists at all.
 - The container runs as non-root with a read-only root filesystem and all capabilities dropped.
 - One replica only: collections are checkpointed server-side and the deployment uses the `Recreate` strategy to avoid duplicate collection during updates.
 
@@ -120,9 +120,8 @@ Instead of the platform calling the MCP server over the internet, it enqueues th
 ```yaml
 mcp:
   enabled: true
-  secretRefs:
-    - namespace: observability
-      name: mcp-token        # the agent reads the token from here, at call time
+  secretNamespaces:
+    - observability      # onde estão os Secrets com os tokens dos MCP
   waitSeconds: 25
   concurrency: 4
 ```
@@ -131,24 +130,27 @@ The MCP server's URL is **not** configured here: it is registered in OpsScript (
 
 **About the token.** It stays in your cluster. The agent reads the Secret when it makes the call and uses the value as a request header; it is never sent to OpsScript, never stored there, and never appears in the command result or in the agent logs.
 
-**About the permission.** This is the only place the chart grants read access to a Secret, and it is as narrow as Kubernetes allows:
+**About the permission.**
 
 ```
-Role (never ClusterRole) in the namespace you named
-  verb:          get          (no list, no watch — those would expose every Secret in the namespace)
-  resourceNames: exactly the Secrets in mcp.secretRefs
+Role (never ClusterRole), one per namespace in mcp.secretNamespaces
+  verb: get      — no list, no watch, so the agent cannot enumerate what is there
 ```
+
+**Namespaces, not Secret names, on purpose.** One agent serves many MCP servers, each with its own credential, and the set changes whenever someone registers a server in OpsScript. Pinning names with `resourceNames` would mean a chart deploy — a GitOps PR and a sync — for every new credential, which defeats the self-service the UI offers.
+
+The trade-off is explicit: inside a listed namespace the agent can read any Secret **whose name it is told** (it cannot list them). Point `mcp.secretNamespaces` at a namespace dedicated to MCP tokens, so the reach equals what the agent would need anyway — and do not list a namespace that also holds unrelated credentials. When a stricter, name-pinned grant is required, leave `mcp.secretNamespaces` empty and use `rbac.extraRules`.
 
 You can verify it yourself after installing:
 
 ```bash
 SA=system:serviceaccount:<release-namespace>:opsscript-agent
 kubectl auth can-i get secret/mcp-token -n observability --as=$SA   # yes
-kubectl auth can-i list secrets          -n observability --as=$SA   # no
+kubectl auth can-i list secrets          -n observability --as=$SA   # no  (cannot enumerate)
 kubectl auth can-i get secrets           -n kube-system   --as=$SA   # no
 ```
 
-Leave `mcp.secretRefs` empty when the MCP server needs no authentication — no `Role` is rendered at all.
+With `mcp.enabled: false` no `Role` is rendered at all.
 
 **Requires agent v1.1.0 or newer** — the version that announces the `command.poll` and `mcp.call` capabilities in its heartbeat. OpsScript checks for the capabilities (not the version string, which is free-form) and refuses to save the MCP server otherwise, naming the agent and the reason.
 

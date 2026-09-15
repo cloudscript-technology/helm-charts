@@ -2,10 +2,10 @@
 # Least-privilege, read-only access for the Kubernetes collector.
 #
 # No access to Secret contents anywhere in the cluster, with exactly one
-# opt-in exception at the bottom of this file: when mcp.secretRefs is set,
-# a Role restricted by resourceNames lets the agent read those specific
-# Secrets to authenticate against an in-cluster MCP server. That value is
-# used as a request header and never leaves the cluster.
+# opt-in exception at the bottom of this file: with mcp.enabled, a Role grants
+# `get` (never list/watch) on Secrets in the namespaces of
+# mcp.secretNamespaces, so the agent can authenticate against an in-cluster MCP
+# server. The value is used as a request header and never leaves the cluster.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -173,47 +173,41 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
 {{- end }}
 
-{{- if and .Values.rbac.create .Values.mcp.enabled .Values.mcp.secretRefs }}
+{{- if and .Values.rbac.create .Values.mcp.enabled }}
 {{- $root := . }}
-{{/* Agrupa os Secrets por namespace: um Role por namespace, com todos os
-     nomes daquele namespace em resourceNames. Sprig nao tem groupBy. */}}
-{{- $byNamespace := dict }}
-{{- range .Values.mcp.secretRefs }}
-{{- $ns := .namespace | default $root.Release.Namespace }}
-{{- $names := index $byNamespace $ns | default list }}
-{{- $_ := set $byNamespace $ns (append $names .name) }}
-{{- end }}
-{{- range $ns, $names := $byNamespace }}
+{{- $mcpNamespaces := .Values.mcp.secretNamespaces | default (list .Release.Namespace) }}
+{{- range $mcpNamespaces }}
 ---
-# MCP via agent: read access to the SPECIFIC Secrets holding MCP tokens.
+# MCP via agent: read access to the MCP tokens, confined to this namespace.
 #
-# This is the only Secret access the agent ever gets, and it is as narrow
-# as Kubernetes allows: a Role (never a ClusterRole), in one namespace,
-# verb `get` only (no list/watch — which would expose every Secret in the
-# namespace), and resourceNames restricted to the exact Secrets listed in
-# mcp.secretRefs. The values are used as an auth header for the in-cluster
-# MCP server and are never sent to OpsScript.
+# A Role (never a ClusterRole) with `get` only — no list and no watch, so the
+# agent cannot enumerate the Secrets here; it reads exactly the name it was
+# told to read, and uses the value as an auth header for the in-cluster MCP
+# server. The value is never sent to OpsScript.
+#
+# resourceNames is deliberately NOT used: one agent serves many MCP servers,
+# each with its own credential, and the set changes as servers are registered
+# in the UI. Pinning names would require a chart deploy per credential. Point
+# mcp.secretNamespaces at a namespace dedicated to these tokens so the reach
+# stays equal to what the agent would need anyway; use rbac.extraRules when a
+# stricter, name-pinned grant is required.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: {{ include "opsscript-agent.mcpSecretRoleName" $root }}
-  namespace: {{ $ns }}
+  namespace: {{ . }}
   labels:
     {{- include "opsscript-agent.labels" $root | nindent 4 }}
 rules:
   - apiGroups: [""]
     resources: [secrets]
-    resourceNames:
-      {{- range ($names | uniq | sortAlpha) }}
-      - {{ . }}
-      {{- end }}
     verbs: [get]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: {{ include "opsscript-agent.mcpSecretRoleName" $root }}
-  namespace: {{ $ns }}
+  namespace: {{ . }}
   labels:
     {{- include "opsscript-agent.labels" $root | nindent 4 }}
 subjects:
