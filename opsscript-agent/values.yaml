@@ -184,6 +184,50 @@ alertmanagerIntegration:
   # namespace where the agent can write anything.
   targetNamespace: monitoring
 
+# MCP via agent: lets the OpsScript AI reach an MCP server that exists only
+# inside this cluster. The platform enqueues the call, this agent executes
+# it locally and returns only the result.
+#
+# Enable this when the MCP server must NOT be exposed to the internet —
+# which is the whole reason the feature exists.
+mcp:
+  # Quando o canal de comandos opera:
+  #   "auto" (padrão) — o agente abre o canal sozinho quando a configuração
+  #     que ele busca do OpsScript traz algum MCP server. Cadastrar na tela
+  #     passa a bastar: não há o que ligar aqui, nem deploy por servidor novo.
+  #   "false" — desliga. É a decisão do dono do cluster e vence o que estiver
+  #     configurado na plataforma.
+  #   "true" — mantém o canal aberto mesmo sem MCP configurado (para tipos de
+  #     comando que não dependem de MCP).
+  enabled: "auto"
+  # Namespaces where the agent may read MCP tokens, so the credential never
+  # leaves this cluster.
+  #
+  # Namespaces, not Secret names, on purpose: one agent serves MANY MCP
+  # servers, each with its own credential, and the set changes whenever
+  # someone registers a server in OpsScript. Listing names here would mean a
+  # chart deploy for every new MCP — a GitOps PR and a sync to add a
+  # credential, which defeats the self-service the UI offers.
+  #
+  # Empty (default) means the release namespace. Point it at a namespace
+  # dedicated to MCP tokens: the grant is `get` only (never list or watch, so
+  # the agent cannot enumerate what is there), but within a listed namespace
+  # it can read any Secret whose name it is told. Do not list a namespace
+  # that also holds unrelated credentials.
+  #
+  # For a stricter grant (specific Secret names via resourceNames), leave
+  # this empty and use rbac.extraRules.
+  #
+  #   secretNamespaces:
+  #     - observability
+  secretNamespaces: []
+  # How long the agent asks the server to hold an empty poll open, in
+  # seconds. Keep it below any idle timeout between the agent and the
+  # platform (load balancers commonly default to 60s).
+  waitSeconds: 25
+  # How many commands the agent executes at once.
+  concurrency: 4
+
 # Workload/PVC inventory collector. Off by default (empty allowlist): the
 # client decides the blast radius of read access by listing the namespaces
 # the agent is allowed to inspect. No Secret access is ever granted.

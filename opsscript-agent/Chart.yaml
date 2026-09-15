@@ -2,8 +2,8 @@ apiVersion: v2
 name: opsscript-agent
 description: The OpsScript Kubernetes Agent runs inside the client's Kubernetes cluster, collects data from configured integrations (Elasticsearch, Kubernetes, Alertmanager webhooks) and ships it to the OpsScript platform, where alerts and tickets are created automatically.
 type: application
-version: 1.1.0
-appVersion: "v1.0.5"
+version: 1.2.0
+appVersion: "v1.1.1"
 kubeVersion: ">= 1.27.0-0"
 home: https://opsscript.io
 icon: https://charts.cloudscript.com.br/helm-charts/opsscript-agent/logo.png
@@ -23,14 +23,16 @@ maintainers:
 dependencies: []
 annotations:
   artifacthub.io/changes: |
+    - kind: changed
+      description: "appVersion v1.1.1: o MCP via agente exige um agente que anuncie as capabilities command.poll e mcp.call no heartbeat (v1.1.0+), e o modo mcp.enabled=auto exige v1.1.1+ — em v1.1.0 o valor cai em ligado, sem o comportamento ocioso"
     - kind: added
-      description: Optional alertmanagerIntegration toggle (default off) to let the agent manage PrometheusRule/AlertmanagerConfig objects in a single confined namespace
+      description: Optional mcp toggle (default off) so the OpsScript AI can reach an MCP server that is only reachable from inside the cluster, without exposing it to the internet
     - kind: added
-      description: Optional inventory.namespaces allowlist (default empty) to let the agent read workload/PVC objects in client-chosen namespaces, plus an inventory.clusterWide opt-in
+      description: "mcp.secretRefs grants read on exactly the named Secrets (Role with resourceNames, verb get) so the MCP token never leaves the cluster; no Secret permission is created when the list is empty"
   artifacthub.io/containsSecurityUpdates: "false"
   artifacthub.io/images: |
     - name: opsscript-agent
-      image: public.ecr.aws/a3g9d1z6/opsscript-agent:v1.0.4
+      image: public.ecr.aws/a3g9d1z6/opsscript-agent:v1.1.1
   artifacthub.io/displayName: "OpsScript Kubernetes Agent"
   artifacthub.io/license: "Apache-2.0"
   artifacthub.io/provider: "Cloudscript"
@@ -39,4 +41,4 @@ annotations:
       url: https://opsscript.io
     - name: Source
       url: https://github.com/cloudscript-technology/helm-charts
-  artifacthub.io/valuesSchema: "https://charts.cloudscript.com.br/helm-charts/opsscript-agent/1.1.0/values.schema.json"
+  artifacthub.io/valuesSchema: "https://charts.cloudscript.com.br/helm-charts/opsscript-agent/1.2.0/values.schema.json"

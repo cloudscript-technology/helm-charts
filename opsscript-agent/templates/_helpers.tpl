@@ -114,3 +114,12 @@ when inventory.clusterWide is true.
 {{- define "opsscript-agent.inventoryClusterRoleName" -}}
 {{- printf "%s-inventory-%s" (include "opsscript-agent.fullname" .) .Release.Namespace | trunc 63 | trimSuffix "-" }}
 {{- end }}
+
+{{/*
+Name for the per-namespace MCP Secret Role/RoleBinding. Includes the
+release namespace so two releases in different namespaces of the same
+cluster don't collide.
+*/}}
+{{- define "opsscript-agent.mcpSecretRoleName" -}}
+{{- printf "%s-mcp-secret-%s" (include "opsscript-agent.fullname" .) .Release.Namespace | trunc 63 | trimSuffix "-" }}
+{{- end }}

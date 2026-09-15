@@ -61,6 +61,10 @@ helm install opsscript-agent cloudscript/opsscript-agent \
 | `rbac.extraRules` | Extra ClusterRole rules | `[]` |
 | `alertmanagerIntegration.enabled` | Let the agent manage `PrometheusRule`/`AlertmanagerConfig` objects, confined to `targetNamespace` | `false` |
 | `alertmanagerIntegration.targetNamespace` | Namespace where the agent may create/update/patch/delete `PrometheusRule`/`AlertmanagerConfig` | `monitoring` |
+| `mcp.enabled` | When the command channel operates: `"auto"` (opens itself when the agent's config carries an MCP server), `false` (off), `true` (always on) | `"auto"` |
+| `mcp.secretNamespaces` | Namespaces where the agent may read MCP tokens (`get` only, never `list`/`watch`). Empty = the release namespace | `[]` |
+| `mcp.waitSeconds` | How long the server holds an empty poll open; keep below the idle timeout of anything between agent and platform | `25` |
+| `mcp.concurrency` | How many commands the agent executes at once | `4` |
 | `inventory.namespaces` | Allowlist of namespaces the agent may read workloads/PVCs from. Empty disables the inventory collector | `[]` |
 | `inventory.clusterWide` | Opt-in: cluster-wide read instead of per-namespace, ignores `inventory.namespaces` | `false` |
 | `inventory.metricsInterval` | Metrics sampling interval (`AGENT_METRICS_INTERVAL`); floor `1m` | `5m` |
@@ -71,7 +75,8 @@ helm install opsscript-agent cloudscript/opsscript-agent \
 
 ## Security notes
 
-- RBAC is read-only and least-privilege: `nodes` and `pods` (get/list) plus `configmaps` restricted by name (`aws-auth`, `cluster-info`). The agent has **no access to Secret contents** in your cluster.
+- RBAC is read-only and least-privilege: `nodes` and `pods` (get/list) plus `configmaps` restricted by name (`aws-auth`, `cluster-info`).
+- The agent has **no access to Secret contents**, with one opt-in exception: enabling [MCP via agent](#mcp-via-agent-optional-off-by-default) grants `get` on Secrets in the namespaces you list — never `list` or `watch` (so it cannot enumerate them), never cluster-wide. With `mcp.enabled: false` no Secret permission exists at all.
 - The container runs as non-root with a read-only root filesystem and all capabilities dropped.
 - One replica only: collections are checkpointed server-side and the deployment uses the `Recreate` strategy to avoid duplicate collection during updates.
 
@@ -105,6 +110,50 @@ alertmanagerIntegration:
 - Enabling it adds `monitoring.coreos.com` `get/list/watch` on `prometheusrules`, `alertmanagerconfigs`, `prometheuses`, `alertmanagers` to the existing cluster-wide `ClusterRole`, plus a `Role`/`RoleBinding` in `targetNamespace` granting `create/update/patch/delete` on `prometheusrules` and `alertmanagerconfigs` only.
 - **The agent never reads or writes the `Secret` backing Alertmanager** (`alertmanager.yaml`), or any other Secret, regardless of this setting.
 - Default is `false`: no extra RBAC is rendered until you opt in.
+
+## MCP via agent (optional, off by default)
+
+Lets the OpsScript AI use an MCP server that is reachable **only from inside this cluster** — the case when exposing it to the internet is not acceptable.
+
+Instead of the platform calling the MCP server over the internet, it enqueues the call; this agent long-polls for work, executes it locally, and returns only the result.
+
+```yaml
+mcp:
+  secretNamespaces:
+    - observability      # onde estão os Secrets com os tokens dos MCP
+```
+
+**Não há o que ligar.** Em `"auto"` (padrão) o agente abre o canal sozinho quando a configuração que ele busca do OpsScript traz algum MCP server, e o fecha quando não há mais nenhum — sem redeploy. Registrar o servidor na tela basta.
+
+`mcp.enabled: false` desliga de vez: é a decisão do dono do cluster e vence o que estiver configurado na plataforma. `true` mantém o canal aberto mesmo sem MCP, para tipos de comando que não dependem dele.
+
+The MCP server's URL is **not** configured here: it is registered in OpsScript (Integrations > MCP Servers, "Pelo agente") and delivered to the agent as part of its configuration. The agent only ever calls servers present in that configuration, so nothing on the platform side can point it at an arbitrary address inside your network.
+
+**About the token.** It stays in your cluster. The agent reads the Secret when it makes the call and uses the value as a request header; it is never sent to OpsScript, never stored there, and never appears in the command result or in the agent logs.
+
+**About the permission.**
+
+```
+Role (never ClusterRole), one per namespace in mcp.secretNamespaces
+  verb: get      — no list, no watch, so the agent cannot enumerate what is there
+```
+
+**Namespaces, not Secret names, on purpose.** One agent serves many MCP servers, each with its own credential, and the set changes whenever someone registers a server in OpsScript. Pinning names with `resourceNames` would mean a chart deploy — a GitOps PR and a sync — for every new credential, which defeats the self-service the UI offers.
+
+The trade-off is explicit: inside a listed namespace the agent can read any Secret **whose name it is told** (it cannot list them). Point `mcp.secretNamespaces` at a namespace dedicated to MCP tokens, so the reach equals what the agent would need anyway — and do not list a namespace that also holds unrelated credentials. When a stricter, name-pinned grant is required, leave `mcp.secretNamespaces` empty and use `rbac.extraRules`.
+
+You can verify it yourself after installing:
+
+```bash
+SA=system:serviceaccount:<release-namespace>:opsscript-agent
+kubectl auth can-i get secret/mcp-token -n observability --as=$SA   # yes
+kubectl auth can-i list secrets          -n observability --as=$SA   # no  (cannot enumerate)
+kubectl auth can-i get secrets           -n kube-system   --as=$SA   # no
+```
+
+With `mcp.enabled: false` no `Role` is rendered at all.
+
+**Requires agent v1.1.0 or newer** — the version that announces the `command.poll` and `mcp.call` capabilities in its heartbeat. OpsScript checks for the capabilities (not the version string, which is free-form) and refuses to save the MCP server otherwise, naming the agent and the reason.
 
 ## Workload/PVC inventory (optional, off by default)
 
