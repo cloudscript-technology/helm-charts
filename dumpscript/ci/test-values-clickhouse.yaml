@@ -3,9 +3,12 @@ databases:
   - type: clickhouse
     version: "26.8"
     periodicity:
+      - type: weekly
+        retentionDays: 14
+        schedule: "0 4 * * 0"
       - type: daily
         retentionDays: 7
-        schedule: "0 4 * * *"
+        schedule: "0 4 * * 1-6"
     connectionInfo:
       secretName: dumpscript-clickhouse-credentials
     objectStorage:
@@ -17,6 +20,8 @@ databases:
       endpointUrl: https://storage.googleapis.com
     extraArgs: "allow_s3_native_copy=0"
     extraEnv:
+      - name: CLICKHOUSE_BASE_BACKUP_PERIODICITY
+        value: "weekly"
       - name: CLICKHOUSE_ARCHIVE_FORMAT
         value: "tar.zst"
     successHistoryLimit: 1

@@ -213,9 +213,12 @@ writes a single tar archive straight to the bucket, so the job needs no client b
 databases:
   - type: clickhouse
     periodicity:
-      - type: daily
-        retentionDays: 15
-        schedule: "0 4 * * *"
+      - type: weekly            # full backup (Sunday)
+        retentionDays: 42
+        schedule: "0 4 * * 0"
+      - type: daily             # incremental against the newest weekly (Mon-Sat)
+        retentionDays: 35
+        schedule: "0 4 * * 1-6"
     connectionInfo:
       # Secret keys: host, username, password, database, port
       # database "" = full instance (databases + users/roles/grants/named collections)
@@ -229,9 +232,18 @@ databases:
       endpointUrl: https://storage.googleapis.com
     extraArgs: "allow_s3_native_copy=0"      # appended to BACKUP ... SETTINGS
     extraEnv:
+      - name: CLICKHOUSE_BASE_BACKUP_PERIODICITY   # incremental: which periodicity holds the full backups
+        value: "weekly"
       - name: CLICKHOUSE_ARCHIVE_FORMAT       # tar | tar.gz | tar.zst (default)
         value: "tar.zst"
 ```
+
+Incremental backups (image >= v0.0.44): with `CLICKHOUSE_BASE_BACKUP_PERIODICITY=weekly` the `weekly`
+CronJob takes a full backup and the `daily` one sends `SETTINGS base_backup = S3('<newest weekly>')`, so
+each daily archive only carries what changed since the last full. A restore needs at most two archives.
+**Keep the base retention >= incremental retention + one full interval** (42 >= 35 + 7 above) and make
+sure no bucket lifecycle rule expires the base earlier. Without a base archive (first week) the daily
+run falls back to a full backup with a warning. Omit the variable for full backups only.
 
 Server-side requirements:
 - ClickHouse **>= 24.3** (tar archives as backup destination).
@@ -250,6 +262,8 @@ Optional variables (via `extraEnv`): `CLICKHOUSE_SECURE`, `CLICKHOUSE_CA_CERT`, 
 [dumpscript README](https://github.com/cloudscript-technology/dumpscript#clickhouse-options-optional-db_typeclickhouse).
 
 Restore is manual (any replica): `RESTORE DATABASE <db> [AS <new>] FROM S3('<url of the .tar.zst>', '<key>', '<secret>')`.
+From an incremental archive add `SETTINGS use_same_s3_credentials_for_base_backup = 1` (the server reads
+the base recorded in the archive with the same key).
 
 ## Database Version Support
 
