@@ -1,6 +1,6 @@
 # Dumpscript Helm Chart
 
-A Helm Chart for automating PostgreSQL, MySQL/MariaDB and MongoDB database backups on Kubernetes, with automatic upload to S3-compatible storage (AWS S3, MinIO, DigitalOcean Spaces) or Azure Blob Storage.
+A Helm Chart for automating PostgreSQL, MySQL/MariaDB, MongoDB and ClickHouse database backups on Kubernetes, with automatic upload to S3-compatible storage (AWS S3, MinIO, DigitalOcean Spaces) or Azure Blob Storage.
 
 ## Description
 
@@ -8,7 +8,7 @@ A Helm Chart for automating PostgreSQL, MySQL/MariaDB and MongoDB database backu
 
 ## Features
 
-- ✅ **Multiple databases**: Support for PostgreSQL, MySQL/MariaDB and MongoDB
+- ✅ **Multiple databases**: Support for PostgreSQL, MySQL/MariaDB, MongoDB and ClickHouse (native server-side `BACKUP`)
 - ✅ **Runtime configurable client versions**: No need to rebuild images
 - ✅ **Multiple backup schedules**: Support for daily, weekly, monthly, and yearly backups per database
 - ✅ **Independent jobs**: Each database runs in a separate CronJob
@@ -33,7 +33,7 @@ A Helm Chart for automating PostgreSQL, MySQL/MariaDB and MongoDB database backu
 
 ```bash
 # Add the repository (if applicable)
-helm repo add cloudscript https://charts.cloudscript.technology
+helm repo add cloudscript https://charts.cloudscript.com.br
 helm repo update
 
 # Install the chart
@@ -203,6 +203,54 @@ MongoDB backup notes:
 - For SCRAM auth, ensure `--authenticationDatabase` matches your setup (often `admin`).
 - Grant the backup user `read` on target DB; cluster-wide backups may require broader roles.
 
+## ClickHouse Configuration
+
+ClickHouse is backed up with the engine's native `BACKUP ... TO S3()` / `AzureBlobStorage()` statement,
+sent by the job to the server over the HTTP interface (port `8123`, or `8443` with TLS). The **server**
+writes a single tar archive straight to the bucket, so the job needs no client binary and no `extraVolumes`.
+
+```yaml
+databases:
+  - type: clickhouse
+    periodicity:
+      - type: daily
+        retentionDays: 15
+        schedule: "0 4 * * *"
+    connectionInfo:
+      # Secret keys: host, username, password, database, port
+      # database "" = full instance (databases + users/roles/grants/named collections)
+      secretName: dumpscript-clickhouse-credentials
+    objectStorage:
+      backend: s3
+      region: us-central1
+      bucket: my-db-backups
+      bucketPrefix: clickhouse/all
+      secretName: dumpscript-gcs-credentials   # accessKeyId / secretAccessKey (static key or GCS HMAC)
+      endpointUrl: https://storage.googleapis.com
+    extraArgs: "allow_s3_native_copy=0"      # appended to BACKUP ... SETTINGS
+    extraEnv:
+      - name: CLICKHOUSE_ARCHIVE_FORMAT       # tar | tar.gz | tar.zst (default)
+        value: "tar.zst"
+```
+
+Server-side requirements:
+- ClickHouse **>= 24.3** (tar archives as backup destination).
+- Backup user grants:
+  ```sql
+  GRANT BACKUP, SHOW ON *.* TO backup;
+  GRANT SELECT ON system.backups TO backup;   -- job polls the ASYNC status
+  GRANT READ, WRITE ON S3 TO backup;          -- < 25.7: GRANT S3 ON *.*   |  Azure: GRANT AZURE ON *.*
+  ```
+- Network egress from the ClickHouse pods to the storage endpoint, and from the dumpscript namespace to the ClickHouse HTTP port (NetworkPolicy).
+- The storage credentials travel inside the `BACKUP` statement (masked in `system.backups`/`query_log`). Temporary AWS credentials (IRSA, `AWS_SESSION_TOKEN`) are **not** supported by the S3 backup engine: use a static key / GCS HMAC key, or `CLICKHOUSE_USE_SERVER_CREDENTIALS=true` to let the server use its own S3 configuration.
+
+Optional variables (via `extraEnv`): `CLICKHOUSE_SECURE`, `CLICKHOUSE_CA_CERT`, `CLICKHOUSE_ARCHIVE_FORMAT`,
+`CLICKHOUSE_EXCLUDE_DATABASES`, `CLICKHOUSE_BACKUP_ACCESS_ENTITIES`, `CLICKHOUSE_BACKUP_TIMEOUT`,
+`CLICKHOUSE_BACKUP_POLL_INTERVAL`, `CLICKHOUSE_USE_SERVER_CREDENTIALS` — see the
+[dumpscript README](https://github.com/cloudscript-technology/dumpscript#clickhouse-options-optional-db_typeclickhouse).
+
+Restore is manual (any replica): `RESTORE DATABASE <db> [AS <new>] FROM S3('<url of the .tar.zst>', '<key>', '<secret>')`.
+
 ## Database Version Support
 
 ### PostgreSQL Versions
@@ -230,6 +278,10 @@ MongoDB backup notes:
 ### MongoDB Tools
 - MongoDB backups use `mongodump`/`mongorestore` from MongoDB Database Tools.
 - Tools are installed at runtime (no version pinning).
+
+### ClickHouse
+- No client: native `BACKUP` executed by the server over HTTP. Server must be **>= 24.3**.
+- `version` is informational only (exposed as `CLICKHOUSE_VERSION`).
 
 ## Multiple Backup Schedules
 
@@ -536,8 +588,9 @@ If you encounter storage-related failures:
 
 | Parameter | Description | Required |
 |-----------|-------------|----------|
-| `databases[].type` | Database type (`postgresql`, `mysql`, `mariadb`, `mongodb`) | ✅ |
-| `databases[].version` | Database client version | ✅ |
+| `databases[].type` | Database type (`postgresql`, `mysql`, `mariadb`, `mongodb`, `clickhouse`) | ✅ |
+| `databases[].version` | Database client version (informational for `clickhouse`) | ✅ |
+| `databases[].extraEnv` | Extra environment variables for the job (Kubernetes `EnvVar` list), e.g. `CLICKHOUSE_*`, `S3_STORAGE_CLASS` | ❌ |
 | `databases[].periodicity[].type` | Backup type (`daily`, `weekly`, `monthly`, `yearly`) | ✅ |
 | `databases[].periodicity[].schedule` | Cron expression for scheduling | ✅ |
 | `databases[].periodicity[].retentionDays` | Retention period in days (integer) | ✅ |
@@ -828,6 +881,16 @@ databases:
 --db=app_db                      # Single-DB dump; omit for full instance
 ```
 
+### ClickHouse (`BACKUP ... SETTINGS`)
+
+`extraArgs` is appended to the `SETTINGS` clause of the `BACKUP` statement:
+
+```bash
+allow_s3_native_copy=0          # Force buffered copy (safe default for GCS / non-AWS endpoints)
+deduplicate_files=1             # Skip files already present in the base backup
+s3_max_single_part_upload_size=33554432
+```
+
 ## Troubleshooting
 
 ### Check CronJob Status
@@ -1103,10 +1166,12 @@ shasum -a 256 dumpscript-<version>.tgz
 - MySQL/MariaDB: use `--all-databases` with `mysqldump`/`mariadb-dump`.
 - PostgreSQL: use `pg_dumpall` for all databases, roles, and tablespaces.
 - MongoDB: omit `--db` in `mongodump` to dump the entire instance.
+- ClickHouse: `BACKUP TABLE system.users, system.roles, system.settings_profiles, system.row_policies, system.quotas, system.functions, system.named_collections, ALL EXCEPT DATABASES system, information_schema, INFORMATION_SCHEMA` (tune with `CLICKHOUSE_EXCLUDE_DATABASES` / `CLICKHOUSE_BACKUP_ACCESS_ENTITIES`).
 
 ### Full instance restore (database omitted)
 - MySQL/MariaDB: import directly into the server without selecting a database (`mysql`/`mariadb` reading the file). If the dump was generated with `--all-databases`, it will include creation and data for all databases.
 - PostgreSQL: use `psql -d postgres` to apply `pg_dumpall` (roles, tablespaces, and all databases). Requires elevated privileges.
 - MongoDB: omit `--db` in `mongorestore` to restore the entire instance.
+- ClickHouse (manual): `RESTORE ALL FROM S3('<url>', '<key>', '<secret>')` on the server; add `SETTINGS allow_non_empty_tables=1` only to append into existing tables.
 
 For full instance restores, `CREATE_DB` only has an effect when a specific database is defined.
