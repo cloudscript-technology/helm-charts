@@ -91,6 +91,9 @@
                     "retentionDays": {
                         "$ref": "#/$defs/helm-values.databases.retentionDays"
                     },
+                    "extraEnv": {
+                        "$ref": "#/$defs/helm-values.databases.extraEnv"
+                    },
                     "extraVolumes": {
                         "$ref": "#/$defs/helm-values.databases.extraVolumes"
                     },
@@ -246,6 +249,20 @@
             "description": "Global values for the chart",
             "default": {}
         },
+        "helm-values.databases.extraEnv": {
+            "type": "array",
+            "description": "Extra environment variables for the backup container (Kubernetes EnvVar objects), e.g. CLICKHOUSE_ARCHIVE_FORMAT or S3_STORAGE_CLASS",
+            "default": [],
+            "items": {
+                "type": "object",
+                "required": ["name"],
+                "properties": {
+                    "name": { "type": "string" },
+                    "value": { "type": "string" },
+                    "valueFrom": { "type": "object" }
+                }
+            }
+        },
         "helm-values.databases.extraVolumes": {
             "type": "array",
             "description": "Extra volumes for the pod",
@@ -275,12 +292,13 @@
                 "postgresql",
                 "mysql",
                 "mongodb",
-                "mariadb"
+                "mariadb",
+                "clickhouse"
             ]
         },
         "helm-values.databases.version": {
             "type": "string",
-            "description": "Database client version",
+            "description": "Database client version (postgresql, mysql, mariadb). Informational for clickhouse (no client is installed)",
             "default": ""
         },
         "helm-values.databases.connectionInfo": {

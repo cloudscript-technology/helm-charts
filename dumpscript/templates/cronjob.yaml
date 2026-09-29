@@ -72,6 +72,12 @@ spec:
             {{- else if eq $database.type "mysql" }}
             - name: MYSQL_VERSION
               value: {{ $database.version | quote }}
+            {{- else if eq $database.type "mariadb" }}
+            - name: MARIADB_VERSION
+              value: {{ $database.version | quote }}
+            {{- else if eq $database.type "clickhouse" }}
+            - name: CLICKHOUSE_VERSION
+              value: {{ $database.version | quote }}
             {{- end }}
             {{- end }}
             {{- if $database.connectionInfo.secretName }}
@@ -186,6 +192,9 @@ spec:
             {{- if $database.extraArgs }}
             - name: DUMP_OPTIONS
               value: {{ $database.extraArgs | quote }}
+            {{- end }}
+            {{- with $database.extraEnv }}
+            {{- toYaml . | nindent 12 }}
             {{- end }}
             {{- if $.Values.notifications.slack.enabled }}
             {{- if $.Values.notifications.slack.webhookUrlFromSecret }}

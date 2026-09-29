@@ -86,6 +86,9 @@ databases:
       #   secretName: ""
     # Extra arguments for the database dump (e.g. --encoding=utf8, --no-owner)
     extraArgs: ""
+    # Extra environment variables for the backup container (Kubernetes EnvVar objects)
+    # e.g. S3_STORAGE_CLASS, STORAGE_CHUNK_SIZE, CLICKHOUSE_* (see the ClickHouse example below)
+    extraEnv: []
     # IMPORTANT: We recommend using a ephemeral volume to store the database dump if the database is too large
     # Extra volumes for the pod
     extraVolumes: []
@@ -169,6 +172,37 @@ databases:
     extraVolumeMounts: []
     successHistoryLimit: 3
     failureHistoryLimit: 1
+
+  # Example: ClickHouse (native server-side backup). The ClickHouse SERVER runs
+  # `BACKUP ... TO S3()` and uploads a single tar archive straight to the bucket:
+  # no client install, no local volume. Requires ClickHouse >= 24.3 and a user with
+  # `BACKUP, SHOW ON *.*`, `SELECT ON system.backups` and `READ, WRITE ON S3`
+  # (`GRANT S3 ON *.*` before 25.7). Static S3/GCS HMAC keys only (no IRSA).
+  # - type: clickhouse
+  #   periodicity:
+  #   - type: daily
+  #     retentionDays: 15
+  #     schedule: "0 4 * * *"
+  #   connectionInfo:
+  #     # Secret keys: host, username, password, database, port (8123 = HTTP)
+  #     # database "" = full instance (databases + users/roles/grants/named collections)
+  #     secretName: dumpscript-clickhouse-credentials
+  #   objectStorage:
+  #     backend: "s3"
+  #     region: us-central1
+  #     bucket: my-db-backups
+  #     bucketPrefix: clickhouse/all
+  #     secretName: dumpscript-gcs-credentials
+  #     endpointUrl: https://storage.googleapis.com
+  #   # Appended to the BACKUP SETTINGS clause
+  #   extraArgs: "allow_s3_native_copy=0"
+  #   extraEnv:
+  #   - name: CLICKHOUSE_ARCHIVE_FORMAT   # tar | tar.gz | tar.zst
+  #     value: "tar.zst"
+  #   - name: CLICKHOUSE_BACKUP_TIMEOUT    # seconds
+  #     value: "21600"
+  #   successHistoryLimit: 1
+  #   failureHistoryLimit: 1
 
 notifications:
   slack:

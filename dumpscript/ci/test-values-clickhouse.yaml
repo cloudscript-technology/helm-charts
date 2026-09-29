@@ -1,0 +1,42 @@
+# CI values: ClickHouse native backup + extraEnv + mariadb version mapping
+databases:
+  - type: clickhouse
+    version: "26.8"
+    periodicity:
+      - type: daily
+        retentionDays: 7
+        schedule: "0 4 * * *"
+    connectionInfo:
+      secretName: dumpscript-clickhouse-credentials
+    objectStorage:
+      backend: s3
+      region: us-east-1
+      bucket: test-bucket
+      bucketPrefix: clickhouse/all
+      secretName: dumpscript-s3-credentials
+      endpointUrl: https://storage.googleapis.com
+    extraArgs: "allow_s3_native_copy=0"
+    extraEnv:
+      - name: CLICKHOUSE_ARCHIVE_FORMAT
+        value: "tar.zst"
+    successHistoryLimit: 1
+    failureHistoryLimit: 1
+  - type: mariadb
+    version: "11.4"
+    periodicity:
+      - type: daily
+        retentionDays: 7
+        schedule: "0 1 * * *"
+    connectionInfo:
+      host: mariadb.example.com
+      username: backup
+      database: app
+      port: 3306
+      secretName: dumpscript-mariadb-credentials
+    objectStorage:
+      backend: s3
+      region: us-east-1
+      bucket: test-bucket
+      bucketPrefix: mariadb/app
+    successHistoryLimit: 1
+    failureHistoryLimit: 1
