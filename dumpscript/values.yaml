@@ -178,11 +178,18 @@ databases:
   # no client install, no local volume. Requires ClickHouse >= 24.3 and a user with
   # `BACKUP, SHOW ON *.*`, `SELECT ON system.backups` and `READ, WRITE ON S3`
   # (`GRANT S3 ON *.*` before 25.7). Static S3/GCS HMAC keys only (no IRSA).
+  # Full weekly + incremental daily: CLICKHOUSE_BASE_BACKUP_PERIODICITY names the
+  # periodicity that holds the full backups; the others are incremental against its
+  # newest archive. Keep the base retention >= incremental retention + one full
+  # interval (42 >= 35 + 7) so no incremental outlives its base.
   # - type: clickhouse
   #   periodicity:
-  #   - type: daily
-  #     retentionDays: 15
-  #     schedule: "0 4 * * *"
+  #   - type: weekly              # full (Sunday)
+  #     retentionDays: 42
+  #     schedule: "0 4 * * 0"
+  #   - type: daily               # incremental against the newest weekly (Mon-Sat)
+  #     retentionDays: 35
+  #     schedule: "0 4 * * 1-6"
   #   connectionInfo:
   #     # Secret keys: host, username, password, database, port (8123 = HTTP)
   #     # database "" = full instance (databases + users/roles/grants/named collections)
@@ -197,6 +204,8 @@ databases:
   #   # Appended to the BACKUP SETTINGS clause
   #   extraArgs: "allow_s3_native_copy=0"
   #   extraEnv:
+  #   - name: CLICKHOUSE_BASE_BACKUP_PERIODICITY   # remove for full backups only
+  #     value: "weekly"
   #   - name: CLICKHOUSE_ARCHIVE_FORMAT   # tar | tar.gz | tar.zst
   #     value: "tar.zst"
   #   - name: CLICKHOUSE_BACKUP_TIMEOUT    # seconds

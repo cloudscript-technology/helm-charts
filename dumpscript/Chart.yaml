@@ -2,8 +2,8 @@ apiVersion: v2
 name: dumpscript
 description: The DumpScript is a unified system for backup and restore of MySQL, PostgreSQL, MongoDB and ClickHouse databases to S3-compatible storage and Azure Blob Storage.
 type: application
-version: 1.9.0
-appVersion: "v0.0.43-alpine-edge"
+version: 1.10.0
+appVersion: "v0.0.44-alpine-edge"
 kubeVersion: ">= 1.27.0-0"
 home: https://cloudscript.com.br
 icon: https://charts.cloudscript.com.br/helm-charts/dumpscript/cloudscript-logo.png
@@ -30,21 +30,15 @@ dependencies: []
 annotations:
   artifacthub.io/changes: |
     - kind: added
-      description: ClickHouse support (`type: clickhouse`) with native server-side `BACKUP ... TO S3()/AzureBlobStorage()` as a single tar archive, no local volume required
-    - kind: added
-      description: "`databases[].extraEnv` to pass extra environment variables to the job (e.g. CLICKHOUSE_*, S3_STORAGE_CLASS)"
-    - kind: fixed
-      description: "`databases[].version` is now propagated for `type: mariadb` (MARIADB_VERSION was never set)"
-    - kind: fixed
-      description: Retention cleanup parsed the object size as the path and never deleted expired backups (image v0.0.43)
-  artifacthub.io/containsSecurityUpdates: "true"
+      description: "ClickHouse incremental backups: `CLICKHOUSE_BASE_BACKUP_PERIODICITY` (via `extraEnv`) makes one periodicity the full backup and the others incremental against its newest archive (`SETTINGS base_backup`), image v0.0.44"
+  artifacthub.io/containsSecurityUpdates: "false"
   artifacthub.io/images: |
     - name: dumpscript alpine3.21
-      image: ghcr.io/cloudscript-technology/dumpscript:v0.0.43-alpine-3-21
+      image: ghcr.io/cloudscript-technology/dumpscript:v0.0.44-alpine-3-21
     - name: dumpscript alpine3.20
-      image: ghcr.io/cloudscript-technology/dumpscript:v0.0.43-alpine-3-20
+      image: ghcr.io/cloudscript-technology/dumpscript:v0.0.44-alpine-3-20
     - name: dumpscript alpine-edge (PostgreSQL 18)
-      image: ghcr.io/cloudscript-technology/dumpscript:v0.0.43-alpine-edge
+      image: ghcr.io/cloudscript-technology/dumpscript:v0.0.44-alpine-edge
   artifacthub.io/displayName: "Dump Script"
   artifacthub.io/license: "MIT"
   artifacthub.io/provider: "Cloudscript"
@@ -53,4 +47,4 @@ annotations:
       url: https://cloudscript.com.br
     - name: Source
       url: https://github.com/cloudscript-technology/helm-charts
-  artifacthub.io/valuesSchema: "https://charts.cloudscript.com.br/dumpscript/1.9.0/values-schema.json"
+  artifacthub.io/valuesSchema: "https://charts.cloudscript.com.br/dumpscript/1.10.0/values-schema.json"
