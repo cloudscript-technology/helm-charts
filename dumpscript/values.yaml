@@ -178,6 +178,10 @@ databases:
   # no client install, no local volume. Requires ClickHouse >= 24.3 and a user with
   # `BACKUP, SHOW ON *.*`, `SELECT ON system.backups` and `READ, WRITE ON S3`
   # (`GRANT S3 ON *.*` before 25.7). Static S3/GCS HMAC keys only (no IRSA).
+  # Several replicas behind one Service (image >= v0.0.45): system.backups is local to
+  # each server, so set CLICKHOUSE_CLUSTER (name in system.clusters) to poll every
+  # replica via clusterAllReplicas(). REQUIRED grant for it: `GRANT REMOTE ON *.*`
+  # (without it the poll fails with ACCESS_DENIED after the BACKUP was submitted).
   # Full weekly + incremental daily: CLICKHOUSE_BASE_BACKUP_PERIODICITY names the
   # periodicity that holds the full backups; the others are incremental against its
   # newest archive. Keep the base retention >= incremental retention + one full
@@ -206,6 +210,8 @@ databases:
   #   extraEnv:
   #   - name: CLICKHOUSE_BASE_BACKUP_PERIODICITY   # remove for full backups only
   #     value: "weekly"
+  #   - name: CLICKHOUSE_CLUSTER   # only when host balances several replicas
+  #     value: "default"
   #   - name: CLICKHOUSE_ARCHIVE_FORMAT   # tar | tar.gz | tar.zst
   #     value: "tar.zst"
   #   - name: CLICKHOUSE_BACKUP_TIMEOUT    # seconds

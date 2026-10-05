@@ -22,6 +22,8 @@ databases:
     extraEnv:
       - name: CLICKHOUSE_BASE_BACKUP_PERIODICITY
         value: "weekly"
+      - name: CLICKHOUSE_CLUSTER
+        value: "default"
       - name: CLICKHOUSE_ARCHIVE_FORMAT
         value: "tar.zst"
     successHistoryLimit: 1
