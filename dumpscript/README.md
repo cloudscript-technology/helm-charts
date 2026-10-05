@@ -234,6 +234,8 @@ databases:
     extraEnv:
       - name: CLICKHOUSE_BASE_BACKUP_PERIODICITY   # incremental: which periodicity holds the full backups
         value: "weekly"
+      - name: CLICKHOUSE_CLUSTER              # host is a Service balancing several replicas
+        value: "default"
       - name: CLICKHOUSE_ARCHIVE_FORMAT       # tar | tar.gz | tar.zst (default)
         value: "tar.zst"
 ```
@@ -245,6 +247,13 @@ each daily archive only carries what changed since the last full. A restore need
 sure no bucket lifecycle rule expires the base earlier. Without a base archive (first week) the daily
 run falls back to a full backup with a warning. Omit the variable for full backups only.
 
+Several replicas behind one Service (image >= v0.0.45): `system.backups` is local to each server, so the
+status poll can land on a replica other than the one running the `BACKUP ... ASYNC` and the job fails with
+"Lost track" even though the backup succeeds. Set `CLICKHOUSE_CLUSTER` to the cluster name
+(`SELECT DISTINCT cluster FROM system.clusters`) to poll every replica via `clusterAllReplicas()`; it needs
+`GRANT REMOTE ON *.*`. Without an interserver `secret` in `remote_servers`, the remote replicas run the
+subquery as the cluster's configured user, which then also needs `SELECT ON system.backups`.
+
 Server-side requirements:
 - ClickHouse **>= 24.3** (tar archives as backup destination).
 - Backup user grants:
@@ -252,13 +261,14 @@ Server-side requirements:
   GRANT BACKUP, SHOW ON *.* TO backup;
   GRANT SELECT ON system.backups TO backup;   -- job polls the ASYNC status
   GRANT READ, WRITE ON S3 TO backup;          -- < 25.7: GRANT S3 ON *.*   |  Azure: GRANT AZURE ON *.*
+  GRANT REMOTE ON *.* TO backup;              -- only with CLICKHOUSE_CLUSTER (clusterAllReplicas)
   ```
 - Network egress from the ClickHouse pods to the storage endpoint, and from the dumpscript namespace to the ClickHouse HTTP port (NetworkPolicy).
 - The storage credentials travel inside the `BACKUP` statement (masked in `system.backups`/`query_log`). Temporary AWS credentials (IRSA, `AWS_SESSION_TOKEN`) are **not** supported by the S3 backup engine: use a static key / GCS HMAC key, or `CLICKHOUSE_USE_SERVER_CREDENTIALS=true` to let the server use its own S3 configuration.
 
 Optional variables (via `extraEnv`): `CLICKHOUSE_SECURE`, `CLICKHOUSE_CA_CERT`, `CLICKHOUSE_ARCHIVE_FORMAT`,
 `CLICKHOUSE_EXCLUDE_DATABASES`, `CLICKHOUSE_BACKUP_ACCESS_ENTITIES`, `CLICKHOUSE_BACKUP_TIMEOUT`,
-`CLICKHOUSE_BACKUP_POLL_INTERVAL`, `CLICKHOUSE_USE_SERVER_CREDENTIALS` — see the
+`CLICKHOUSE_BACKUP_POLL_INTERVAL`, `CLICKHOUSE_CLUSTER`, `CLICKHOUSE_USE_SERVER_CREDENTIALS` — see the
 [dumpscript README](https://github.com/cloudscript-technology/dumpscript#clickhouse-options-optional-db_typeclickhouse).
 
 Restore is manual (any replica): `RESTORE DATABASE <db> [AS <new>] FROM S3('<url of the .tar.zst>', '<key>', '<secret>')`.
