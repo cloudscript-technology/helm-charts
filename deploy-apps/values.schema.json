@@ -20,6 +20,10 @@
       "properties": {
         "create": { "type": "boolean" },
         "automount": { "type": "boolean" },
+        "nameFromRelease": {
+          "type": "boolean",
+          "description": "Name generated ServiceAccounts after the release (<release> and <release>-<app>) instead of the fullname"
+        },
         "annotations": { "type": "object" },
         "name": { "type": "string" },
         "namespace": { "type": "string" }
@@ -63,6 +67,19 @@
             "type": "object",
             "description": "Annotations to add to the resource metadata (e.g. ArgoCD hooks for Jobs)",
             "additionalProperties": { "type": "string" }
+          },
+          "serviceAccount": {
+            "type": "object",
+            "properties": {
+              "create": { "type": "boolean" },
+              "automount": { "type": "boolean" },
+              "annotations": { "type": "object" },
+              "name": { "type": "string" }
+            }
+          },
+          "automountServiceAccountToken": {
+            "type": "boolean",
+            "description": "Pod-level token mount for this app; overrides the ServiceAccount setting"
           },
           "strategy": {
             "type": "object",

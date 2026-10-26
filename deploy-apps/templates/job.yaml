@@ -41,6 +41,9 @@ spec:
         {{- $imagePullSecrets | nindent 8 }}
       {{- end }}
       serviceAccountName: {{ include "deploy-apps.app.serviceAccountName" (dict "root" $ "app" $app) }}
+      {{- with include "deploy-apps.app.podAutomountToken" (dict "root" $ "app" $app) }}
+      {{ . }}
+      {{- end }}
       {{- $podSecurityContext := include "deploy-apps.app.podSecurityContext" (dict "root" $ "app" $app) }}
       {{- if $podSecurityContext }}
       securityContext:

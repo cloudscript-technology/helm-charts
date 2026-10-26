@@ -883,6 +883,48 @@ apps:
       git-commit: abc123
 ```
 
+## ServiceAccount
+
+### Uma ServiceAccount por release (recomendado com ArgoCD)
+
+Com `nameFromRelease: true` o nome sai do release (no ArgoCD, o nome da Application), e não do
+`fullnameOverride`. Duas releases com o mesmo `fullnameOverride` no mesmo namespace deixam de
+renderizar a mesma ServiceAccount (o que deixa as Applications `OutOfSync` disputando o objeto).
+
+```yaml
+serviceAccount:
+  create: true
+  nameFromRelease: true   # SA = <release>
+  automount: false        # sem token da API na SA e nos pods
+```
+
+### ServiceAccount por componente
+
+Só quando o componente precisa de RBAC ou identidade de nuvem diferente dos demais.
+
+```yaml
+serviceAccount:
+  create: true
+  nameFromRelease: true
+  automount: false
+
+apps:
+  - name: worker
+    serviceAccount:
+      create: true          # SA = <release>-worker
+      automount: false
+      annotations:
+        iam.gke.io/gcp-service-account: worker@<projeto>.iam.gserviceaccount.com
+```
+
+### Token da API (`automount`)
+
+- `serviceAccount.automount` / `apps[].serviceAccount.automount` são gravados na ServiceAccount
+  (inclusive `false`).
+- Quando o valor efetivo para o app é `false`, o pod recebe `automountServiceAccountToken: false`.
+- `apps[].automountServiceAccountToken` força o valor no pod daquele app (ex.: liga o token só no
+  componente que chama a API do Kubernetes).
+
 ## RBAC
 
 ### RBAC Global (Compartilhado)
@@ -1069,6 +1111,8 @@ apps:
 | `image.pullPolicy` | Pull policy global | `IfNotPresent` |
 | `imagePullSecrets` | Image pull secrets globais | `[]` |
 | `serviceAccount.create` | Criar ServiceAccount global | `true` |
+| `serviceAccount.automount` | Montar o token da API (gravado na SA; `false` também no pod) | `true` |
+| `serviceAccount.nameFromRelease` | Nomear as SAs pelo release (`<release>`, `<release>-<app>`) | `false` |
 | `rbac.create` | Criar RBAC global | `false` |
 | `apps` | Array de aplicações | `[]` |
 

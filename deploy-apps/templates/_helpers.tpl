@@ -51,11 +51,24 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
+Base name for generated service accounts.
+With serviceAccount.nameFromRelease it is the release name (the ArgoCD Application name),
+so releases sharing a fullnameOverride in the same namespace never render the same ServiceAccount.
+*/}}
+{{- define "deploy-apps.serviceAccountBaseName" -}}
+{{- if .Values.serviceAccount.nameFromRelease }}
+{{- .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- include "deploy-apps.fullname" . }}
+{{- end }}
+{{- end }}
+
+{{/*
 Create the name of the global service account to use
 */}}
 {{- define "deploy-apps.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
-{{- default (include "deploy-apps.fullname" .) .Values.serviceAccount.name }}
+{{- default (include "deploy-apps.serviceAccountBaseName" .) .Values.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
@@ -114,7 +127,8 @@ Usage: {{ include "deploy-apps.app.serviceAccountName" (dict "root" $ "app" $app
 {{- define "deploy-apps.app.serviceAccountName" -}}
 {{- if .app.serviceAccount }}
 {{- if .app.serviceAccount.create }}
-{{- default (include "deploy-apps.app.fullname" (dict "root" .root "app" .app)) .app.serviceAccount.name }}
+{{- $base := include "deploy-apps.serviceAccountBaseName" .root }}
+{{- default (printf "%s-%s" $base .app.name | trunc 63 | trimSuffix "-") .app.serviceAccount.name }}
 {{- else if .root.Values.serviceAccount.create }}
 {{- include "deploy-apps.serviceAccountName" .root }}
 {{- else }}
@@ -124,6 +138,38 @@ Usage: {{ include "deploy-apps.app.serviceAccountName" (dict "root" $ "app" $app
 {{- include "deploy-apps.serviceAccountName" .root }}
 {{- else }}
 {{- "default" }}
+{{- end }}
+{{- end }}
+
+{{/*
+Resolve whether an app's pods mount the ServiceAccount token ("true", "false" or empty when unset).
+Precedence: apps[].automountServiceAccountToken > apps[].serviceAccount.automount (app-owned SA)
+> serviceAccount.automount (global SA created by the chart).
+Usage: {{ include "deploy-apps.app.automountToken" (dict "root" $ "app" $app) }}
+*/}}
+{{- define "deploy-apps.app.automountToken" -}}
+{{- $global := .root.Values.serviceAccount }}
+{{- if not (kindIs "invalid" .app.automountServiceAccountToken) }}
+{{- .app.automountServiceAccountToken }}
+{{- else if and .app.serviceAccount .app.serviceAccount.create }}
+{{- if not (kindIs "invalid" .app.serviceAccount.automount) }}
+{{- .app.serviceAccount.automount }}
+{{- end }}
+{{- else if and $global.create (not (kindIs "invalid" $global.automount)) }}
+{{- $global.automount }}
+{{- end }}
+{{- end }}
+
+{{/*
+Pod spec field disabling the ServiceAccount token. Rendered when the token resolves to false
+(Kubernetes mounts it when the field is absent, even if the ServiceAccount says false for a
+ServiceAccount the chart does not own) or when the app sets automountServiceAccountToken explicitly.
+Usage: {{ include "deploy-apps.app.podAutomountToken" (dict "root" $ "app" $app) }}
+*/}}
+{{- define "deploy-apps.app.podAutomountToken" -}}
+{{- $automount := include "deploy-apps.app.automountToken" . }}
+{{- if or (eq $automount "false") (not (kindIs "invalid" .app.automountServiceAccountToken)) }}
+{{- printf "automountServiceAccountToken: %s" $automount }}
 {{- end }}
 {{- end }}
 
