@@ -80,7 +80,12 @@ serviceAccount:
   # Specifies whether a service account should be created
   create: true
   # Automatically mount a ServiceAccount's API credentials?
+  # false is rendered on the ServiceAccount and on every pod that uses it.
   automount: true
+  # Name generated ServiceAccounts after the release (the ArgoCD Application name)
+  # instead of the fullname: global SA = <release>, per-app SA = <release>-<app>.
+  # Avoids two releases sharing a fullnameOverride rendering the same ServiceAccount.
+  nameFromRelease: false
   # Annotations to add to the service account
   annotations: {}
   # The name of the service account to use.
@@ -371,6 +376,9 @@ apps: []
 #      annotations: {}
 #      # Name (auto-generated if empty)
 #      name: ""
+#
+#    # Pod-level token mount (overrides the ServiceAccount setting for this app)
+#    automountServiceAccountToken: false
 #
 #    # Per-app RBAC (overrides global)
 #    rbac:
