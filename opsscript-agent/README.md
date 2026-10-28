@@ -80,6 +80,21 @@ helm install opsscript-agent cloudscript/opsscript-agent \
 - The container runs as non-root with a read-only root filesystem and all capabilities dropped.
 - One replica only: collections are checkpointed server-side and the deployment uses the `Recreate` strategy to avoid duplicate collection during updates.
 
+## Elasticsearch integration: TLS with a private CA
+
+No chart values are involved: the integration (URL, index, API key, TLS) is configured in OpsScript and delivered to the agent with its config.
+
+**Requires agent v1.1.2 or newer** for clusters with a self-signed or private CA. In the integration form, under **Certificado TLS**, either paste the CA (PEM, trusted on top of the system CAs) or enable **Ignorar verificação do certificado** (traffic stays encrypted but the server identity is not checked — prefer the CA). Older agents ignore both settings and fail with `x509: certificate signed by unknown authority`.
+
+ECK serves its `<name>-es-http` service over HTTPS with its own CA by default, so use an `https://` URL and the public CA from the `<name>-es-http-certs-public` Secret (`ca.crt` key):
+
+```bash
+kubectl get secret <name>-es-http-certs-public -n <namespace> \
+  -o jsonpath='{.data.ca\.crt}' | base64 -d
+```
+
+The agent receives the CA through its config, so it still needs no access to Secrets.
+
 ## Alertmanager integration (optional, off by default)
 
 Lets the agent read Prometheus Operator CRs cluster-wide and manage (create/update/patch/delete) `PrometheusRule` and `AlertmanagerConfig` objects — but only inside **one namespace you choose**. This is used by the OpsScript UI to let you review and approve alert rules/routes suggested for your cluster; the agent never applies anything without your approval upstream.
