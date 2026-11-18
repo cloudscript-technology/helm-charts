@@ -17,6 +17,9 @@ spec:
   {{- fail (printf "schedule is required for cronjob '%s'" $app.name) }}
   {{- end }}
   schedule: {{ $app.schedule | quote }}
+  {{- with $app.timeZone }}
+  timeZone: {{ . | quote }}
+  {{- end }}
   successfulJobsHistoryLimit: {{ $app.successfulJobsHistoryLimit | default 3 }}
   failedJobsHistoryLimit: {{ $app.failedJobsHistoryLimit | default 1 }}
   concurrencyPolicy: {{ $app.concurrencyPolicy | default "Forbid" }}
@@ -28,10 +31,13 @@ spec:
   {{- end }}
   jobTemplate:
     spec:
-      {{- if $app.backoffLimit }}
+      {{- if hasKey $app "backoffLimit" }}
       backoffLimit: {{ $app.backoffLimit }}
       {{- end }}
-      {{- if $app.ttlSecondsAfterFinished }}
+      {{- if hasKey $app "activeDeadlineSeconds" }}
+      activeDeadlineSeconds: {{ $app.activeDeadlineSeconds }}
+      {{- end }}
+      {{- if hasKey $app "ttlSecondsAfterFinished" }}
       ttlSecondsAfterFinished: {{ $app.ttlSecondsAfterFinished }}
       {{- end }}
       template:

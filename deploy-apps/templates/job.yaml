@@ -16,6 +16,9 @@ spec:
   {{- if hasKey $app "backoffLimit" }}
   backoffLimit: {{ $app.backoffLimit }}
   {{- end }}
+  {{- if hasKey $app "activeDeadlineSeconds" }}
+  activeDeadlineSeconds: {{ $app.activeDeadlineSeconds }}
+  {{- end }}
   {{- if hasKey $app "ttlSecondsAfterFinished" }}
   ttlSecondsAfterFinished: {{ $app.ttlSecondsAfterFinished }}
   {{- end }}
