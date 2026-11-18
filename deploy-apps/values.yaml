@@ -610,6 +610,8 @@ apps: []
 #
 #    # CronJob schedule
 #    schedule: "0 2 * * *"  # Every day at 2 AM
+#    # IANA time zone for the schedule (default: kube-controller-manager time zone, usually UTC)
+#    timeZone: America/Sao_Paulo
 #
 #    # CronJob specific settings
 #    successfulJobsHistoryLimit: 3
@@ -617,7 +619,8 @@ apps: []
 #    concurrencyPolicy: Forbid  # Forbid, Allow, or Replace
 #
 #    # Job specific settings (applies to CronJob's job template too)
-#    backoffLimit: 3
+#    backoffLimit: 3  # 0 is rendered too (no retries); omit to use the Kubernetes default (6)
+#    activeDeadlineSeconds: 3600  # kill the Job after 1 hour
 #    ttlSecondsAfterFinished: 86400  # 24 hours
 #
 #    # Restart policy for Job/CronJob (Never or OnFailure)

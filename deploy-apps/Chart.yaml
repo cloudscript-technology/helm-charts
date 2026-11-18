@@ -2,8 +2,8 @@ apiVersion: v2
 name: deploy-apps
 description: Helm chart flexível para deploy de múltiplas aplicações (Deployment, StatefulSet, CronJob, Job) com suporte a External Secrets e KEDA
 type: application
-version: 0.4.0
-appVersion: "0.4.0"
+version: 0.4.1
+appVersion: "0.4.1"
 kubeVersion: ">= 1.27.0-0"
 home: https://cloudscript.com.br
 icon: https://charts.cloudscript.com.br/helm-charts/deploy-apps/logo.png
@@ -26,12 +26,12 @@ maintainers:
 dependencies: []
 annotations:
   artifacthub.io/changes: |
+    - kind: added
+      description: apps[].timeZone sets spec.timeZone on CronJobs
+    - kind: added
+      description: apps[].activeDeadlineSeconds sets activeDeadlineSeconds on the Job spec of Jobs and CronJobs
     - kind: fixed
-      description: serviceAccount.automount false (global and per app) is now rendered on the ServiceAccount and on the pods using it; previously the field was omitted and Kubernetes mounted the token anyway
-    - kind: added
-      description: serviceAccount.nameFromRelease names generated ServiceAccounts after the release (<release>, <release>-<app>) instead of the fullname
-    - kind: added
-      description: apps[].automountServiceAccountToken sets the token mount on the pod spec of an app
+      description: backoffLimit and ttlSecondsAfterFinished 0 are now rendered on CronJobs; previously 0 was dropped and Kubernetes applied its defaults (6 retries, no TTL)
   artifacthub.io/displayName: "Deploy Apps"
   artifacthub.io/license: "Apache-2.0"
   artifacthub.io/provider: "Cloudscript"
